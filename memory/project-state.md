@@ -1,62 +1,62 @@
 # MidasAI Project State
 
-## Project Overview
-MidasAI is a marketplace for AI tools including Claude Skills, Cursor Rules, Windsurf Workflows, MCP Servers, AI Agents, and more.
+## Last Updated
+2026-06-19 — Agent 0 (Project Manager) full audit
 
-## Tech Stack
+## Project Overview
+MidasAI is a marketplace for AI tools: Claude Skills, Cursor Rules, Windsurf Workflows, MCP Servers, AI Agents, Prompt Packs, Templates, and Automations.
+
+## Tech Stack (Actual — as deployed in code)
 - **Framework**: Next.js 15
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
-- **UI Components**: Shadcn UI
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: NextAuth.js with credentials provider
-- **Password Hashing**: bcryptjs
+- **UI Components**: Shadcn UI (Button, Card, Input, Label, DropdownMenu)
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth (via `@supabase/ssr`)
+- **Schema**: `supabase/schema.sql` (not yet applied)
+
+## Architecture Contradiction (MUST RESOLVE)
+- `CLAUDE.md` prescribes Prisma + NextAuth
+- Actual codebase uses Supabase Auth + Supabase client (no Prisma, no NextAuth)
+- Decision needed: update CLAUDE.md to reflect Supabase stack, or migrate code to Prisma/NextAuth
+- **Recommendation**: Keep Supabase (already wired), update CLAUDE.md
 
 ## Design System
-- **Primary Color**: #1E40AF (Blue)
-- **Secondary Color**: #3B82F6 (Light Blue)
-- **CTA Color**: #22C55E (Green)
+- **Intended (context.md)**: Gold primary `#D4AF37`, background `#050505` — dark luxury
+- **Actual (globals.css)**: Blue primary (HSL 217/221), dark navy background
+- **Mismatch**: The gold dark luxury theme was never implemented
 - **Typography**: Poppins (headings), Open Sans (body)
-- **Style**: Glassmorphism
+- **Style**: Glassmorphism utility classes defined but barely used
 
-## Project Structure
+## Repository Structure
 ```
-MidasAI/
+midasai/
+├── .agents/skills/          # Supabase + Postgres best practices skills
+├── .windsurf/skills/        # ui-ux-pro-max skill
 ├── app/
-│   ├── api/
-│   │   └── auth/[...nextauth]/route.ts
-│   ├── admin/
-│   │   ├── dashboard/page.tsx
-│   │   ├── listings/page.tsx
-│   │   ├── settings/page.tsx
-│   │   └── users/page.tsx
-│   ├── creator/
-│   │   ├── analytics/page.tsx
-│   │   ├── dashboard/page.tsx
-│   │   ├── listings/page.tsx
-│   │   └── upload/page.tsx
-│   ├── listing/[id]/page.tsx
 │   ├── about/page.tsx
+│   ├── admin/{dashboard,listings,settings,users}/page.tsx
+│   ├── agents/page.tsx
+│   ├── auth/{login,logout,register}/page.tsx
 │   ├── blog/page.tsx
 │   ├── bookmarks/page.tsx
 │   ├── categories/page.tsx
+│   ├── collections/page.tsx
 │   ├── contact/page.tsx
+│   ├── creator/{analytics,dashboard,listings,upload}/page.tsx
 │   ├── dashboard/page.tsx
 │   ├── docs/page.tsx
 │   ├── featured/page.tsx
-│   ├── forgot-password/page.tsx
 │   ├── globals.css
 │   ├── layout.tsx
-│   ├── login/page.tsx
+│   ├── listing/[id]/page.tsx
 │   ├── mcp/page.tsx
 │   ├── notifications/page.tsx
-│   ├── page.tsx
+│   ├── page.tsx              # Home page
 │   ├── plugins/page.tsx
 │   ├── pricing/page.tsx
 │   ├── profile/page.tsx
 │   ├── prompts/page.tsx
-│   ├── register/page.tsx
-│   ├── reset-password/page.tsx
 │   ├── search/page.tsx
 │   ├── settings/page.tsx
 │   ├── skills/page.tsx
@@ -64,105 +64,75 @@ MidasAI/
 │   ├── trending/page.tsx
 │   └── workflows/page.tsx
 ├── components/
-│   ├── layout/
-│   │   ├── Footer.tsx
-│   │   └── Navbar.tsx
-│   └── ui/
-│       ├── button.tsx
-│       ├── card.tsx
-│       ├── dropdown-menu.tsx
-│       ├── input.tsx
-│       └── label.tsx
+│   ├── layout/{Navbar,Footer}.tsx
+│   └── ui/{button,card,dropdown-menu,input,label}.tsx
 ├── lib/
-│   ├── auth.ts
-│   ├── prisma.ts
+│   ├── supabase/{client,server,middleware}.ts
 │   └── utils.ts
-├── prisma/
-│   └── schema.prisma
-├── types/
-│   └── next-auth.d.ts
-├── .env.example
-├── .gitignore
-├── next.config.mjs
+├── memory/
+│   ├── project-state.md
+│   └── checkpoints/
+├── supabase/schema.sql
+├── middleware.ts
 ├── package.json
-├── postcss.config.mjs
 ├── tailwind.config.ts
 └── tsconfig.json
 ```
 
-## Database Schema
-- User
-- Account
-- Session
-- VerificationToken
-- Role
-- ListingType
-- ListingStatus
-- Category
-- Listing
-- Review
-- Bookmark
-- Notification
-- SiteSettings
+## What Is Built (Real vs Placeholder)
 
-## Route Summary
-- **Public Routes (18)**: Home, Search, Skills, Plugins, MCP, Agents, Prompts, Workflows, Templates, Collections, Categories, Trending, Featured, Pricing, Blog, Docs, About, Contact
-- **Account Routes (9)**: Login, Register, Forgot Password, Reset Password, Dashboard, Profile, Settings, Notifications, Bookmarks
-- **Creator Routes (4)**: Dashboard, Upload, Listings, Analytics
-- **Admin Routes (4)**: Dashboard, Users, Listings, Settings
-- **Marketplace Routes (1)**: Listing detail page
+### Real / Functional
+- Supabase client/server/middleware wiring
+- Auth flow: login, register, logout (Supabase Auth)
+- Middleware: protects /dashboard, /creator, /admin (redirects to /login)
+- Layout: Navbar + Footer + dark mode class
+- 5 Shadcn UI components
+- Database schema SQL file with RLS policies
 
-## Current Status
-Phase 1 foundation is complete. Phase 2 Production Sprint started on 2025-01-19.
+### Placeholder Only (Static Mock Data, No DB)
+- ALL 37 route pages render hardcoded mock data
+- Search page — static HTML, no query logic
+- Skills/Plugins/MCP/Agents/Prompts/Workflows/Templates — static card grids
+- Admin dashboard — fake stats (2,456 users, $48,290 revenue)
+- Creator dashboard — fake stats
+- User dashboard — fake stats
+- Listing detail page — hardcoded single listing
+- Bookmarks, Notifications, Settings, Profile — static
+- Collections, Categories, Trending, Featured — static
 
-**Completed:**
-- Next.js 15 project structure with TypeScript
-- Supabase integration (auth, client, server, middleware)
-- Basic UI components (shadcn/ui)
-- Authentication flow (login/register)
-- Route structure (37 routes)
-- Navbar and Footer components
-- Middleware for auth protection
+### Does Not Exist
+- No API routes or server actions
+- No TypeScript types for DB entities
+- No Supabase migrations applied
+- No .env / environment variables configured
+- No README.md
+- No CI/CD pipeline
+- No tests
+- No image/file upload
+- No payment system
+- No real search
+- No SEO (beyond basic metadata)
+- No error boundaries or loading states
+- No tags system
+- No downloads tracking
+- No reviews/ratings logic
+- No creator or public profiles
 
-**Critical Gaps Identified:**
-- No database schema or migrations
-- Basic UI needs premium dark luxury theme transformation
-- No MCP Server integration architecture
-- No AI Agent connectivity system
-- Missing marketplace core features (reviews, ratings, favorites, downloads)
-- Incomplete profile system
-- Basic search needs full-text, filtering, sorting
-- No SEO implementation
-- Performance optimization needed
-- Admin system uses insecure /admin route
+## Blocked Work
+1. **Everything is blocked on Supabase project setup** — no env vars, no DB connection
+2. **Dependencies not installed** — npm install has never been run in production
+3. **Architecture decision** — CLAUDE.md vs actual code (Prisma/NextAuth vs Supabase)
+4. **Admin route security** — uses `/admin` (context.md forbids this; must use env-based hidden routes)
 
-## Production Sprint Progress
-**Phase 2: Production Completion Sprint** - Started 2025-01-19
+## Duplicated / Contradictory Work
+1. project-state.md (previous version) described Prisma/NextAuth structure that doesn't exist
+2. checkpoint-01-foundation.md describes Prisma schema that was replaced by Supabase
+3. Design system docs contradict CSS (gold vs blue primary)
 
-**Implementation Phases:**
-1. Foundation & Database (HIGH)
-2. UI/UX Transformation (HIGH)
-3. Visual Design System (MEDIUM)
-4. MCP Server Architecture (HIGH)
-5. AI Agent Connectivity (HIGH)
-6. Marketplace Core Features (HIGH)
-7. Profile System (HIGH)
-8. Search Experience (HIGH)
-9. SEO Implementation (MEDIUM)
-10. Performance Optimization (MEDIUM)
-11. Admin System Security (HIGH)
-12. Image Generation Architecture (MEDIUM)
+## Current Sprint
+No active sprint. Phase 2 was planned but never started beyond schema.sql creation.
 
-## Next Steps
-1. Design comprehensive Supabase schema
-2. Create database migrations
-3. Implement premium dark luxury theme with ui-ux-pro-max
-4. Build MCP Server integration architecture
-5. Create AI Agent connectivity system
-6. Implement marketplace core features
-7. Complete profile system
-8. Build advanced search experience
-9. Implement SEO
-10. Optimize performance
-11. Secure admin system
-12. Design image generation architecture
+## Git History
+- 2 commits total, both "Initial commit" from 2026-06-19
+- Single branch: main
+- No PRs, no branches, no tags
