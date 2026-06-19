@@ -1,139 +1,54 @@
-import { Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { createClient } from "@/lib/supabase/server"
+import { Suspense } from 'react'
+import type { Metadata } from 'next'
+import { SearchContainer } from './search-container'
 
-async function getCategories() {
-  try {
-    const supabase = await createClient()
-    const { data: categories, error } = await supabase
-      .from('categories')
-      .select('*')
-    
-    if (error) {
-      console.error('Error fetching categories:', error)
-      return []
-    }
-    
-    return categories || []
-  } catch (error) {
-    console.error('Error in getCategories:', error)
-    return []
-  }
+export const metadata: Metadata = {
+  title: 'Search - MidasAI',
+  description: 'Search for Claude Skills, Cursor Rules, MCP Servers, AI Agents, Workflows, and more on MidasAI.',
+  openGraph: {
+    title: 'Search - MidasAI',
+    description: 'Search for Claude Skills, Cursor Rules, MCP Servers, AI Agents, Workflows, and more on MidasAI.',
+    type: 'website',
+    url: 'https://midasai.com/search',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Search - MidasAI',
+    description: 'Search for Claude Skills, Cursor Rules, MCP Servers, AI Agents, Workflows, and more on MidasAI.',
+  },
 }
 
-async function getListings(searchParams?: { query?: string; type?: string }) {
-  try {
-    const supabase = await createClient()
-    
-    let query = supabase
-      .from('listings')
-      .select('*')
-      .eq('status', 'ACTIVE')
-    
-    if (searchParams?.query) {
-      query = query.ilike('title', `%${searchParams.query}%`)
-    }
-    
-    if (searchParams?.type) {
-      query = query.eq('type', searchParams.type)
-    }
-    
-    const { data: listings, error } = await query
-    
-    if (error) {
-      console.error('Error fetching listings:', error)
-      return []
-    }
-    
-    return listings || []
-  } catch (error) {
-    console.error('Error in getListings:', error)
-    return []
-  }
+interface SearchPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export default async function SearchPage({
-  searchParams,
-}: {
-  searchParams?: { query?: string; type?: string }
-}) {
-  const categories = await getCategories()
-  const listings = await getListings(searchParams)
-  
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const params = await searchParams
+  const query = typeof params.q === 'string' ? params.q : ''
+
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <div className="ambient-glow" />
-      <div className="noise-overlay" />
-      
-      <div className="container mx-auto px-4 py-12 relative">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-bold mb-12 text-text-primary animate-fade-in-up">Search</h1>
-          
-          <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-tertiary" />
-              <Input
-                type="search"
-                placeholder="Search for skills, plugins, agents..."
-                className="h-14 pl-12 text-lg"
-                defaultValue={searchParams?.query}
-                name="query"
-              />
-            </div>
-          </div>
+    <div className="min-h-screen bg-background">
+      <Suspense fallback={<SearchSkeleton />}>
+        <SearchContainer initialQuery={query} searchParams={params} />
+      </Suspense>
+    </div>
+  )
+}
 
-          <div className="mb-12 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <h2 className="text-xl font-semibold mb-6 text-text-primary">Filters</h2>
-            <div className="flex gap-3 flex-wrap">
-              <Button variant={searchParams?.type ? 'outline' : 'default'} className="transition-smooth" asChild>
-                <a href="/search">All Types</a>
-              </Button>
-              {categories.map((category: any) => (
-                <Button 
-                  key={category.id} 
-                  variant={searchParams?.type === category.name ? 'default' : 'outline'}
-                  className="transition-smooth"
-                  asChild
-                >
-                  <a href={`/search?type=${category.name}`}>{category.name}</a>
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-            {listings.map((listing: any, index: number) => (
-              <Card key={listing.id} className="glass hover:shadow-glow transition-smooth group" style={{ animationDelay: `${index * 0.05}s` }}>
-                <CardHeader className="space-y-4">
-                  <div className="aspect-video bg-surface rounded-xl flex items-center justify-center overflow-hidden">
-                    {listing.images && listing.images.length > 0 ? (
-                      <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-smooth" />
-                    ) : (
-                      <span className="text-text-tertiary text-sm">Preview</span>
-                    )}
-                  </div>
-                  <CardTitle className="text-2xl text-text-primary">{listing.title}</CardTitle>
-                  <CardDescription className="text-base text-text-secondary">{listing.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="text-3xl font-bold text-text-primary">${listing.price}</span>
-                    <Button className="group-hover:shadow-glow transition-smooth" asChild>
-                      <a href={`/listing/${listing.id}`}>View Details</a>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          
-          {listings.length === 0 && (
-            <div className="text-center py-24 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-              <p className="text-xl text-text-secondary">No listings found matching your criteria.</p>
-            </div>
-          )}
+function SearchSkeleton() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="h-12 bg-muted/50 rounded-lg animate-pulse mb-8" />
+        <div className="flex gap-2 mb-8">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-9 w-24 bg-muted/50 rounded-md animate-pulse" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-48 bg-muted/50 rounded-lg animate-pulse" />
+          ))}
         </div>
       </div>
     </div>

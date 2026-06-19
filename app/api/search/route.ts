@@ -1,144 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { searchListings } from '@/lib/search'
+import type { SearchFilters, ListingType, SortOption } from '@/lib/search/types'
 
 export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl
+
+  const filters: SearchFilters = {}
+
+  const query = searchParams.get('q')
+  if (query) filters.query = query
+
+  const type = searchParams.get('type')
+  if (type) {
+    const types = type.split(',') as ListingType[]
+    filters.type = types.length === 1 ? types[0] : types
+  }
+
+  const category = searchParams.get('category')
+  if (category) filters.category = category
+
+  const tags = searchParams.get('tags')
+  if (tags) filters.tags = tags.split(',')
+
+  const creator = searchParams.get('creator')
+  if (creator) filters.creator = creator
+
+  const platform = searchParams.get('platform')
+  if (platform) filters.platform = platform
+
+  const minPrice = searchParams.get('minPrice')
+  if (minPrice) filters.minPrice = parseFloat(minPrice)
+
+  const maxPrice = searchParams.get('maxPrice')
+  if (maxPrice) filters.maxPrice = parseFloat(maxPrice)
+
+  const minRating = searchParams.get('minRating')
+  if (minRating) filters.minRating = parseFloat(minRating)
+
+  const sort = searchParams.get('sort') as SortOption | null
+  if (sort) filters.sort = sort
+
+  const page = searchParams.get('page')
+  if (page) filters.page = parseInt(page, 10)
+
+  const limit = searchParams.get('limit')
+  if (limit) filters.limit = parseInt(limit, 10)
+
   try {
-    const { searchParams } = new URL(request.url)
-    const query = searchParams.get('q') || ''
-    const category = searchParams.get('category')
-    const type = searchParams.get('type')
-    const creator = searchParams.get('creator')
-    const tags = searchParams.get('tags')
-    const minPrice = searchParams.get('minPrice')
-    const maxPrice = searchParams.get('maxPrice')
-    const sort = searchParams.get('sort') || 'relevance'
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '20')
-
-    const supabase = await createClient()
-
-    // Build base query
-    let dbQuery = supabase
-      .from('listings')
-      .select(`
-        *,
-        creator:creators(id, name, avatar_url, verified),
-        reviews(rating)
-      `)
-      .eq('status', 'ACTIVE')
-
-    // Apply filters
-    if (category) {
-      dbQuery = dbQuery.eq('category', category)
-    }
-
-    if (type) {
-      dbQuery = dbQuery.eq('type', type)
-    }
-
-    if (creator) {
-      dbQuery = dbQuery.eq('creator_id', creator)
-    }
-
-    if (minPrice) {
-      dbQuery = dbQuery.gte('price', parseFloat(minPrice))
-    }
-
-    if (maxPrice) {
-      dbQuery = dbQuery.lte('price', parseFloat(maxPrice))
-    }
-
-    // Full-text search
-    if (query) {
-      // PostgreSQL full-text search using websearch_to_tsquery for better matching
-      dbQuery = dbQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.ilike.%${query}%`)
-    }
-
-    // Apply sorting
-    switch (sort) {
-      case 'price_asc':
-        dbQuery = dbQuery.order('price', { ascending: true })
-        break
-      case 'price_desc':
-        dbQuery = dbQuery.order('price', { ascending: false })
-        break
-      case 'newest':
-        dbQuery = dbQuery.order('created_at', { ascending: false })
-        break
-      case 'popular':
-        dbQuery = dbQuery.order('downloads', { ascending: false })
-        break
-      case 'rating':
-        dbQuery = dbQuery.order('average_rating', { ascending: false })
-        break
-      default:
-        // Relevance sorting - would use vector similarity in production
-        dbQuery = dbQuery.order('created_at', { ascending: false })
-    }
-
-    // Apply pagination
-    const offset = (page - 1) * limit
-    dbQuery = dbQuery.range(offset, offset + limit - 1)
-
-    const { data: listings, error } = await dbQuery
-
-    if (error) {
-      console.error('Search error:', error)
-      return NextResponse.json(
-        { success: false, error: 'Search failed' },
-        { status: 500 }
-      )
-    }
-
-    // Get total count for pagination
-    const countQuery = supabase
-      .from('listings')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'ACTIVE')
-    
-    if (query) {
-      countQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.ilike.%${query}%`)
-    }
-    
-    const { count } = await countQuery
-
-    // Calculate average ratings
-    const listingsWithRatings = listings?.map((listing: any) => {
-      const ratings = listing.reviews?.map((r: any) => r.rating) || []
-      const avgRating = ratings.length > 0 
-        ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length 
-        : 0
-      return {
-        ...listing,
-        average_rating: avgRating,
-        review_count: ratings.length
-      }
-    }) || []
-
-    return NextResponse.json({
-      success: true,
-      listings: listingsWithRatings,
-      pagination: {
-        page,
-        limit,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / limit)
-      },
-      filters: {
-        query,
-        category,
-        type,
-        creator,
-        tags,
-        minPrice,
-        maxPrice,
-        sort
-      }
-    })
+    const response = await searchListings(filters)
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Search API error:', error)
     return NextResponse.json(
-      { success: false, error: 'Search failed' },
+      { error: 'Search failed', results: [], total: 0, page: 1, limit: 20, totalPages: 0 },
       { status: 500 }
     )
   }

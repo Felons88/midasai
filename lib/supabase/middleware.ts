@@ -15,7 +15,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
           supabaseResponse = NextResponse.next({
@@ -39,7 +39,7 @@ export async function updateSession(request: NextRequest) {
 
   const adminRoute = process.env.ADMIN_ROUTE || '/admin'
 
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard') || 
+  if (!user && request.nextUrl.pathname.startsWith('/dashboard') ||
       !user && request.nextUrl.pathname.startsWith('/creator') ||
       !user && request.nextUrl.pathname.startsWith(adminRoute)) {
     const url = request.nextUrl.clone()
