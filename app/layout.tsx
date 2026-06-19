@@ -28,11 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className="dark">
-      <body className={`${poppins.variable} ${openSans.variable} font-sans antialiased`}>
+      <body className={`${poppins.variable} ${openSans.variable} font-sans antialiased bg-background text-foreground`}>
         <Navbar />
-        <main className="min-h-screen">
-          {children}
-        </main>
+        <main className="min-h-screen">{children}</main>
         <Footer />
       </body>
     </html>

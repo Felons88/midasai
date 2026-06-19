@@ -1,315 +1,365 @@
+"use client"
+
 import Link from "next/link"
-import { Search, Sparkles, TrendingUp, Shield, Zap, Users, ArrowRight, Star, Download } from "lucide-react"
+import { Search, Sparkles, TrendingUp, Zap, ArrowRight, Code2, Bot, Workflow, FileCode, Terminal, Layers, Globe, Shield } from "lucide-react"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { createClient } from "@/lib/supabase/server"
+import { ListingCard } from "@/components/marketplace/ListingCard"
 
-async function getCategories() {
-  try {
-    const supabase = await createClient()
-    const { data: categories, error } = await supabase
-      .from('categories')
-      .select('*')
-    
-    if (error) {
-      console.error('Error fetching categories:', error)
-      return []
-    }
-    
-    return categories || []
-  } catch (error) {
-    console.error('Error in getCategories:', error)
-    return []
-  }
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
 }
 
-async function getCategoryCounts() {
-  try {
-    const supabase = await createClient()
-    const { data: listings, error } = await supabase
-      .from('listings')
-      .select('type')
-    
-    if (error) {
-      console.error('Error fetching category counts:', error)
-      return { SKILL: 0, PLUGIN: 0, MCP: 0, AGENT: 0 }
-    }
-    
-    const counts: Record<string, number> = {
-      SKILL: 0,
-      PLUGIN: 0,
-      MCP: 0,
-      AGENT: 0,
-    }
-    
-    listings?.forEach((listing: any) => {
-      if (listing.type in counts) {
-        counts[listing.type]++
-      }
-    })
-    
-    return counts
-  } catch (error) {
-    console.error('Error in getCategoryCounts:', error)
-    return { SKILL: 0, PLUGIN: 0, MCP: 0, AGENT: 0 }
-  }
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08 },
+  },
 }
 
-async function getFeaturedListings() {
-  try {
-    const supabase = await createClient()
-    const { data: listings, error } = await supabase
-      .from('listings')
-      .select(`
-        *,
-        reviews(rating)
-      `)
-      .eq('status', 'ACTIVE')
-      .order('downloads', { ascending: false })
-      .limit(3)
-    
-    if (error) {
-      console.error('Error fetching featured listings:', error)
-      return []
-    }
-    
-    return listings || []
-  } catch (error) {
-    console.error('Error in getFeaturedListings:', error)
-    return []
-  }
+const categories = [
+  { icon: <Code2 className="h-5 w-5" />, title: "Claude Skills", href: "/skills", count: "250+", description: "Custom skills for Claude & Claude Code" },
+  { icon: <FileCode className="h-5 w-5" />, title: "Cursor Rules", href: "/plugins", count: "180+", description: "Rules and plugins for Cursor IDE" },
+  { icon: <Terminal className="h-5 w-5" />, title: "MCP Servers", href: "/mcp", count: "120+", description: "Model Context Protocol servers" },
+  { icon: <Bot className="h-5 w-5" />, title: "AI Agents", href: "/agents", count: "95+", description: "Autonomous AI agent frameworks" },
+  { icon: <Workflow className="h-5 w-5" />, title: "Workflows", href: "/workflows", count: "75+", description: "N8N, Make, and automation flows" },
+  { icon: <Layers className="h-5 w-5" />, title: "Templates", href: "/templates", count: "60+", description: "Project starters and boilerplates" },
+]
+
+const featuredListings = [
+  { title: "Claude Code Mastery Pack", description: "50+ professional skills for Claude Code including test generation, refactoring, and architecture patterns", category: "Claude Skills", creator: "ProDev Labs", price: "$29", rating: 4.9, downloads: 2400, href: "/listing/1" },
+  { title: "MCP Database Connector", description: "Universal MCP server for connecting to PostgreSQL, MySQL, MongoDB with schema inference", category: "MCP Servers", creator: "ServerStack", price: "$49", rating: 4.8, downloads: 1800, href: "/listing/2" },
+  { title: "Cursor AI Architect", description: "Advanced Cursor rules for system design, API architecture, and clean code patterns", category: "Cursor Rules", creator: "ArchitectAI", price: "Free", rating: 4.7, downloads: 5200, href: "/listing/3" },
+  { title: "AutoAgent Pro", description: "Build autonomous AI agents with pre-built tools, memory, and planning capabilities", category: "AI Agents", creator: "AgentForge", price: "$79", rating: 4.9, downloads: 920, href: "/listing/4" },
+  { title: "N8N AI Workflow Pack", description: "Production-ready AI automation workflows for content, data, and customer support", category: "Workflows", creator: "FlowMasters", price: "$39", rating: 4.6, downloads: 3100, href: "/listing/5" },
+  { title: "Full-Stack SaaS Template", description: "Next.js 15 + Supabase + Stripe + AI-ready SaaS boilerplate with auth and billing", category: "Templates", creator: "SaaSKit", price: "$99", rating: 4.8, downloads: 1500, href: "/listing/6" },
+]
+
+const trendingListings = [
+  { title: "Windsurf Flow Engine", description: "Advanced workflow automation for Windsurf with custom triggers and actions", category: "Workflows", creator: "WindDev", price: "$35", rating: 4.7, downloads: 890, href: "/listing/7" },
+  { title: "Prompt Engineering Suite", description: "200+ battle-tested prompts for GPT-4, Claude, and Gemini across all use cases", category: "Prompts", creator: "PromptLab", price: "$19", rating: 4.5, downloads: 7200, href: "/listing/8" },
+  { title: "MCP GitHub Bridge", description: "Connect any AI assistant to GitHub repos, PRs, issues, and actions via MCP", category: "MCP Servers", creator: "GitConnect", price: "Free", rating: 4.8, downloads: 4100, href: "/listing/9" },
+]
+
+const stats = [
+  { value: "10,000+", label: "AI Resources" },
+  { value: "5,000+", label: "Creators" },
+  { value: "100K+", label: "Downloads" },
+  { value: "4.8", label: "Avg Rating" },
+]
+
+const iconMap: Record<string, React.ReactNode> = {
+  "Claude Skills": <Code2 className="h-4 w-4" />,
+  "MCP Servers": <Terminal className="h-4 w-4" />,
+  "Cursor Rules": <FileCode className="h-4 w-4" />,
+  "AI Agents": <Bot className="h-4 w-4" />,
+  "Workflows": <Workflow className="h-4 w-4" />,
+  "Templates": <Layers className="h-4 w-4" />,
+  "Prompts": <Sparkles className="h-4 w-4" />,
 }
 
-async function getAverageRating(listingId: string) {
-  try {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-      .from('reviews')
-      .select('rating')
-      .eq('listing_id', listingId)
-    
-    if (error) {
-      console.error('Error fetching rating:', error)
-      return { rating: 0, count: 0 }
-    }
-    
-    if (!data || data.length === 0) return { rating: 0, count: 0 }
-    
-    const totalRating = data.reduce((sum: number, r: any) => sum + r.rating, 0)
-    return {
-      rating: totalRating / data.length,
-      count: data.length
-    }
-  } catch (error) {
-    console.error('Error in getAverageRating:', error)
-    return { rating: 0, count: 0 }
-  }
-}
-
-export default async function HomePage() {
-  const categories = await getCategories()
-  const categoryCounts = await getCategoryCounts()
-  const featuredListings = await getFeaturedListings()
-  
-  const listingsWithRatings = await Promise.all(
-    featuredListings.map(async (listing: any) => {
-      const ratingData = await getAverageRating(listing.id)
-      return {
-        ...listing,
-        averageRating: ratingData.rating,
-        reviewCount: ratingData.count
-      }
-    })
-  )
-  
+export default function HomePage() {
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <div className="ambient-glow" />
-      <div className="noise-overlay" />
-      
+    <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative py-32 md:py-48 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
+      <section className="relative py-28 md:py-40 overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 bg-grid opacity-50" />
+        <div className="absolute inset-0 bg-radial-top" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-gold/[0.03] rounded-full blur-3xl" />
+
         <div className="container mx-auto px-4 relative">
-          <div className="max-w-6xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface border border animate-fade-in-up">
-              <Sparkles className="h-4 w-4 text-cta" />
-              <span className="text-sm font-medium text-text-primary">The Premier AI Marketplace</span>
-            </div>
-            <h1 className="text-6xl md:text-8xl font-bold mb-8 mt-8 bg-gradient-to-br from-text-primary via-text-primary to-text-secondary bg-clip-text text-transparent animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              Discover AI Tools That Transform Your Workflow
-            </h1>
-            <p className="text-xl md:text-2xl text-text-secondary mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              The premier marketplace for Claude Skills, Cursor Rules, Windsurf Workflows, MCP Servers, AI Agents, and more.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-tertiary" />
-                <input
-                  type="search"
-                  placeholder="Search for skills, plugins, agents..."
-                  className="w-full h-14 pl-12 pr-4 rounded-xl border bg-surface text-text-primary placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta transition-smooth"
-                />
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="max-w-4xl mx-auto text-center"
+          >
+            {/* Badge */}
+            <motion.div variants={fadeInUp} className="mb-8">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/20 bg-gold/[0.05]">
+                <div className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse-slow" />
+                <span className="text-xs font-medium text-gold tracking-wide">The Premier AI Marketplace</span>
               </div>
-              <Button size="lg" className="h-14 px-8 text-base">
-                Search
-              </Button>
-            </div>
-            <div className="flex gap-3 flex-wrap justify-center animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-              <span className="text-sm text-text-tertiary">Popular:</span>
-              {["Claude Skills", "MCP Servers", "AI Agents", "Workflows"].map((tag) => (
+            </motion.div>
+
+            {/* Headline */}
+            <motion.h1
+              variants={fadeInUp}
+              className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 tracking-tight leading-[1.1]"
+            >
+              <span className="text-gradient-white">Discover AI tools</span>
+              <br />
+              <span className="text-gradient-gold">that ship faster</span>
+            </motion.h1>
+
+            {/* Subheadline */}
+            <motion.p
+              variants={fadeInUp}
+              className="text-base sm:text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed"
+            >
+              The marketplace for Claude Skills, Cursor Rules, MCP Servers, AI Agents, Workflows, and more. Built by developers, for developers.
+            </motion.p>
+
+            {/* Search */}
+            <motion.div variants={fadeInUp} className="max-w-xl mx-auto mb-8">
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-gold/20 via-gold/10 to-gold/20 rounded-xl opacity-0 group-focus-within:opacity-100 transition-opacity blur-sm" />
+                <div className="relative flex items-center">
+                  <Search className="absolute left-4 h-5 w-5 text-muted-foreground" />
+                  <input
+                    type="search"
+                    placeholder="Search skills, plugins, agents, servers..."
+                    className="w-full h-12 sm:h-14 pl-12 pr-28 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-gold/30 transition-all"
+                  />
+                  <Button
+                    size="sm"
+                    className="absolute right-2 bg-gold hover:bg-gold-light text-background font-medium h-8 sm:h-10 px-4 sm:px-6 rounded-lg text-sm"
+                  >
+                    Search
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Popular tags */}
+            <motion.div variants={fadeInUp} className="flex gap-2 flex-wrap justify-center">
+              <span className="text-xs text-muted-foreground">Popular:</span>
+              {["Claude Skills", "MCP Servers", "AI Agents", "Cursor Rules", "Workflows"].map((tag) => (
                 <Link
                   key={tag}
                   href="/search"
-                  className="text-sm text-cta hover:text-cta-light transition-colors font-medium cursor-pointer"
+                  className="text-xs text-foreground/70 hover:text-gold transition-colors font-medium px-2 py-0.5 rounded-md hover:bg-gold/[0.05]"
                 >
                   {tag}
                 </Link>
               ))}
-            </div>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Stats Bar */}
+      <section className="border-y border-white/[0.04] bg-white/[0.01]">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/[0.04]">
+            {stats.map((stat) => (
+              <div key={stat.label} className="py-8 text-center">
+                <div className="text-2xl md:text-3xl font-bold text-foreground">{stat.value}</div>
+                <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Categories Section - Bento Grid */}
-      <section className="py-24 relative">
+      {/* Categories Section */}
+      <section className="py-24 md:py-32">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-bold mb-4 text-text-primary">Browse Categories</h2>
-            <p className="text-xl text-text-secondary max-w-2xl mx-auto">
-              Explore our curated collection of AI tools and resources
-            </p>
-          </div>
-          <div className="bento-grid">
-            {categories.map((category: any, index: number) => {
-              const iconMap: Record<string, any> = {
-                'Claude Skills': Sparkles,
-                'Cursor Rules': Zap,
-                'MCP Servers': TrendingUp,
-                'AI Agents': Users,
-              }
-              const Icon = iconMap[category.name] || Sparkles
-              const count = categoryCounts[category.name === 'Claude Skills' ? 'SKILL' : 
-                            category.name === 'Cursor Rules' ? 'PLUGIN' :
-                            category.name === 'MCP Servers' ? 'MCP' : 'AGENT'] || 0
-              const gridClass = index === 0 ? 'bento-item-2' : 'bento-item-1'
-              
-              return (
-                <Link key={category.id} href={`/${category.slug}`} className={gridClass}>
-                  <Card className="glass h-full hover:shadow-glow transition-smooth group">
-                    <CardHeader className="space-y-4">
-                      <div className="w-14 h-14 rounded-xl bg-surface flex items-center justify-center group-hover:bg-elevated transition-smooth">
-                        <Icon className="h-7 w-7 text-cta" />
-                      </div>
-                      <CardTitle className="text-2xl text-text-primary">{category.name}</CardTitle>
-                      <CardDescription className="text-base text-text-secondary">{category.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-text-tertiary">{count} listings</span>
-                        <ArrowRight className="h-5 w-5 text-cta opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </CardContent>
-                  </Card>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+          >
+            <motion.div variants={fadeInUp} className="mb-12 md:mb-16">
+              <div className="flex items-end justify-between">
+                <div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">Browse Categories</h2>
+                  <p className="text-muted-foreground mt-2 text-sm md:text-base">Explore the ecosystem</p>
+                </div>
+                <Link
+                  href="/categories"
+                  className="hidden md:flex items-center gap-1 text-sm text-muted-foreground hover:text-gold transition-colors"
+                >
+                  View all <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+              </div>
+            </motion.div>
 
-      {/* Featured Listings Section */}
-      <section className="py-24 relative">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-bold mb-4 text-text-primary">Featured Listings</h2>
-            <p className="text-xl text-text-secondary max-w-2xl mx-auto">
-              Hand-picked tools and resources by our team
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {listingsWithRatings.map((item: any, index: number) => (
-              <Card key={item.id} className="glass hover:shadow-glow transition-smooth group" style={{ animationDelay: `${index * 0.1}s` }}>
-                <CardHeader className="space-y-4">
-                  <div className="aspect-video bg-surface rounded-xl flex items-center justify-center overflow-hidden">
-                    {item.images && item.images.length > 0 ? (
-                      <img src={item.images[0]} alt={item.title} className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-smooth" />
-                    ) : (
-                      <span className="text-text-tertiary text-sm">Preview</span>
-                    )}
-                  </div>
-                  <CardTitle className="text-2xl text-text-primary">{item.title}</CardTitle>
-                  <CardDescription className="text-base text-text-secondary">{item.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, j) => (
-                        <Star key={j} className={`h-4 w-4 ${j < Math.floor(item.averageRating) ? 'fill-cta text-cta' : 'text-text-tertiary'}`} />
-                      ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {categories.map((category) => (
+                <motion.div key={category.title} variants={fadeInUp}>
+                  <Link href={category.href} className="block group">
+                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 hover:border-gold/20 hover:bg-gold/[0.02] transition-all duration-300">
+                      <div className="flex items-center gap-4">
+                        <div className="h-11 w-11 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-muted-foreground group-hover:text-gold group-hover:border-gold/20 transition-colors">
+                          {category.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-semibold text-foreground group-hover:text-gold transition-colors">{category.title}</h3>
+                            <span className="text-xs text-muted-foreground">{category.count}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate">{category.description}</p>
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-sm text-text-tertiary">{item.averageRating.toFixed(1)} ({item.reviewCount} reviews)</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-3xl font-bold text-text-primary">${item.price}</span>
-                    <Button className="group-hover:shadow-glow transition-smooth" asChild>
-                      <Link href={`/listing/${item.id}`}>View Details</Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-24 relative">
+      {/* Featured Listings */}
+      <section className="py-24 md:py-32 border-t border-white/[0.04]">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-bold mb-4 text-text-primary">Why Choose MidasAI</h2>
-            <p className="text-xl text-text-secondary max-w-2xl mx-auto">
-              Built for creators, by creators
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { icon: Shield, title: "Verified Quality", description: "All listings are reviewed and verified by our team to ensure the highest quality standards" },
-              { icon: Zap, title: "Instant Access", description: "Get immediate access to your purchased tools and resources with secure delivery" },
-              { icon: Users, title: "Community Driven", description: "Join a thriving community of AI enthusiasts and creators sharing knowledge" },
-            ].map((feature, index: number) => (
-              <Card key={feature.title} className="glass hover:shadow-glow transition-smooth" style={{ animationDelay: `${index * 0.1}s` }}>
-                <CardHeader className="space-y-4">
-                  <div className="w-16 h-16 rounded-xl bg-surface flex items-center justify-center">
-                    <feature.icon className="h-8 w-8 text-cta" />
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+          >
+            <motion.div variants={fadeInUp} className="mb-12 md:mb-16">
+              <div className="flex items-end justify-between">
+                <div>
+                  <div className="inline-flex items-center gap-2 text-gold text-xs font-medium mb-2">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Hand-picked by our team
                   </div>
-                  <CardTitle className="text-2xl text-text-primary">{feature.title}</CardTitle>
-                  <CardDescription className="text-base text-text-secondary leading-relaxed">{feature.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">Featured</h2>
+                </div>
+                <Link
+                  href="/featured"
+                  className="hidden md:flex items-center gap-1 text-sm text-muted-foreground hover:text-gold transition-colors"
+                >
+                  View all <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            </motion.div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {featuredListings.map((listing, i) => (
+                <motion.div key={listing.title} variants={fadeInUp}>
+                  <ListingCard
+                    {...listing}
+                    icon={iconMap[listing.category] || <Sparkles className="h-4 w-4" />}
+                    featured={i < 2}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Trending */}
+      <section className="py-24 md:py-32 border-t border-white/[0.04] bg-radial-center">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+          >
+            <motion.div variants={fadeInUp} className="mb-12 md:mb-16">
+              <div className="flex items-end justify-between">
+                <div>
+                  <div className="inline-flex items-center gap-2 text-gold text-xs font-medium mb-2">
+                    <TrendingUp className="h-3.5 w-3.5" />
+                    Rising this week
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">Trending</h2>
+                </div>
+                <Link
+                  href="/trending"
+                  className="hidden md:flex items-center gap-1 text-sm text-muted-foreground hover:text-gold transition-colors"
+                >
+                  View all <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            </motion.div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {trendingListings.map((listing) => (
+                <motion.div key={listing.title} variants={fadeInUp}>
+                  <ListingCard
+                    {...listing}
+                    icon={iconMap[listing.category] || <Sparkles className="h-4 w-4" />}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Why MidasAI */}
+      <section className="py-24 md:py-32 border-t border-white/[0.04]">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+          >
+            <motion.div variants={fadeInUp} className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">Why MidasAI</h2>
+              <p className="text-muted-foreground mt-3 text-sm md:text-base max-w-lg mx-auto">The premium platform for AI tools and resources</p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { icon: <Shield className="h-5 w-5" />, title: "Verified Quality", description: "Every listing is reviewed for quality, security, and documentation standards before publishing." },
+                { icon: <Zap className="h-5 w-5" />, title: "Instant Access", description: "One-click install and download. Get tools running in your workflow within minutes." },
+                { icon: <Globe className="h-5 w-5" />, title: "Creator Economy", description: "Earn revenue from your AI tools. Set your own pricing with transparent marketplace fees." },
+              ].map((feature) => (
+                <motion.div key={feature.title} variants={fadeInUp}>
+                  <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 hover:border-white/[0.1] transition-all duration-300">
+                    <div className="h-11 w-11 rounded-lg bg-gold/[0.08] border border-gold/20 flex items-center justify-center text-gold mb-4">
+                      {feature.icon}
+                    </div>
+                    <h3 className="text-base font-semibold text-foreground mb-2">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-32 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-surface to-background" />
-        <div className="spotlight" style={{ left: '20%', top: '30%' }} />
-        <div className="container mx-auto px-4 text-center relative">
-          <h2 className="text-5xl md:text-6xl font-bold mb-6 text-text-primary">Ready to Start Building?</h2>
-          <p className="text-xl md:text-2xl mb-12 text-text-secondary max-w-2xl mx-auto">
-            Join thousands of creators and developers on MidasAI
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="h-14 px-8 text-base shadow-glow" asChild>
-              <Link href="/auth/register">Get Started Free</Link>
+      <section className="py-24 md:py-32 border-t border-white/[0.04] relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid opacity-30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-gold/[0.04] rounded-full blur-3xl" />
+
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={staggerContainer}
+          className="container mx-auto px-4 text-center relative"
+        >
+          <motion.h2 variants={fadeInUp} className="text-3xl md:text-5xl font-bold text-foreground tracking-tight mb-4">
+            Start building with AI
+          </motion.h2>
+          <motion.p variants={fadeInUp} className="text-base md:text-lg text-muted-foreground mb-10 max-w-lg mx-auto">
+            Join thousands of developers and creators on MidasAI
+          </motion.p>
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button
+              size="lg"
+              className="bg-gold hover:bg-gold-light text-background font-semibold h-12 px-8 rounded-xl text-sm glow-gold"
+              asChild
+            >
+              <Link href="/register">Get Started Free</Link>
             </Button>
-            <Button size="lg" variant="outline" className="h-14 px-8 text-base" asChild>
-              <Link href="/creator/upload">List Your Item</Link>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-white/[0.1] text-foreground hover:bg-white/[0.04] hover:border-white/[0.15] h-12 px-8 rounded-xl text-sm"
+              asChild
+            >
+              <Link href="/creator/upload">List Your Tool</Link>
             </Button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
     </div>
   )

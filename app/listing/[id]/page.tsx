@@ -1,8 +1,9 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Download, Heart, Share2, Star } from "lucide-react"
 
-export default function ListingPage({ params }: { params: { id: string } }) {
+export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
+  await params;
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
