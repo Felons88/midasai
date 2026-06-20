@@ -100,7 +100,7 @@ export default async function DashboardPage() {
       {/* Welcome Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-1">Welcome back</h1>
-        <p className="text-white/50 text-sm">Here's what's happening with your account</p>
+        <p className="text-white/50 text-sm">Here&apos;s what&apos;s happening with your account</p>
       </div>
 
       {/* Stats Grid */}

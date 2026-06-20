@@ -349,7 +349,7 @@ export default async function UsageAnalyticsPage() {
             <AlertTriangle className="h-5 w-5 text-yellow-400" />
             <div className="flex-1">
               <h4 className="text-sm font-medium text-yellow-400 mb-1">Rate Limit Activity</h4>
-              <p className="text-xs text-yellow-400/70">You've hit the rate limit {stats.rateLimitHits} times today. Consider upgrading your plan or optimizing your requests.</p>
+              <p className="text-xs text-yellow-400/70">You&apos;ve hit the rate limit {stats.rateLimitHits} times today. Consider upgrading your plan or optimizing your requests.</p>
             </div>
           </div>
         </div>

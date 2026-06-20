@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createBrowserSupabaseClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [supabase] = useState(() => createBrowserSupabaseClient())
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -31,7 +32,16 @@ export default function LoginPage() {
       setError(error.message)
       setLoading(false)
     } else {
-      router.push('/dashboard')
+      // Get redirect parameter from URL
+      const redirectTo = searchParams.get('redirect')
+      
+      // Priority 1: Use redirect parameter if exists
+      if (redirectTo) {
+        router.push(redirectTo)
+      } else {
+        // Priority 2: Go to homepage (marketplace-first)
+        router.push('/')
+      }
       router.refresh()
     }
   }
@@ -77,7 +87,7 @@ export default function LoginPage() {
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
             <div className="text-center text-sm">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link href="/auth/register" className="text-primary hover:underline">
                 Sign up
               </Link>

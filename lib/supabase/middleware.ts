@@ -45,12 +45,11 @@ export async function updateSession(request: NextRequest) {
     '/notifications',
     '/profile',
     '/settings',
-    '/explore',
-    '/marketplace',
     '/downloads',
     '/collections',
     '/messages',
     '/account',
+    '/purchases',
     '/developers',
   ]
 

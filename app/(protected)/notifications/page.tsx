@@ -91,7 +91,7 @@ export default async function NotificationsPage() {
             <div className="text-center py-24 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               <Bell className="h-16 w-16 text-text-tertiary mx-auto mb-4" />
               <p className="text-xl text-text-secondary">No notifications yet.</p>
-              <p className="text-text-tertiary mt-2">We'll notify you about important updates.</p>
+              <p className="text-text-tertiary mt-2">We&apos;ll notify you about important updates.</p>
               <Button className="mt-6" asChild>
                 <Link href="/">Back to Home</Link>
               </Button>

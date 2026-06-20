@@ -25,7 +25,7 @@ export default function BlogPage() {
             <CardContent>
               <BookOpen className="h-16 w-16 text-text-tertiary mx-auto mb-4" />
               <p className="text-xl text-text-secondary mb-2">Blog coming soon</p>
-              <p className="text-text-tertiary mb-6">We're working on great content about AI tools, workflows, and best practices.</p>
+              <p className="text-text-tertiary mb-6">We&apos;re working on great content about AI tools, workflows, and best practices.</p>
               <Button asChild>
                 <Link href="/">Back to Marketplace</Link>
               </Button>

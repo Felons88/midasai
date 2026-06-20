@@ -8,23 +8,11 @@ import { usePathname } from "next/navigation"
 export function Navbar() {
   const pathname = usePathname()
 
-  const authenticatedPrefixes = [
-    '/dashboard', '/creator', '/admin', '/bookmarks',
-    '/notifications', '/profile', '/settings', '/explore',
-    '/marketplace', '/downloads', '/collections', '/messages', '/account',
-    '/developers',
-  ]
-  const isAuthenticatedRoute = authenticatedPrefixes.some(p => pathname.startsWith(p))
-
-  // Don't render the top navbar on authenticated pages (sidebar handles navigation)
-  if (isAuthenticatedRoute) {
-    return null
-  }
-
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
+          {/* LEFT: Logo + Marketplace Links */}
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-2 group cursor-pointer">
               <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-cta to-cta-light flex items-center justify-center group-hover:scale-105 transition-smooth shadow-glow">
@@ -33,39 +21,44 @@ export function Navbar() {
               <span className="text-xl font-bold text-text-primary">MidasAI</span>
             </Link>
             
-            <div className="hidden md:flex items-center gap-6">
-              <Link href="/skills" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth cursor-pointer">
+            <div className="hidden lg:flex items-center gap-6">
+              <Link href="/explore" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
+                Explore
+              </Link>
+              <Link href="/skills" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
                 Skills
               </Link>
-              <Link href="/plugins" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth cursor-pointer">
-                Plugins
+              <Link href="/workflows" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
+                Workflows
               </Link>
-              <Link href="/mcp" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth cursor-pointer">
-                MCP
+              <Link href="/mcp" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
+                MCP Servers
               </Link>
-              <Link href="/agents" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth cursor-pointer">
+              <Link href="/agents" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
                 Agents
               </Link>
-              <Link href="/workflows" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth cursor-pointer">
-                Workflows
+              <Link href="/plugins" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
+                Plugins
               </Link>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
-                <input
-                  type="search"
-                  placeholder="Search..."
-                  className="h-10 w-64 rounded-lg border border-white/10 bg-surface text-text-primary placeholder:text-text-tertiary pl-10 pr-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta transition-smooth"
-                />
-              </div>
+          {/* CENTER: Global Search */}
+          <div className="flex-1 max-w-md mx-8">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
+              <input
+                type="search"
+                placeholder="Search marketplace..."
+                className="h-10 w-full rounded-lg border border-white/10 bg-surface text-text-primary placeholder:text-text-tertiary pl-10 pr-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta transition-smooth"
+              />
             </div>
+          </div>
 
+          {/* RIGHT: Auth Actions */}
+          <div className="flex items-center gap-3">
             <Button variant="ghost" asChild className="text-text-secondary hover:text-text-primary transition-smooth">
-              <Link href="/auth/login">Sign In</Link>
+              <Link href="/auth/login">Login</Link>
             </Button>
 
             <Button asChild className="shadow-glow">

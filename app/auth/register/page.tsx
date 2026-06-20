@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,6 +17,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [supabase] = useState(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -61,7 +62,16 @@ export default function RegisterPage() {
           setError(profileError.message)
           setLoading(false)
         } else {
-          router.push('/dashboard')
+          // Get redirect parameter from URL
+          const redirectTo = searchParams.get('redirect')
+          
+          // Priority 1: Use redirect parameter if exists
+          if (redirectTo) {
+            router.push(redirectTo)
+          } else {
+            // Priority 2: Go to homepage (marketplace-first for new users)
+            router.push('/')
+          }
           router.refresh()
         }
       }

@@ -15,9 +15,9 @@ export default function AboutPage() {
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Our Mission</h2>
           <p className="text-muted-foreground text-lg mb-4">
-            MidasAI was founded with a simple goal: to make AI tools accessible to everyone. 
-            We believe that the future of software development lies in the collaboration between 
-            humans and AI, and we're building the infrastructure to make that happen.
+            MidasAI was founded with a simple goal: to make AI tools accessible to everyone.
+            We believe that the future of software development lies in the collaboration between
+            humans and AI, and we&apos;re building the infrastructure to make that happen.
           </p>
           <p className="text-muted-foreground text-lg">
             Our marketplace connects creators who build amazing AI tools with developers and 
@@ -68,7 +68,7 @@ export default function AboutPage() {
         <div>
           <h2 className="text-2xl font-bold mb-6">Contact Us</h2>
           <p className="text-muted-foreground text-lg mb-4">
-            Have questions? We'd love to hear from you.
+            Have questions? We&apos;d love to hear from you.
           </p>
           <a href="mailto:hello@midasai.com" className="text-primary hover:underline">
             hello@midasai.com
