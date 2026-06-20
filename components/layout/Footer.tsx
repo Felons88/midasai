@@ -1,7 +1,25 @@
+"use client"
+
 import Link from "next/link"
 import { Github, Twitter, Linkedin } from "lucide-react"
+import { usePathname } from "next/navigation"
 
 export function Footer() {
+  const pathname = usePathname()
+
+  const isAuthenticatedRoute = 
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/creator') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/bookmarks') ||
+    pathname.startsWith('/notifications') ||
+    pathname.startsWith('/profile') ||
+    pathname.startsWith('/settings')
+
+  if (isAuthenticatedRoute) {
+    return null
+  }
+
   return (
     <footer className="border-t bg-background">
       <div className="container mx-auto px-4 py-12">

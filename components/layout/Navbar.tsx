@@ -1,27 +1,29 @@
 "use client"
 
 import Link from "next/link"
-import { Search, Menu, User, PlusCircle, Sparkles, LogOut } from "lucide-react"
+import { Search, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { supabase } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 
 export function Navbar() {
-  const router = useRouter()
+  const pathname = usePathname()
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push("/auth/login")
+  const isAuthenticatedRoute = 
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/creator') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/bookmarks') ||
+    pathname.startsWith('/notifications') ||
+    pathname.startsWith('/profile') ||
+    pathname.startsWith('/settings')
+
+  // Don't render the top navbar on authenticated pages (sidebar handles navigation)
+  if (isAuthenticatedRoute) {
+    return null
   }
+
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-xl">
+    <nav className="sticky top-0 z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
@@ -58,33 +60,14 @@ export function Navbar() {
                 <input
                   type="search"
                   placeholder="Search..."
-                  className="h-10 w-64 rounded-lg border bg-surface text-text-primary placeholder:text-text-tertiary pl-10 pr-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta transition-smooth"
+                  className="h-10 w-64 rounded-lg border border-white/10 bg-surface text-text-primary placeholder:text-text-tertiary pl-10 pr-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta transition-smooth"
                 />
               </div>
             </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="hover:bg-surface transition-smooth cursor-pointer">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem asChild>
-                  <Link href="/auth/login">Login</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/auth/register">Register</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/creator/upload" className="flex items-center gap-2">
-                    <PlusCircle className="h-4 w-4" />
-                    List Your Item
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button variant="ghost" asChild className="text-text-secondary hover:text-text-primary transition-smooth">
+              <Link href="/auth/login">Sign In</Link>
+            </Button>
 
             <Button asChild className="shadow-glow">
               <Link href="/auth/register">Get Started</Link>

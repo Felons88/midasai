@@ -37,13 +37,24 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const adminRoute = process.env.ADMIN_ROUTE || '/admin'
+  const protectedPaths = [
+    '/dashboard',
+    '/creator',
+    '/admin',
+    '/bookmarks',
+    '/notifications',
+    '/profile',
+    '/settings',
+  ]
 
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard') || 
-      !user && request.nextUrl.pathname.startsWith('/creator') ||
-      !user && request.nextUrl.pathname.startsWith(adminRoute)) {
+  const isProtected = protectedPaths.some(path => 
+    request.nextUrl.pathname.startsWith(path)
+  )
+
+  if (!user && isProtected) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
+    url.searchParams.set('redirect', request.nextUrl.pathname)
     return NextResponse.redirect(url)
   }
 
