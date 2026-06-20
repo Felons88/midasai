@@ -68,7 +68,7 @@ export default async function WebhooksPage() {
           <p className="text-white/50 text-sm">Configure webhooks to receive real-time events from MidasAI</p>
         </div>
         <Link
-          href="/developers/webhooks/new"
+          href="/developer/webhooks/new"
           className="flex items-center gap-2 h-10 px-4 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 transition-colors"
         >
           <Plus className="h-4 w-4" />
@@ -117,7 +117,7 @@ export default async function WebhooksPage() {
             <div className="mb-4">
               <h4 className="text-xs font-semibold text-white/30 uppercase tracking-wider mb-2">Events</h4>
               <div className="flex flex-wrap gap-2">
-                {webhook.events.map((event) => (
+                {webhook.events.map((event: string) => (
                   <span key={event} className="px-2 py-1 rounded-lg bg-white/[0.04] text-xs text-white/60">
                     {event}
                   </span>
@@ -162,7 +162,7 @@ export default async function WebhooksPage() {
           <h3 className="text-lg font-semibold text-white mb-2">No webhooks configured</h3>
           <p className="text-sm text-white/40 mb-6">Create your first webhook to receive real-time events from MidasAI</p>
           <Link
-            href="/developers/webhooks/new"
+            href="/developer/webhooks/new"
             className="flex items-center gap-2 h-10 px-4 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 transition-colors"
           >
             <Plus className="h-4 w-4" />

@@ -45,7 +45,7 @@ const creatorNav = [
 ]
 
 const developerNav = [
-  { href: "/developers", label: "Developer Portal", icon: Code },
+  { href: "/developer", label: "Developer Portal", icon: Code },
 ]
 
 const bottomNav = [

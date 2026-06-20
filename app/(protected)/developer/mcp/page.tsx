@@ -53,7 +53,7 @@ export default async function McpServersPage() {
           <p className="text-white/50 text-sm">Manage your Model Context Protocol servers and authentication tokens</p>
         </div>
         <Link
-          href="/developers/mcp/new"
+          href="/developer/mcp/new"
           className="flex items-center gap-2 h-10 px-4 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 transition-colors"
         >
           <Plus className="h-4 w-4" />
@@ -197,7 +197,7 @@ export default async function McpServersPage() {
           <h3 className="text-lg font-semibold text-white mb-2">No MCP servers connected</h3>
           <p className="text-sm text-white/40 mb-6">Connect your first MCP server to start using Model Context Protocol</p>
           <Link
-            href="/developers/mcp/new"
+            href="/developer/mcp/new"
             className="flex items-center gap-2 h-10 px-4 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 transition-colors"
           >
             <Plus className="h-4 w-4" />

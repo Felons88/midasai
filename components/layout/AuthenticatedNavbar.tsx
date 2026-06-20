@@ -153,35 +153,10 @@ export function AuthenticatedNavbar({
                           Creator Studio
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/creator/listings" className="w-full cursor-pointer">
-                          Listings
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/creator/analytics" className="w-full cursor-pointer">
-                          Analytics
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/creator/revenue" className="w-full cursor-pointer">
-                          Revenue
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/creator/payouts" className="w-full cursor-pointer">
-                          Payouts
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/creator/upload" className="w-full cursor-pointer">
-                          Upload
-                        </Link>
-                      </DropdownMenuItem>
                     </>
                   )}
 
-                  {/* Developer Section - Only show if developer features enabled */}
+                  {/* Developer Section */}
                   <DropdownMenuSeparator />
                   <div className="px-2 py-1.5 text-sm font-semibold text-text-tertiary">
                     Developer
@@ -189,31 +164,6 @@ export function AuthenticatedNavbar({
                   <DropdownMenuItem asChild>
                     <Link href="/developer" className="w-full cursor-pointer">
                       Developer Portal
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/developer/api-keys" className="w-full cursor-pointer">
-                      API Keys
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/developer/webhooks" className="w-full cursor-pointer">
-                      Webhooks
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/developer/applications" className="w-full cursor-pointer">
-                      Applications
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/developer/mcp-servers" className="w-full cursor-pointer">
-                      MCP Servers
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/developer/usage" className="w-full cursor-pointer">
-                      Usage Analytics
                     </Link>
                   </DropdownMenuItem>
 
@@ -225,16 +175,6 @@ export function AuthenticatedNavbar({
                   <DropdownMenuItem asChild>
                     <Link href="/account/settings" className="w-full cursor-pointer">
                       Account Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/account/billing" className="w-full cursor-pointer">
-                      Billing
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/support" className="w-full cursor-pointer">
-                      Support
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

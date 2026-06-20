@@ -54,8 +54,8 @@ async function getUsageStats(userId: string) {
     
     const successCount = todayUsage?.filter(u => u.status_code >= 200 && u.status_code < 300).length || 0
     const successRate = requestsToday > 0 ? (successCount / requestsToday) * 100 : 0
-    const avgLatency = requestsToday > 0 
-      ? Math.round(todayUsage.reduce((sum, u) => sum + u.latency_ms, 0) / requestsToday)
+    const avgLatency = requestsToday > 0 && todayUsage
+      ? Math.round(todayUsage.reduce((sum, u) => sum + (u.latency_ms || 0), 0) / requestsToday)
       : 0
     
     // Calculate top endpoints
@@ -349,7 +349,7 @@ export default async function UsageAnalyticsPage() {
             <AlertTriangle className="h-5 w-5 text-yellow-400" />
             <div className="flex-1">
               <h4 className="text-sm font-medium text-yellow-400 mb-1">Rate Limit Activity</h4>
-              <p className="text-xs text-yellow-400/70">You&apos;ve hit the rate limit {stats.rateLimitHits} times today. Consider upgrading your plan or optimizing your requests.</p>
+              <p className="text-xs text-yellow-400/70">You have hit the rate limit {stats.rateLimitHits} times today. Consider upgrading your plan or optimizing your requests.</p>
             </div>
           </div>
         </div>

@@ -52,7 +52,7 @@ export default async function ApplicationsPage() {
           <p className="text-white/50 text-sm">Manage your OAuth applications and integrations</p>
         </div>
         <Link
-          href="/developers/applications/new"
+          href="/developer/applications/new"
           className="flex items-center gap-2 h-10 px-4 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 transition-colors"
         >
           <Plus className="h-4 w-4" />
@@ -139,7 +139,7 @@ export default async function ApplicationsPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Link
-                  href={`/developers/applications/${app.id}`}
+                  href={`/developer/applications/${app.id}`}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/[0.04] transition-colors"
                 >
                   <Shield className="h-3 w-3" />
@@ -161,7 +161,7 @@ export default async function ApplicationsPage() {
           <h3 className="text-lg font-semibold text-white mb-2">No applications yet</h3>
           <p className="text-sm text-white/40 mb-6">Create your first application to start building integrations with MidasAI</p>
           <Link
-            href="/developers/applications/new"
+            href="/developer/applications/new"
             className="flex items-center gap-2 h-10 px-4 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 transition-colors"
           >
             <Plus className="h-4 w-4" />

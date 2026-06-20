@@ -49,8 +49,8 @@ async function getDeveloperStats(userId: string) {
     const requestsToday = todayUsage?.length || 0
     const successCount = todayUsage?.filter(u => u.status_code >= 200 && u.status_code < 300).length || 0
     const successRate = requestsToday > 0 ? (successCount / requestsToday) * 100 : 0
-    const avgLatency = requestsToday > 0 
-      ? Math.round(todayUsage.reduce((sum, u) => sum + u.latency_ms, 0) / requestsToday)
+    const avgLatency = requestsToday > 0 && todayUsage
+      ? Math.round(todayUsage.reduce((sum, u) => sum + (u.latency_ms || 0), 0) / requestsToday)
       : 0
 
     // Get monthly usage
@@ -211,37 +211,27 @@ export default async function DeveloperDashboardPage() {
   const recentActivity = await getRecentActivity(user.id)
   
   const appCards = [
-    { title: 'API Keys', desc: 'Create and manage production API keys', icon: Key, href: '/developers/keys', count: stats.apiKeys },
-    { title: 'Webhooks', desc: 'Configure real-time event notifications', icon: Bell, href: '/developers/webhooks', count: stats.webhooks },
-    { title: 'Applications', desc: 'Register OAuth applications and manage access', icon: Package, href: '/developers/applications', count: stats.applications },
-    { title: 'Usage Analytics', desc: 'Monitor API performance and usage patterns', icon: BarChart3, href: '/developers/usage', count: stats.requestsToday },
-    { title: 'MCP Servers', desc: 'Connect and manage Model Context Protocol servers', icon: ShieldCheck, href: '/developers/mcp', count: stats.mcpServers },
-    { title: 'API Playground', desc: 'Test API endpoints with interactive tools', icon: Code, href: '/developers/playground', count: null },
+    { title: 'API Keys', desc: 'Create and manage production API keys', icon: Key, href: '/developer/keys', count: stats.apiKeys },
+    { title: 'Webhooks', desc: 'Configure real-time event notifications', icon: Bell, href: '/developer/webhooks', count: stats.webhooks },
+    { title: 'Applications', desc: 'Register OAuth applications and manage access', icon: Package, href: '/developer/applications', count: stats.applications },
+    { title: 'Usage Analytics', desc: 'Monitor API performance and usage patterns', icon: BarChart3, href: '/developer/usage', count: stats.requestsToday },
+    { title: 'MCP Servers', desc: 'Connect and manage Model Context Protocol servers', icon: ShieldCheck, href: '/developer/mcp', count: stats.mcpServers },
+    { title: 'API Playground', desc: 'Test API endpoints with interactive tools', icon: Code, href: '/developer/playground', count: null },
     { title: 'Documentation', desc: 'Comprehensive API documentation and guides', icon: FileText, href: '/api-docs', count: null },
-    { title: 'Logs', desc: 'View detailed API logs and error tracking', icon: Activity, href: '/developers/logs', count: null },
-    { title: 'Settings', desc: 'Configure developer preferences and defaults', icon: Settings, href: '/developers/settings', count: null }
+    { title: 'Logs', desc: 'View detailed API logs and error tracking', icon: Activity, href: '/developer/logs', count: null },
+    { title: 'Settings', desc: 'Configure developer preferences and defaults', icon: Settings, href: '/developer/settings', count: null }
   ]
 
   return (
-    <div className="min-h-screen bg-[#07070b]">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-blue-500/5" />
-        <div className="relative px-8 py-12">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Developer Portal</h1>
-              <p className="text-lg text-white/60 max-w-2xl">Build powerful integrations with the MidasAI platform</p>
-            </div>
-            <Link href="/developers/keys/new" className="flex items-center gap-2 h-11 px-6 rounded-lg bg-amber-500 text-black hover:bg-amber-400 transition-all text-sm font-semibold shadow-lg shadow-amber-500/25">
-              <Plus className="h-4 w-4" /> Create API Key
-            </Link>
-          </div>
-        </div>
+    <div className="p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+        <p className="text-white/60">Overview of your developer activity</p>
       </div>
 
       {/* Modern Stats Overview */}
-      <div className="px-8 py-8">
+      <div className="mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="p-6 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-amber-500/10 to-amber-600/5 hover:from-amber-500/15 hover:to-amber-600/10 transition-all">
             <div className="flex items-center justify-between mb-4">
@@ -331,7 +321,7 @@ export default async function DeveloperDashboardPage() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-white">Recent Activity</h2>
             <Link
-              href="/developers/logs"
+              href="/developer/logs"
               className="flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 transition-colors"
             >
               View all logs
