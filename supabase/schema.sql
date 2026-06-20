@@ -481,3 +481,88 @@ CREATE POLICY "Admins can update site settings" ON site_settings
 -- Insert default site settings
 INSERT INTO site_settings (site_name, site_description, contact_email)
 VALUES ('MidasAI', 'The premier marketplace for AI tools', 'hello@midasai.com');
+
+-- ======================
+-- ADDITIONAL TABLES
+-- ======================
+
+-- Followers table
+CREATE TABLE IF NOT EXISTS followers (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  follower_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  following_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(follower_id, following_id)
+);
+
+ALTER TABLE followers ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view followers" ON followers
+  FOR SELECT USING (true);
+
+CREATE POLICY "Users can follow others" ON followers
+  FOR INSERT WITH CHECK (auth.uid() = follower_id);
+
+CREATE POLICY "Users can unfollow" ON followers
+  FOR DELETE USING (auth.uid() = follower_id);
+
+-- Listing versions table
+CREATE TABLE IF NOT EXISTS listing_versions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  listing_id UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+  version VARCHAR(50) NOT NULL,
+  changelog TEXT,
+  release_notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE listing_versions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view listing versions" ON listing_versions
+  FOR SELECT USING (true);
+
+CREATE POLICY "Creators can add versions" ON listing_versions
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM listings
+      WHERE listings.id = listing_id
+      AND listings.creator_id = auth.uid()
+    )
+  );
+
+-- Notification preferences table
+CREATE TABLE IF NOT EXISTS notification_preferences (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+  email_new_follower BOOLEAN DEFAULT true,
+  email_new_review BOOLEAN DEFAULT true,
+  email_new_sale BOOLEAN DEFAULT true,
+  email_listing_approved BOOLEAN DEFAULT true,
+  email_marketing BOOLEAN DEFAULT false,
+  push_enabled BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE notification_preferences ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own notification preferences" ON notification_preferences
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own notification preferences" ON notification_preferences
+  FOR ALL USING (auth.uid() = user_id);
+
+-- Dashboard preferences table
+CREATE TABLE IF NOT EXISTS dashboard_preferences (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+  layout JSONB DEFAULT '{}',
+  widgets JSONB DEFAULT '[]',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE dashboard_preferences ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage own dashboard preferences" ON dashboard_preferences
+  FOR ALL USING (auth.uid() = user_id);

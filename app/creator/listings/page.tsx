@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Edit, Trash2, Eye, Archive, Plus, DollarSign, MessageSquare } from "lucide-react"

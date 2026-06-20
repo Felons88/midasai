@@ -1,15 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase/client'
 
 export default function LogoutPage() {
   const router = useRouter()
-  const [supabase] = useState(() => createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  ))
 
   useEffect(() => {
     const logout = async () => {
@@ -18,11 +14,14 @@ export default function LogoutPage() {
       router.refresh()
     }
     logout()
-  }, [supabase, router])
+  }, [router])
 
   return (
-    <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-[calc(100vh-200px)]">
-      <p>Logging out...</p>
+    <div className="flex flex-col min-h-screen bg-background">
+      <div className="ambient-glow" />
+      <div className="container mx-auto px-4 py-24 relative text-center">
+        <p className="text-xl text-text-secondary">Signing out...</p>
+      </div>
     </div>
   )
 }
