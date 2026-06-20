@@ -57,10 +57,11 @@ async function getListings(searchParams?: { query?: string; type?: string }) {
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams?: { query?: string; type?: string }
+  searchParams?: Promise<{ query?: string; type?: string }>
 }) {
+  const resolvedParams = searchParams ? await searchParams : undefined
   const categories = await getCategories()
-  const listings = await getListings(searchParams)
+  const listings = await getListings(resolvedParams)
   
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -78,7 +79,7 @@ export default async function SearchPage({
                 type="search"
                 placeholder="Search for skills, plugins, agents..."
                 className="h-14 pl-12 text-lg"
-                defaultValue={searchParams?.query}
+                defaultValue={resolvedParams?.query}
                 name="query"
               />
             </div>
@@ -87,13 +88,13 @@ export default async function SearchPage({
           <div className="mb-12 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <h2 className="text-xl font-semibold mb-6 text-text-primary">Filters</h2>
             <div className="flex gap-3 flex-wrap">
-              <Button variant={searchParams?.type ? 'outline' : 'default'} className="transition-smooth" asChild>
+              <Button variant={resolvedParams?.type ? 'outline' : 'default'} className="transition-smooth" asChild>
                 <a href="/search">All Types</a>
               </Button>
               {categories.map((category: any) => (
                 <Button 
                   key={category.id} 
-                  variant={searchParams?.type === category.name ? 'default' : 'outline'}
+                  variant={resolvedParams?.type === category.name ? 'default' : 'outline'}
                   className="transition-smooth"
                   asChild
                 >
