@@ -37,7 +37,7 @@ export function AuthenticatedShell({
 
   return (
     <div className="flex min-h-screen bg-[#07070b]">
-      <Sidebar userRole={userRole} userEmail={userEmail} />
+      <Sidebar userRole={userRole} />
       
       {/* Main content area with dynamic margin based on sidebar state */}
       <div className="flex-1 ml-[260px] flex flex-col min-h-screen transition-all duration-300">

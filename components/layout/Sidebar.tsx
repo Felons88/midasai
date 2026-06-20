@@ -19,24 +19,16 @@ import {
   Wallet,
   Users,
   Star,
-  User,
-  CreditCard,
-  ShieldCheck,
   Settings,
-  Key,
   Shield,
   FileText,
   ChevronLeft,
   ChevronRight,
   Sparkles,
-  LogOut,
 } from "lucide-react"
-import { createBrowserSupabaseClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
 
 interface SidebarProps {
   userRole?: string
-  userEmail?: string
 }
 
 const navSections = [
@@ -76,16 +68,6 @@ const navSections = [
       { href: "/creator/reviews", label: "Reviews", icon: Star },
     ],
   },
-  {
-    label: "Account",
-    items: [
-      { href: "/account/profile", label: "Profile", icon: User },
-      { href: "/account/billing", label: "Billing", icon: CreditCard },
-      { href: "/account/security", label: "Security", icon: ShieldCheck },
-      { href: "/account/settings", label: "Settings", icon: Settings },
-      { href: "/account/api-keys", label: "API Keys", icon: Key },
-    ],
-  },
 ]
 
 const adminSection = {
@@ -98,17 +80,9 @@ const adminSection = {
   ],
 }
 
-export function Sidebar({ userRole, userEmail }: SidebarProps) {
+export function Sidebar({ userRole }: SidebarProps) {
   const pathname = usePathname()
-  const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
-  const supabase = createBrowserSupabaseClient()
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push("/")
-    router.refresh()
-  }
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/")
 
@@ -177,24 +151,8 @@ export function Sidebar({ userRole, userEmail }: SidebarProps) {
         ))}
       </nav>
 
-      {/* User + Logout */}
-      <div className="px-2 py-3 border-t border-white/[0.06] space-y-1">
-        {!collapsed && userEmail && (
-          <div className="px-3 py-1.5 mb-1">
-            <p className="text-[11px] text-white/30 truncate">{userEmail}</p>
-          </div>
-        )}
-        <button
-          onClick={handleLogout}
-          title={collapsed ? "Sign Out" : undefined}
-          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-red-400/80 hover:text-red-400 hover:bg-red-500/[0.08] transition-all w-full ${
-            collapsed ? "justify-center px-0" : ""
-          }`}
-        >
-          <LogOut className="h-4 w-4 flex-shrink-0" />
-          {!collapsed && <span>Sign Out</span>}
-        </button>
-      </div>
+      {/* Bottom spacer */}
+      <div className="px-2 py-3 border-t border-white/[0.06]" />
     </aside>
   )
 }
