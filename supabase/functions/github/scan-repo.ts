@@ -75,8 +75,45 @@ serve(async (req) => {
 
     const repo = await repoResponse.json()
 
+    // CRITICAL SECURITY: Verify repository ownership
+    if (repo.owner.login !== githubConnection.github_username) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'REPOSITORY_OWNERSHIP_VERIFICATION_FAILED',
+          message: 'You can only upload repositories that you own',
+          details: `Repository owner: ${repo.owner.login}, Your GitHub username: ${githubConnection.github_username}`
+        }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Additional security checks
+    if (repo.fork) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'FORKED_REPOSITORY_NOT_ALLOWED',
+          message: 'Forked repositories cannot be uploaded to the marketplace',
+          details: 'Please upload the original repository instead of a fork'
+        }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Comprehensive file scanning for AI analysis
+    const scannedFiles = {
+      readme: '',
+      packageJson: null,
+      pyprojectToml: null,
+      requirementsTxt: '',
+      cargoToml: null,
+      mcpManifests: [],
+      cursorRules: [],
+      claudeSkills: [],
+      windsurfConfigs: [],
+      additionalFiles: {}
+    }
+
     // Fetch README content
-    let readmeContent = ''
     try {
       const readmeResponse = await fetch(`https://api.github.com/repos/${repoFullName}/readme`, {
         headers: {
@@ -88,14 +125,13 @@ serve(async (req) => {
 
       if (readmeResponse.ok) {
         const readmeData = await readmeResponse.json()
-        readmeContent = atob(readmeData.content.replace(/\n/g, ''))
+        scannedFiles.readme = atob(readmeData.content.replace(/\n/g, ''))
       }
     } catch (error) {
       console.log('No README found or error fetching README:', error)
     }
 
-    // Fetch package.json or other config files
-    let packageJson = null
+    // Fetch package.json
     try {
       const packageResponse = await fetch(`https://api.github.com/repos/${repoFullName}/contents/package.json`, {
         headers: {
@@ -107,14 +143,194 @@ serve(async (req) => {
 
       if (packageResponse.ok) {
         const packageData = await packageResponse.json()
-        packageJson = JSON.parse(atob(packageData.content.replace(/\n/g, '')))
+        scannedFiles.packageJson = JSON.parse(atob(packageData.content.replace(/\n/g, '')))
       }
     } catch (error) {
       console.log('No package.json found or error fetching:', error)
     }
 
-    // Analyze with Gemini AI
-    const analysis = await analyzeRepositoryWithGemini(repo, readmeContent, packageJson)
+    // Fetch pyproject.toml for Python projects
+    try {
+      const pyprojectResponse = await fetch(`https://api.github.com/repos/${repoFullName}/contents/pyproject.toml`, {
+        headers: {
+          'Authorization': `Bearer ${githubConnection.github_access_token}`,
+          'User-Agent': 'MidasAI-Platform',
+          'Accept': 'application/vnd.github.v3+json',
+        },
+      })
+
+      if (pyprojectResponse.ok) {
+        const pyprojectData = await pyprojectResponse.json()
+        scannedFiles.pyprojectToml = atob(pyprojectData.content.replace(/\n/g, ''))
+      }
+    } catch (error) {
+      console.log('No pyproject.toml found or error fetching:', error)
+    }
+
+    // Fetch requirements.txt for Python projects
+    try {
+      const requirementsResponse = await fetch(`https://api.github.com/repos/${repoFullName}/contents/requirements.txt`, {
+        headers: {
+          'Authorization': `Bearer ${githubConnection.github_access_token}`,
+          'User-Agent': 'MidasAI-Platform',
+          'Accept': 'application/vnd.github.v3+json',
+        },
+      })
+
+      if (requirementsResponse.ok) {
+        const requirementsData = await requirementsResponse.json()
+        scannedFiles.requirementsTxt = atob(requirementsData.content.replace(/\n/g, ''))
+      }
+    } catch (error) {
+      console.log('No requirements.txt found or error fetching:', error)
+    }
+
+    // Fetch Cargo.toml for Rust projects
+    try {
+      const cargoResponse = await fetch(`https://api.github.com/repos/${repoFullName}/contents/Cargo.toml`, {
+        headers: {
+          'Authorization': `Bearer ${githubConnection.github_access_token}`,
+          'User-Agent': 'MidasAI-Platform',
+          'Accept': 'application/vnd.github.v3+json',
+        },
+      })
+
+      if (cargoResponse.ok) {
+        const cargoData = await cargoResponse.json()
+        scannedFiles.cargoToml = atob(cargoData.content.replace(/\n/g, ''))
+      }
+    } catch (error) {
+      console.log('No Cargo.toml found or error fetching:', error)
+    }
+
+    // Scan for MCP manifests
+    const mcpPatterns = ['mcp.json', 'claude_desktop_config.json', '.mcp/*']
+    for (const pattern of mcpPatterns) {
+      try {
+        const searchResponse = await fetch(`https://api.github.com/repos/${repoFullName}/contents/${pattern}`, {
+          headers: {
+            'Authorization': `Bearer ${githubConnection.github_access_token}`,
+            'User-Agent': 'MidasAI-Platform',
+            'Accept': 'application/vnd.github.v3+json',
+          },
+        })
+
+        if (searchResponse.ok) {
+          const searchData = await searchResponse.json()
+          if (Array.isArray(searchData)) {
+            scannedFiles.mcpManifests.push(...searchData.map((file: any) => ({
+              name: file.name,
+              path: file.path,
+              type: 'directory'
+            })))
+          } else {
+            scannedFiles.mcpManifests.push({
+              name: searchData.name,
+              path: searchData.path,
+              type: 'file'
+            })
+          }
+        }
+      } catch (error) {
+        console.log(`No MCP manifest found for pattern ${pattern}:`, error)
+      }
+    }
+
+    // Scan for Cursor rules
+    const cursorPatterns = ['.cursorrules', '.cursor/*']
+    for (const pattern of cursorPatterns) {
+      try {
+        const searchResponse = await fetch(`https://api.github.com/repos/${repoFullName}/contents/${pattern}`, {
+          headers: {
+            'Authorization': `Bearer ${githubConnection.github_access_token}`,
+            'User-Agent': 'MidasAI-Platform',
+            'Accept': 'application/vnd.github.v3+json',
+          },
+        })
+
+        if (searchResponse.ok) {
+          const searchData = await searchResponse.json()
+          if (Array.isArray(searchData)) {
+            scannedFiles.cursorRules.push(...searchData.map((file: any) => ({
+              name: file.name,
+              path: file.path
+            })))
+          } else {
+            scannedFiles.cursorRules.push({
+              name: searchData.name,
+              path: searchData.path
+            })
+          }
+        }
+      } catch (error) {
+        console.log(`No Cursor rules found for pattern ${pattern}:`, error)
+      }
+    }
+
+    // Scan for Claude skills
+    const skillPatterns = ['*.skill', 'skills/*', '.claude/*']
+    for (const pattern of skillPatterns) {
+      try {
+        const searchResponse = await fetch(`https://api.github.com/repos/${repoFullName}/contents/${pattern}`, {
+          headers: {
+            'Authorization': `Bearer ${githubConnection.github_access_token}`,
+            'User-Agent': 'MidasAI-Platform',
+            'Accept': 'application/vnd.github.v3+json',
+          },
+        })
+
+        if (searchResponse.ok) {
+          const searchData = await searchResponse.json()
+          if (Array.isArray(searchData)) {
+            scannedFiles.claudeSkills.push(...searchData.map((file: any) => ({
+              name: file.name,
+              path: file.path
+            })))
+          } else {
+            scannedFiles.claudeSkills.push({
+              name: searchData.name,
+              path: searchData.path
+            })
+          }
+        }
+      } catch (error) {
+        console.log(`No Claude skills found for pattern ${pattern}:`, error)
+      }
+    }
+
+    // Scan for Windsurf configs
+    const windsurfPatterns = ['windsurf.json', '.windsurf/*']
+    for (const pattern of windsurfPatterns) {
+      try {
+        const searchResponse = await fetch(`https://api.github.com/repos/${repoFullName}/contents/${pattern}`, {
+          headers: {
+            'Authorization': `Bearer ${githubConnection.github_access_token}`,
+            'User-Agent': 'MidasAI-Platform',
+            'Accept': 'application/vnd.github.v3+json',
+          },
+        })
+
+        if (searchResponse.ok) {
+          const searchData = await searchResponse.json()
+          if (Array.isArray(searchData)) {
+            scannedFiles.windsurfConfigs.push(...searchData.map((file: any) => ({
+              name: file.name,
+              path: file.path
+            })))
+          } else {
+            scannedFiles.windsurfConfigs.push({
+              name: searchData.name,
+              path: searchData.path
+            })
+          }
+        }
+      } catch (error) {
+        console.log(`No Windsurf configs found for pattern ${pattern}:`, error)
+      }
+    }
+
+    // Analyze with Gemini AI using comprehensive file data
+    const analysis = await analyzeRepositoryWithGemini(repo, scannedFiles)
 
     // Determine content type based on analysis
     const contentType = determineContentType(repo, packageJson, analysis)
@@ -157,14 +373,15 @@ serve(async (req) => {
   }
 })
 
-async function analyzeRepositoryWithGemini(repo: any, readmeContent: string, packageJson: any) {
+async function analyzeRepositoryWithGemini(repo: any, scannedFiles: any) {
   try {
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
     if (!geminiApiKey) {
       throw new Error('Gemini API key not configured')
     }
 
-    const prompt = `Analyze this GitHub repository and provide a structured analysis for uploading to a marketplace platform.
+    // Build comprehensive analysis prompt
+    let analysisPrompt = `Analyze this GitHub repository comprehensively for marketplace listing generation.
 
 Repository Information:
 - Name: ${repo.name}
@@ -173,24 +390,51 @@ Repository Information:
 - Topics: ${repo.topics ? repo.topics.join(', ') : 'No topics'}
 - Stars: ${repo.stargazers_count}
 - Forks: ${repo.forks_count}
+- Private: ${repo.private}
+- License: ${repo.license ? repo.license.name : 'No license'}
 
-${readmeContent ? `README Content:\n${readmeContent.substring(0, 8000)}\n` : ''}
+${scannedFiles.readme ? `README Content:\n${scannedFiles.readme.substring(0, 6000)}\n` : ''}
 
-${packageJson ? `Package.json:\n${JSON.stringify(packageJson, null, 2)}\n` : ''}
+${scannedFiles.packageJson ? `Package.json:\n${JSON.stringify(scannedFiles.packageJson, null, 2)}\n` : ''}
 
-Please provide a JSON response with the following structure:
+${scannedFiles.pyprojectToml ? `pyproject.toml:\n${scannedFiles.pyprojectToml.substring(0, 2000)}\n` : ''}
+
+${scannedFiles.requirementsTxt ? `requirements.txt:\n${scannedFiles.requirementsTxt.substring(0, 1000)}\n` : ''}
+
+${scannedFiles.cargoToml ? `Cargo.toml:\n${scannedFiles.cargoToml.substring(0, 2000)}\n` : ''}
+
+Detected AI/Dev Tools Files:
+- MCP Manifests: ${scannedFiles.mcpManifests.length} found
+- Cursor Rules: ${scannedFiles.cursorRules.length} found  
+- Claude Skills: ${scannedFiles.claudeSkills.length} found
+- Windsurf Configs: ${scannedFiles.windsurfConfigs.length} found
+
+Please provide a comprehensive JSON analysis with the following structure:
 {
   "title": "A catchy, descriptive title for this project",
-  "description": "A comprehensive description highlighting the main features and benefits",
-  "category": "SKILL|WORKFLOW|TEMPLATE|PLUGIN",
-  "features": ["feature1", "feature2", "feature3"],
-  "use_cases": ["use case 1", "use case 2"],
-  "target_audience": "who would use this",
-  "complexity": "BEGINNER|INTERMEDIATE|ADVANCED",
-  "estimated_time": "time to implement/use"
+  "short_description": "A brief one-sentence description for the marketplace",
+  "long_description": "A comprehensive description highlighting main features, benefits, and use cases",
+  "category": "SKILL|WORKFLOW|TEMPLATE|PLUGIN|MCP|CURSOR_RULE|CLAUDE_SKILL|WINDSURF_CONFIG",
+  "skill_type": "AUTOMATION|ANALYSIS|GENERATION|INTEGRATION|UTILITY",
+  "workflow_type": "DEPLOYMENT|DEVELOPMENT|TESTING|MONITORING|AUTOMATION",
+  "mcp_classification": "TOOL|RESOURCE|SERVER|CLIENT",
+  "features": ["feature1", "feature2", "feature3", "feature4"],
+  "use_cases": ["use case 1", "use case 2", "use case 3"],
+  "target_audience": "who would use this (be specific)",
+  "complexity": "BEGINNER|INTERMEDIATE|ADVANCED|EXPERT",
+  "estimated_time": "time to implement/use (e.g., '5 minutes', '1 hour')",
+  "installation_steps": ["step 1", "step 2", "step 3"],
+  "dependencies": ["dependency1", "dependency2"],
+  "supported_platforms": ["platform1", "platform2"],
+  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
 }
 
-Focus on making this appealing for a marketplace audience. Be specific about benefits and use cases.`
+Focus on:
+1. Creating marketplace-ready content that sells the value
+2. Identifying the specific type of AI tool or workflow
+3. Being specific about benefits and use cases
+4. Including practical installation and usage information
+5. Generating relevant tags for discoverability`
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
@@ -200,7 +444,17 @@ Focus on making this appealing for a marketplace audience. Be specific about ben
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: prompt
+            text: analysisPrompt
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 4096,
+        }
+      })
+    })
           }]
         }],
         generationConfig: {

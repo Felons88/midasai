@@ -22,10 +22,7 @@ serve(async (req) => {
       }
     )
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabaseClient.auth.getUser()
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
 
     if (authError || !user) {
       return new Response(
@@ -34,26 +31,18 @@ serve(async (req) => {
       )
     }
 
-    const { method } = req
-
-    if (method === 'GET') {
-      // Generate GitHub OAuth URL
+    if (req.method === 'GET') {
       const clientId = Deno.env.get('GITHUB_CLIENT_ID')
-      // Callback goes to the Next.js API route which handles the token exchange
       const appUrl = Deno.env.get('SITE_URL') || Deno.env.get('APP_URL') || 'http://localhost:3000'
       const redirectUri = `${appUrl}/api/github/callback`
       const scope = 'repo user:email'
-      // Pass userId as state so the callback can associate the token with the correct user
       const state = user.id
 
       const authUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${state}`
 
       return new Response(
         JSON.stringify({ authUrl, callbackUrl: redirectUri }),
-        { 
-          status: 200, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
