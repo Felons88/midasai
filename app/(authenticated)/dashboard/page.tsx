@@ -1,8 +1,6 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Download, Bookmark, Bell, Settings } from "lucide-react"
-import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
+import Link from "next/link"
+import { Download, Bookmark, Package, TrendingUp, ArrowUpRight, Sparkles } from "lucide-react"
 
 async function getUserStats(userId: string) {
   try {
@@ -92,132 +90,126 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
-  if (!user) {
-    return (
-      <div className="flex flex-col min-h-screen bg-background">
-        <div className="ambient-glow" />
-        <div className="container mx-auto px-4 py-24 relative">
-          <p className="text-xl text-text-secondary text-center">Please log in to view your dashboard.</p>
-        </div>
-      </div>
-    )
-  }
+  if (!user) return null
   
   const stats = await getUserStats(user.id)
   const recentDownloads = await getRecentDownloads(user.id)
   
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <div className="ambient-glow" />
-      <div className="noise-overlay" />
-      
-      <div className="px-8 py-10 relative">
-        <div className="mb-10 animate-fade-in-up">
-          <h1 className="text-4xl md:text-5xl font-bold mb-2 text-text-primary">Dashboard</h1>
-          <p className="text-lg text-text-secondary">Welcome back! Here's an overview of your account.</p>
+    <div className="p-8">
+      {/* Welcome Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white mb-1">Welcome back</h1>
+        <p className="text-white/50 text-sm">Here's what's happening with your account</p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="p-5 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+          <div className="flex items-center gap-2 mb-3">
+            <Download className="h-4 w-4 text-amber-400" />
+            <span className="text-[10px] font-semibold text-white/30 uppercase tracking-wider">Downloads</span>
+          </div>
+          <p className="text-2xl font-bold text-white">{stats.downloads}</p>
+        </div>
+        <div className="p-5 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+          <div className="flex items-center gap-2 mb-3">
+            <Bookmark className="h-4 w-4 text-amber-400" />
+            <span className="text-[10px] font-semibold text-white/30 uppercase tracking-wider">Bookmarks</span>
+          </div>
+          <p className="text-2xl font-bold text-white">{stats.bookmarks}</p>
+        </div>
+        <div className="p-5 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+          <div className="flex items-center gap-2 mb-3">
+            <Package className="h-4 w-4 text-amber-400" />
+            <span className="text-[10px] font-semibold text-white/30 uppercase tracking-wider">Listings</span>
+          </div>
+          <p className="text-2xl font-bold text-white">{stats.listings}</p>
+        </div>
+        <div className="p-5 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="h-4 w-4 text-amber-400" />
+            <span className="text-[10px] font-semibold text-white/30 uppercase tracking-wider">Revenue</span>
+          </div>
+          <p className="text-2xl font-bold text-amber-400">${stats.revenue}</p>
+        </div>
+      </div>
+
+      {/* Two-column layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Quick Actions */}
+        <div className="p-6 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+          <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
+          <div className="space-y-2">
+            <Link href="/creator/upload" className="flex items-center justify-between p-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/15 transition-colors group">
+              <div className="flex items-center gap-3">
+                <Sparkles className="h-4 w-4 text-amber-400" />
+                <span className="text-sm font-medium text-amber-400">Create New Listing</span>
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-amber-400/50 group-hover:text-amber-400 transition-colors" />
+            </Link>
+            <Link href="/explore" className="flex items-center justify-between p-3 rounded-lg hover:bg-white/[0.04] transition-colors group">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="h-4 w-4 text-white/40" />
+                <span className="text-sm text-white/60">Explore Marketplace</span>
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-white/20 group-hover:text-white/40 transition-colors" />
+            </Link>
+            <Link href="/creator/analytics" className="flex items-center justify-between p-3 rounded-lg hover:bg-white/[0.04] transition-colors group">
+              <div className="flex items-center gap-3">
+                <Package className="h-4 w-4 text-white/40" />
+                <span className="text-sm text-white/60">View Analytics</span>
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-white/20 group-hover:text-white/40 transition-colors" />
+            </Link>
+            <Link href="/bookmarks" className="flex items-center justify-between p-3 rounded-lg hover:bg-white/[0.04] transition-colors group">
+              <div className="flex items-center gap-3">
+                <Bookmark className="h-4 w-4 text-white/40" />
+                <span className="text-sm text-white/60">View Bookmarks</span>
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-white/20 group-hover:text-white/40 transition-colors" />
+            </Link>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          <Card className="glass hover:shadow-glow transition-smooth">
-            <CardHeader className="pb-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <Download className="h-4 w-4 text-cta" />
-                <CardTitle className="text-xs font-medium text-text-tertiary uppercase tracking-wider">Downloads</CardTitle>
-              </div>
-              <CardTitle className="text-3xl text-text-primary">{stats.downloads}</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="glass hover:shadow-glow transition-smooth">
-            <CardHeader className="pb-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <Bookmark className="h-4 w-4 text-cta" />
-                <CardTitle className="text-xs font-medium text-text-tertiary uppercase tracking-wider">Bookmarks</CardTitle>
-              </div>
-              <CardTitle className="text-3xl text-text-primary">{stats.bookmarks}</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="glass hover:shadow-glow transition-smooth">
-            <CardHeader className="pb-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <Settings className="h-4 w-4 text-cta" />
-                <CardTitle className="text-xs font-medium text-text-tertiary uppercase tracking-wider">Listings</CardTitle>
-              </div>
-              <CardTitle className="text-3xl text-text-primary">{stats.listings}</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="glass hover:shadow-glow transition-smooth">
-            <CardHeader className="pb-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <Bell className="h-4 w-4 text-cta" />
-                <CardTitle className="text-xs font-medium text-text-tertiary uppercase tracking-wider">Revenue</CardTitle>
-              </div>
-              <CardTitle className="text-3xl text-cta">${stats.revenue}</CardTitle>
-            </CardHeader>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <Card className="glass">
-            <CardHeader>
-              <CardTitle className="text-xl text-text-primary">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button className="w-full justify-start transition-smooth shadow-glow" asChild>
-                <Link href="/creator/upload">
-                  <Download className="mr-2 h-4 w-4" />
-                  Create New Listing
+        {/* Recent Downloads */}
+        <div className="p-6 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">Recent Downloads</h2>
+            <Link href="/downloads" className="text-xs text-amber-400 hover:text-amber-300 transition-colors">
+              View all →
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {recentDownloads.map((download: any) => (
+              <div key={download.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.03] transition-colors">
+                <div className="h-8 w-8 rounded-lg bg-white/[0.04] flex items-center justify-center">
+                  <Download className="h-4 w-4 text-amber-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{download.listings?.title || 'Unknown'}</p>
+                  <p className="text-[11px] text-white/30">
+                    {new Date(download.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <Link
+                  href={`/listing/${download.listing_id}`}
+                  className="text-[11px] text-white/40 hover:text-amber-400 transition-colors"
+                >
+                  View
                 </Link>
-              </Button>
-              <Button variant="outline" className="w-full justify-start transition-smooth" asChild>
-                <Link href="/bookmarks">
-                  <Bookmark className="mr-2 h-4 w-4" />
-                  View Bookmarks
-                </Link>
-              </Button>
-              <Button variant="outline" className="w-full justify-start transition-smooth" asChild>
-                <Link href="/creator/analytics">
-                  <Bell className="mr-2 h-4 w-4" />
-                  View Analytics
-                </Link>
-              </Button>
-              <Button variant="outline" className="w-full justify-start transition-smooth" asChild>
-                <Link href="/settings">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Account Settings
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="glass">
-            <CardHeader>
-              <CardTitle className="text-xl text-text-primary">Recent Downloads</CardTitle>
-              <CardDescription className="text-text-secondary">Your latest purchases</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentDownloads.map((download: any) => (
-                  <div key={download.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Download className="h-5 w-5 text-cta" />
-                      <div>
-                        <p className="font-medium text-text-primary">{download.listings?.title || 'Unknown'}</p>
-                        <p className="text-sm text-text-tertiary">
-                          {new Date(download.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm" className="transition-smooth" asChild>
-                      <a href={`/listing/${download.listing_id}`}>View</a>
-                    </Button>
-                  </div>
-                ))}
-                {recentDownloads.length === 0 && (
-                  <p className="text-sm text-text-tertiary">No downloads yet. Browse the marketplace to find great tools.</p>
-                )}
               </div>
-            </CardContent>
-          </Card>
+            ))}
+            {recentDownloads.length === 0 && (
+              <div className="text-center py-8">
+                <Download className="h-8 w-8 text-white/10 mx-auto mb-2" />
+                <p className="text-sm text-white/30">No downloads yet</p>
+                <Link href="/explore" className="text-xs text-amber-400 hover:text-amber-300 mt-2 inline-block">
+                  Browse marketplace →
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

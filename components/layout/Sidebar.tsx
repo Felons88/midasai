@@ -2,32 +2,107 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useState } from "react"
 import {
   LayoutDashboard,
+  Compass,
+  Store,
+  Bookmark,
+  Download,
+  FolderOpen,
+  MessageSquare,
+  Bell,
   Package,
+  Upload,
   BarChart3,
   DollarSign,
-  Upload,
-  Bookmark,
-  Bell,
-  Settings,
-  User,
-  LogOut,
-  Sparkles,
-  Shield,
+  Wallet,
   Users,
+  Star,
+  User,
+  CreditCard,
+  ShieldCheck,
+  Settings,
+  Key,
+  Shield,
   FileText,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  LogOut,
 } from "lucide-react"
-import { supabase } from "@/lib/supabase/client"
+import { createBrowserSupabaseClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 
 interface SidebarProps {
   userRole?: string
+  userEmail?: string
 }
 
-export function Sidebar({ userRole }: SidebarProps) {
+const navSections = [
+  {
+    label: null,
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/explore", label: "Explore", icon: Compass },
+      { href: "/marketplace", label: "Marketplace", icon: Store },
+    ],
+  },
+  {
+    label: "Library",
+    items: [
+      { href: "/bookmarks", label: "Bookmarks", icon: Bookmark },
+      { href: "/downloads", label: "Downloads", icon: Download },
+      { href: "/collections", label: "Collections", icon: FolderOpen },
+    ],
+  },
+  {
+    label: "Social",
+    items: [
+      { href: "/messages", label: "Messages", icon: MessageSquare },
+      { href: "/notifications", label: "Notifications", icon: Bell },
+    ],
+  },
+  {
+    label: "Creator",
+    items: [
+      { href: "/creator/dashboard", label: "Overview", icon: BarChart3 },
+      { href: "/creator/listings", label: "My Listings", icon: Package },
+      { href: "/creator/upload", label: "Upload Asset", icon: Upload },
+      { href: "/creator/analytics", label: "Analytics", icon: BarChart3 },
+      { href: "/creator/revenue", label: "Revenue", icon: DollarSign },
+      { href: "/creator/payouts", label: "Payouts", icon: Wallet },
+      { href: "/creator/followers", label: "Followers", icon: Users },
+      { href: "/creator/reviews", label: "Reviews", icon: Star },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      { href: "/account/profile", label: "Profile", icon: User },
+      { href: "/account/billing", label: "Billing", icon: CreditCard },
+      { href: "/account/security", label: "Security", icon: ShieldCheck },
+      { href: "/account/settings", label: "Settings", icon: Settings },
+      { href: "/account/api-keys", label: "API Keys", icon: Key },
+    ],
+  },
+]
+
+const adminSection = {
+  label: "Admin",
+  items: [
+    { href: "/admin/dashboard", label: "Overview", icon: Shield },
+    { href: "/admin/users", label: "Users", icon: Users },
+    { href: "/admin/listings", label: "Listings", icon: FileText },
+    { href: "/admin/settings", label: "Settings", icon: Settings },
+  ],
+}
+
+export function Sidebar({ userRole, userEmail }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const [collapsed, setCollapsed] = useState(false)
+  const supabase = createBrowserSupabaseClient()
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -35,147 +110,89 @@ export function Sidebar({ userRole }: SidebarProps) {
     router.refresh()
   }
 
-  const mainNav = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/bookmarks", label: "Bookmarks", icon: Bookmark },
-    { href: "/notifications", label: "Notifications", icon: Bell },
-  ]
-
-  const creatorNav = [
-    { href: "/creator/dashboard", label: "Creator Hub", icon: BarChart3 },
-    { href: "/creator/listings", label: "My Listings", icon: Package },
-    { href: "/creator/upload", label: "Upload", icon: Upload },
-    { href: "/creator/analytics", label: "Analytics", icon: BarChart3 },
-    { href: "/creator/payouts", label: "Payouts", icon: DollarSign },
-  ]
-
-  const adminNav = [
-    { href: "/admin/dashboard", label: "Admin", icon: Shield },
-    { href: "/admin/listings", label: "All Listings", icon: FileText },
-    { href: "/admin/users", label: "Users", icon: Users },
-    { href: "/admin/settings", label: "Platform Settings", icon: Settings },
-  ]
-
-  const accountNav = [
-    { href: "/profile", label: "Profile", icon: User },
-    { href: "/settings", label: "Settings", icon: Settings },
-  ]
-
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/")
 
+  const sections = userRole === 'ADMIN' || userRole === 'OWNER'
+    ? [...navSections, adminSection]
+    : navSections
+
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-white/5 bg-background/95 backdrop-blur-xl flex flex-col">
-      {/* Logo */}
-      <div className="flex items-center gap-2 px-6 h-16 border-b border-white/5">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-cta to-cta-light flex items-center justify-center group-hover:scale-105 transition-smooth shadow-glow">
-            <Sparkles className="h-5 w-5 text-primary" />
+    <aside
+      className={`fixed left-0 top-0 z-40 h-screen border-r border-white/[0.06] bg-[#0a0a0f]/98 backdrop-blur-2xl flex flex-col transition-all duration-300 ease-in-out ${
+        collapsed ? "w-[68px]" : "w-[260px]"
+      }`}
+    >
+      {/* Logo + Collapse */}
+      <div className="flex items-center justify-between h-14 px-4 border-b border-white/[0.06]">
+        <Link href="/" className="flex items-center gap-2.5 group overflow-hidden">
+          <div className="h-8 w-8 min-w-[32px] rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <Sparkles className="h-4 w-4 text-black" />
           </div>
-          <span className="text-xl font-bold text-text-primary">MidasAI</span>
+          {!collapsed && (
+            <span className="text-base font-bold text-white whitespace-nowrap">MidasAI</span>
+          )}
         </Link>
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="h-7 w-7 min-w-[28px] flex items-center justify-center rounded-md hover:bg-white/[0.06] text-white/40 hover:text-white/80 transition-colors"
+        >
+          {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+        </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-        {/* Main */}
-        <div>
-          <p className="px-3 mb-2 text-xs font-semibold text-text-tertiary uppercase tracking-wider">Main</p>
-          <ul className="space-y-1">
-            {mainNav.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-smooth ${
-                    isActive(item.href)
-                      ? "bg-cta/10 text-cta shadow-sm"
-                      : "text-text-secondary hover:text-text-primary hover:bg-surface"
-                  }`}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Creator */}
-        <div>
-          <p className="px-3 mb-2 text-xs font-semibold text-text-tertiary uppercase tracking-wider">Creator</p>
-          <ul className="space-y-1">
-            {creatorNav.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-smooth ${
-                    isActive(item.href)
-                      ? "bg-cta/10 text-cta shadow-sm"
-                      : "text-text-secondary hover:text-text-primary hover:bg-surface"
-                  }`}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Admin - only show for admin/owner roles */}
-        {(userRole === 'ADMIN' || userRole === 'OWNER') && (
-          <div>
-            <p className="px-3 mb-2 text-xs font-semibold text-text-tertiary uppercase tracking-wider">Admin</p>
-            <ul className="space-y-1">
-              {adminNav.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-smooth ${
-                      isActive(item.href)
-                        ? "bg-cta/10 text-cta shadow-sm"
-                        : "text-text-secondary hover:text-text-primary hover:bg-surface"
-                    }`}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
+      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-5 scrollbar-thin">
+        {sections.map((section, si) => (
+          <div key={si}>
+            {section.label && !collapsed && (
+              <p className="px-3 mb-1.5 text-[10px] font-semibold text-white/30 uppercase tracking-[0.1em]">
+                {section.label}
+              </p>
+            )}
+            {section.label && collapsed && (
+              <div className="h-px mx-2 mb-2 bg-white/[0.06]" />
+            )}
+            <ul className="space-y-0.5">
+              {section.items.map((item) => {
+                const active = isActive(item.href)
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      title={collapsed ? item.label : undefined}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 ${
+                        active
+                          ? "bg-white/[0.08] text-white shadow-sm"
+                          : "text-white/50 hover:text-white/90 hover:bg-white/[0.04]"
+                      } ${collapsed ? "justify-center px-0" : ""}`}
+                    >
+                      <item.icon className={`h-4 w-4 flex-shrink-0 ${active ? "text-amber-400" : ""}`} />
+                      {!collapsed && <span className="truncate">{item.label}</span>}
+                    </Link>
+                  </li>
+                )
+              })}
             </ul>
           </div>
-        )}
-
-        {/* Account */}
-        <div>
-          <p className="px-3 mb-2 text-xs font-semibold text-text-tertiary uppercase tracking-wider">Account</p>
-          <ul className="space-y-1">
-            {accountNav.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-smooth ${
-                    isActive(item.href)
-                      ? "bg-cta/10 text-cta shadow-sm"
-                      : "text-text-secondary hover:text-text-primary hover:bg-surface"
-                  }`}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        ))}
       </nav>
 
-      {/* Logout */}
-      <div className="px-3 py-4 border-t border-white/5">
+      {/* User + Logout */}
+      <div className="px-2 py-3 border-t border-white/[0.06] space-y-1">
+        {!collapsed && userEmail && (
+          <div className="px-3 py-1.5 mb-1">
+            <p className="text-[11px] text-white/30 truncate">{userEmail}</p>
+          </div>
+        )}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 transition-smooth w-full"
+          title={collapsed ? "Sign Out" : undefined}
+          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-red-400/80 hover:text-red-400 hover:bg-red-500/[0.08] transition-all w-full ${
+            collapsed ? "justify-center px-0" : ""
+          }`}
         >
-          <LogOut className="h-4 w-4" />
-          Sign Out
+          <LogOut className="h-4 w-4 flex-shrink-0" />
+          {!collapsed && <span>Sign Out</span>}
         </button>
       </div>
     </aside>

@@ -1,20 +1,25 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { Sidebar } from "@/components/layout/Sidebar"
+import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell"
 
-async function getUserRole(userId: string) {
+async function getUserData(userId: string) {
   try {
     const supabase = await createClient()
     const { data: user, error } = await supabase
       .from('users')
-      .select('role')
+      .select('role, name, email, avatar_url')
       .eq('id', userId)
       .single()
     
-    if (error) return 'USER'
-    return user?.role || 'USER'
+    if (error) return { role: 'USER', name: '', email: '', avatar_url: '' }
+    return {
+      role: user?.role || 'USER',
+      name: user?.name || '',
+      email: user?.email || '',
+      avatar_url: user?.avatar_url || '',
+    }
   } catch {
-    return 'USER'
+    return { role: 'USER', name: '', email: '', avatar_url: '' }
   }
 }
 
@@ -30,16 +35,16 @@ export default async function AuthenticatedLayout({
     redirect('/auth/login')
   }
 
-  const userRole = await getUserRole(user.id)
+  const userData = await getUserData(user.id)
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar userRole={userRole} />
-      <main className="flex-1 ml-64">
-        <div className="min-h-screen">
-          {children}
-        </div>
-      </main>
-    </div>
+    <AuthenticatedShell
+      userRole={userData.role}
+      userEmail={userData.email || user.email || ''}
+      userName={userData.name}
+      userAvatar={userData.avatar_url}
+    >
+      {children}
+    </AuthenticatedShell>
   )
 }

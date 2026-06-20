@@ -8,14 +8,12 @@ import { usePathname } from "next/navigation"
 export function Navbar() {
   const pathname = usePathname()
 
-  const isAuthenticatedRoute = 
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/creator') ||
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/bookmarks') ||
-    pathname.startsWith('/notifications') ||
-    pathname.startsWith('/profile') ||
-    pathname.startsWith('/settings')
+  const authenticatedPrefixes = [
+    '/dashboard', '/creator', '/admin', '/bookmarks',
+    '/notifications', '/profile', '/settings', '/explore',
+    '/marketplace', '/downloads', '/collections', '/messages', '/account',
+  ]
+  const isAuthenticatedRoute = authenticatedPrefixes.some(p => pathname.startsWith(p))
 
   // Don't render the top navbar on authenticated pages (sidebar handles navigation)
   if (isAuthenticatedRoute) {
