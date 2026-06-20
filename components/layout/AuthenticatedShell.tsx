@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Sidebar } from "./Sidebar"
 import { TopBar } from "./TopBar"
 import { CommandPalette } from "./CommandPalette"
+import { PremiumGradientBackground } from "@/components/ui/animated-background"
 
 interface AuthenticatedShellProps {
   children: React.ReactNode
@@ -36,18 +37,20 @@ export function AuthenticatedShell({
   }, [])
 
   return (
-    <div className="flex min-h-screen bg-[#07070b]">
+    <div className="flex min-h-screen bg-[#07070b] relative">
+      <PremiumGradientBackground />
+      
       <Sidebar userRole={userRole} />
       
       {/* Main content area with dynamic margin based on sidebar state */}
-      <div className="flex-1 ml-[260px] flex flex-col min-h-screen transition-all duration-300">
+      <div className="flex-1 ml-[260px] flex flex-col min-h-screen transition-all duration-300 relative z-10">
         <TopBar
           userEmail={userEmail}
           userName={userName}
           userAvatar={userAvatar}
           onSearchOpen={() => setCommandOpen(true)}
         />
-        <main className="flex-1">
+        <main className="flex-1 relative z-10">
           {children}
         </main>
       </div>

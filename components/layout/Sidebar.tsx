@@ -27,6 +27,11 @@ import {
   ChevronRight,
   Sparkles,
   Key,
+  Code,
+  Activity,
+  Globe,
+  FileText as FileTextIcon,
+  Settings as SettingsIcon,
 } from "lucide-react"
 
 interface SidebarProps {
@@ -79,6 +84,10 @@ const navSections = [
       { href: "/developers/applications", label: "Applications", icon: Package },
       { href: "/developers/mcp", label: "MCP Servers", icon: ShieldCheck },
       { href: "/developers/usage", label: "Usage Analytics", icon: BarChart3 },
+      { href: "/developers/playground", label: "API Playground", icon: Code },
+      { href: "/developers/logs", label: "Logs", icon: Activity },
+      { href: "/api-docs", label: "Documentation", icon: FileTextIcon },
+      { href: "/developers/settings", label: "Settings", icon: SettingsIcon },
     ],
   },
 ]
