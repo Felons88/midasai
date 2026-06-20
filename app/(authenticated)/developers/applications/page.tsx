@@ -6,52 +6,31 @@ async function getApplications(userId: string) {
   try {
     const supabase = await createClient()
     
-    // Mock data for now - will be replaced with real database queries
-    return [
-      {
-        id: "1",
-        name: "Code Assistant Pro",
-        description: "AI-powered code completion and documentation tool",
-        website: "https://codeassistant.com",
-        callbackUrl: "https://api.codeassistant.com/auth/callback",
-        logo: null,
-        status: "active",
-        createdAt: "2024-01-15",
-        apiKeys: 2,
-        webhookCount: 1,
-        monthlyUsage: 45000,
-        userCount: 1234
-      },
-      {
-        id: "2",
-        name: "DevTools Integration",
-        description: "VS Code extension for MidasAI marketplace integration",
-        website: "https://devtools.com",
-        callbackUrl: "https://devtools.com/oauth/callback",
-        logo: null,
-        status: "active",
-        createdAt: "2024-02-01",
-        apiKeys: 1,
-        webhookCount: 2,
-        monthlyUsage: 12000,
-        userCount: 567
-      },
-      {
-        id: "3",
-        name: "Analytics Dashboard",
-        description: "Third-party analytics platform for marketplace insights",
-        website: "https://analytics.com",
-        callbackUrl: "https://analytics.com/auth/callback",
-        logo: null,
-        status: "suspended",
-        createdAt: "2024-01-20",
-        apiKeys: 3,
-        webhookCount: 1,
-        monthlyUsage: 89000,
-        userCount: 2341
-      }
-    ]
-  } catch {
+    // Get real applications from database
+    const { data: applications, error } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    
+    return applications?.map(app => ({
+      id: app.id,
+      name: app.name,
+      description: app.description,
+      website: app.website,
+      callbackUrl: app.callback_url,
+      logo: app.logo_url,
+      status: app.status.toLowerCase(),
+      createdAt: new Date(app.created_at).toLocaleDateString(),
+      apiKeys: 0, // Will be calculated when OAuth tokens are implemented
+      webhookCount: app.webhook_url ? 1 : 0,
+      monthlyUsage: 0, // Will be calculated from usage tracking
+      userCount: 0 // Will be calculated from OAuth tokens
+    })) || []
+  } catch (error) {
+    console.error('Error fetching applications:', error)
     return []
   }
 }

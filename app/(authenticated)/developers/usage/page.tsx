@@ -5,39 +5,109 @@ async function getUsageStats(userId: string) {
   try {
     const supabase = await createClient()
     
-    // Mock data for now - will be replaced with real database queries
-    return {
-      requestsToday: 1247,
-      requestsThisWeek: 8456,
-      requestsThisMonth: 45678,
-      avgLatency: 142,
-      successRate: 99.8,
-      errorRate: 0.2,
-      rateLimitHits: 23,
-      topEndpoints: [
-        { endpoint: "/api/v1/listings", requests: 12450, avgLatency: 128 },
-        { endpoint: "/api/v1/search", requests: 8934, avgLatency: 156 },
-        { endpoint: "/api/v1/analytics", requests: 5678, avgLatency: 234 },
-        { endpoint: "/api/v1/users", requests: 3456, avgLatency: 98 },
-        { endpoint: "/api/v1/purchases", requests: 2345, avgLatency: 189 }
-      ],
-      recentRequests: [
-        { id: 1, method: "GET", endpoint: "/api/v1/listings", status: 200, latency: 128, timestamp: "2 minutes ago" },
-        { id: 2, method: "POST", endpoint: "/api/v1/search", status: 200, latency: 156, timestamp: "5 minutes ago" },
-        { id: 3, method: "GET", endpoint: "/api/v1/analytics", status: 200, latency: 234, timestamp: "8 minutes ago" },
-        { id: 4, method: "PUT", endpoint: "/api/v1/users", status: 401, latency: 45, timestamp: "12 minutes ago" },
-        { id: 5, method: "GET", endpoint: "/api/v1/purchases", status: 429, latency: 12, timestamp: "15 minutes ago" }
-      ],
-      hourlyUsage: Array.from({ length: 24 }, (_, i) => ({
-        hour: i,
-        requests: Math.floor(Math.random() * 500) + 100
-      })),
-      dailyUsage: Array.from({ length: 30 }, (_, i) => ({
-        day: i + 1,
-        requests: Math.floor(Math.random() * 2000) + 500
+    // Get real usage stats from database
+    const now = new Date()
+    const todayStart = new Date(now.setHours(0, 0, 0, 0))
+    const weekStart = new Date(now.setDate(now.getDate() - 7))
+    const monthStart = new Date(now.setDate(1))
+    
+    // Get usage data for different time periods
+    const [
+      { data: todayUsage },
+      { data: weekUsage },
+      { data: monthUsage },
+      { data: recentRequests },
+      { data: topEndpoints }
+    ] = await Promise.all([
+      supabase
+        .from('api_usage')
+        .select('status_code, latency_ms')
+        .eq('user_id', userId)
+        .gte('created_at', todayStart.toISOString()),
+      supabase
+        .from('api_usage')
+        .select('id')
+        .eq('user_id', userId)
+        .gte('created_at', weekStart.toISOString()),
+      supabase
+        .from('api_usage')
+        .select('id')
+        .eq('user_id', userId)
+        .gte('created_at', monthStart.toISOString()),
+      supabase
+        .from('api_usage')
+        .select('method, endpoint, status_code, latency_ms, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(10),
+      supabase
+        .from('api_usage')
+        .select('endpoint, latency_ms')
+        .eq('user_id', userId)
+        .gte('created_at', monthStart.toISOString())
+    ])
+
+    // Calculate real metrics
+    const requestsToday = todayUsage?.length || 0
+    const requestsThisWeek = weekUsage?.length || 0
+    const requestsThisMonth = monthUsage?.length || 0
+    
+    const successCount = todayUsage?.filter(u => u.status_code >= 200 && u.status_code < 300).length || 0
+    const successRate = requestsToday > 0 ? (successCount / requestsToday) * 100 : 0
+    const avgLatency = requestsToday > 0 
+      ? Math.round(todayUsage.reduce((sum, u) => sum + u.latency_ms, 0) / requestsToday)
+      : 0
+    
+    // Calculate top endpoints
+    const endpointStats = new Map()
+    topEndpoints?.forEach(req => {
+      const current = endpointStats.get(req.endpoint) || { count: 0, totalLatency: 0 }
+      endpointStats.set(req.endpoint, {
+        count: current.count + 1,
+        totalLatency: current.totalLatency + req.latency_ms
+      })
+    })
+    
+    const topEndpointsList = Array.from(endpointStats.entries())
+      .map(([endpoint, stats]) => ({
+        endpoint,
+        requests: stats.count,
+        avgLatency: Math.round(stats.totalLatency / stats.count)
       }))
+      .sort((a, b) => b.requests - a.requests)
+      .slice(0, 5)
+
+    // Format recent requests
+    const formattedRecentRequests = recentRequests?.map(req => ({
+      id: req.created_at,
+      method: req.method,
+      endpoint: req.endpoint,
+      status: req.status_code,
+      latency: req.latency_ms,
+      timestamp: formatRelativeTime(req.created_at)
+    })) || []
+
+    // Get hourly usage for last 24 hours
+    const hourlyUsage = await getHourlyUsage(userId)
+    
+    // Get daily usage for last 30 days
+    const dailyUsage = await getDailyUsage(userId)
+
+    return {
+      requestsToday,
+      requestsThisWeek,
+      requestsThisMonth,
+      avgLatency,
+      successRate: Math.round(successRate * 10) / 10,
+      errorRate: Math.round((100 - successRate) * 10) / 10,
+      rateLimitHits: 0, // Will be implemented with rate limiting
+      topEndpoints: topEndpointsList,
+      recentRequests: formattedRecentRequests,
+      hourlyUsage,
+      dailyUsage
     }
-  } catch {
+  } catch (error) {
+    console.error('Error fetching usage stats:', error)
     return {
       requestsToday: 0,
       requestsThisWeek: 0,
@@ -51,6 +121,76 @@ async function getUsageStats(userId: string) {
       hourlyUsage: [],
       dailyUsage: []
     }
+  }
+}
+
+async function getHourlyUsage(userId: string) {
+  const supabase = await createClient()
+  const hourlyUsage = []
+  
+  for (let i = 23; i >= 0; i--) {
+    const hourStart = new Date()
+    hourStart.setHours(hourStart.getHours() - i, 0, 0, 0)
+    const hourEnd = new Date(hourStart)
+    hourEnd.setHours(hourEnd.getHours() + 1)
+    
+    const { count } = await supabase
+      .from('api_usage')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('created_at', hourStart.toISOString())
+      .lt('created_at', hourEnd.toISOString())
+    
+    hourlyUsage.push({
+      hour: 23 - i,
+      requests: count || 0
+    })
+  }
+  
+  return hourlyUsage
+}
+
+async function getDailyUsage(userId: string) {
+  const supabase = await createClient()
+  const dailyUsage = []
+  
+  for (let i = 29; i >= 0; i--) {
+    const dayStart = new Date()
+    dayStart.setDate(dayStart.getDate() - i)
+    dayStart.setHours(0, 0, 0, 0)
+    const dayEnd = new Date(dayStart)
+    dayEnd.setDate(dayEnd.getDate() + 1)
+    
+    const { count } = await supabase
+      .from('api_usage')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('created_at', dayStart.toISOString())
+      .lt('created_at', dayEnd.toISOString())
+    
+    dailyUsage.push({
+      day: 30 - i,
+      requests: count || 0
+    })
+  }
+  
+  return dailyUsage
+}
+
+function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffHours / 24)
+  
+  if (diffDays > 0) {
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+  } else if (diffHours > 0) {
+    return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+  } else {
+    const diffMinutes = Math.floor(diffMs / (1000 * 60))
+    return diffMinutes > 0 ? `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago` : 'Just now'
   }
 }
 

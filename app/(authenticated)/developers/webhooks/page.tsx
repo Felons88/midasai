@@ -6,47 +6,48 @@ async function getWebhooks(userId: string) {
   try {
     const supabase = await createClient()
     
-    // Mock data for now - will be replaced with real database queries
-    return [
-      {
-        id: "1",
-        name: "Purchase Events",
-        url: "https://api.example.com/webhooks/purchases",
-        events: ["purchase.completed", "purchase.refunded"],
-        status: "active",
-        lastDelivery: "5 minutes ago",
-        totalDeliveries: 1247,
-        successRate: 99.2,
-        createdAt: "2024-01-15",
-        secret: "whsec_••••••••••••••••"
-      },
-      {
-        id: "2",
-        name: "Creator Notifications",
-        url: "https://api.example.com/webhooks/creator",
-        events: ["listing.created", "listing.updated", "review.created"],
-        status: "active",
-        lastDelivery: "2 hours ago",
-        totalDeliveries: 856,
-        successRate: 98.7,
-        createdAt: "2024-02-01",
-        secret: "whsec_••••••••••••••••"
-      },
-      {
-        id: "3",
-        name: "MCP Server Events",
-        url: "https://api.example.com/webhooks/mcp",
-        events: ["mcp.published", "mcp.updated"],
-        status: "paused",
-        lastDelivery: "3 days ago",
-        totalDeliveries: 423,
-        successRate: 97.8,
-        createdAt: "2024-01-20",
-        secret: "whsec_••••••••••••••••"
-      }
-    ]
-  } catch {
+    // Get real webhooks from database
+    const { data: webhooks, error } = await supabase
+      .from('webhooks')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    
+    return webhooks?.map(webhook => ({
+      id: webhook.id,
+      name: webhook.name,
+      url: webhook.url,
+      events: webhook.events || [],
+      status: webhook.status.toLowerCase(),
+      lastDelivery: webhook.last_delivery_at ? formatRelativeTime(webhook.last_delivery_at) : "Never",
+      totalDeliveries: webhook.total_deliveries,
+      successRate: webhook.total_deliveries > 0 
+        ? Math.round(((webhook.total_deliveries - webhook.failed_deliveries) / webhook.total_deliveries) * 100 * 10) / 10
+        : 100,
+      createdAt: new Date(webhook.created_at).toLocaleDateString(),
+      secret: "whsec_" + "•".repeat(16) // Masked secret
+    })) || []
+  } catch (error) {
+    console.error('Error fetching webhooks:', error)
     return []
+  }
+}
+
+function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffHours / 24)
+  
+  if (diffDays > 0) {
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+  } else if (diffHours > 0) {
+    return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+  } else {
+    return 'Just now'
   }
 }
 

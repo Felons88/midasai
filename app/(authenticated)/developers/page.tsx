@@ -6,18 +6,52 @@ async function getDeveloperStats(userId: string) {
   try {
     const supabase = await createClient()
     
-    // Mock stats for now - will be replaced with real data
+    // Get real stats from database
+    const [
+      { count: apiKeys },
+      { count: webhooks },
+      { count: applications },
+      { count: mcpServers },
+      { data: todayUsage }
+    ] = await Promise.all([
+      supabase.from('api_keys').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'ACTIVE'),
+      supabase.from('webhooks').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'ACTIVE'),
+      supabase.from('applications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'ACTIVE'),
+      supabase.from('mcp_servers').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'ACTIVE'),
+      supabase
+        .from('api_usage')
+        .select('status_code, latency_ms')
+        .eq('user_id', userId)
+        .gte('created_at', new Date(new Date().setHours(0,0,0,0)).toISOString())
+    ])
+
+    // Calculate real metrics from today's usage
+    const requestsToday = todayUsage?.length || 0
+    const successCount = todayUsage?.filter(u => u.status_code >= 200 && u.status_code < 300).length || 0
+    const successRate = requestsToday > 0 ? (successCount / requestsToday) * 100 : 0
+    const avgLatency = requestsToday > 0 
+      ? Math.round(todayUsage.reduce((sum, u) => sum + u.latency_ms, 0) / requestsToday)
+      : 0
+
+    // Get monthly usage
+    const { count: requestsThisMonth } = await supabase
+      .from('api_usage')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('created_at', new Date(new Date().setDate(1)).toISOString())
+
     return {
-      apiKeys: 3,
-      requestsToday: 1247,
-      requestsThisMonth: 45678,
-      successRate: 99.8,
-      avgLatency: 142,
-      webhooks: 2,
-      applications: 1,
-      mcpServers: 2,
+      apiKeys: apiKeys || 0,
+      requestsToday,
+      requestsThisMonth: requestsThisMonth || 0,
+      successRate: Math.round(successRate * 10) / 10,
+      avgLatency,
+      webhooks: webhooks || 0,
+      applications: applications || 0,
+      mcpServers: mcpServers || 0,
     }
-  } catch {
+  } catch (error) {
+    console.error('Error fetching developer stats:', error)
     return {
       apiKeys: 0,
       requestsToday: 0,
@@ -33,15 +67,117 @@ async function getDeveloperStats(userId: string) {
 
 async function getRecentActivity(userId: string) {
   try {
-    // Mock activity for now
-    return [
-      { id: 1, type: "api_key", message: "API key 'Production Key' created", time: "2 hours ago", icon: Key },
-      { id: 2, type: "webhook", message: "Webhook 'Purchase Events' configured", time: "5 hours ago", icon: Bell },
-      { id: 3, type: "request", message: "10,000 API requests milestone reached", time: "1 day ago", icon: Activity },
-      { id: 4, type: "mcp", message: "MCP server 'Code Assistant' connected", time: "2 days ago", icon: ShieldCheck },
-    ]
-  } catch {
+    const supabase = await createClient()
+    
+    // Get real recent activity from audit logs and recent items
+    const [
+      { data: recentApiKeys },
+      { data: recentWebhooks },
+      { data: recentMcpServers },
+      { data: recentUsage }
+    ] = await Promise.all([
+      supabase
+        .from('api_keys')
+        .select('name, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(2),
+      supabase
+        .from('webhooks')
+        .select('name, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(2),
+      supabase
+        .from('mcp_servers')
+        .select('name, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(2),
+      supabase
+        .from('api_usage')
+        .select('created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+    ])
+
+    const activity = []
+    
+    // Add recent API key creations
+    recentApiKeys?.forEach(key => {
+      activity.push({
+        id: `api_key_${key.created_at}`,
+        type: "api_key",
+        message: `API key '${key.name}' created`,
+        time: formatRelativeTime(key.created_at),
+        icon: Key
+      })
+    })
+    
+    // Add recent webhook creations
+    recentWebhooks?.forEach(webhook => {
+      activity.push({
+        id: `webhook_${webhook.created_at}`,
+        type: "webhook",
+        message: `Webhook '${webhook.name}' configured`,
+        time: formatRelativeTime(webhook.created_at),
+        icon: Bell
+      })
+    })
+    
+    // Add recent MCP server creations
+    recentMcpServers?.forEach(server => {
+      activity.push({
+        id: `mcp_${server.created_at}`,
+        type: "mcp",
+        message: `MCP server '${server.name}' connected`,
+        time: formatRelativeTime(server.created_at),
+        icon: ShieldCheck
+      })
+    })
+    
+    // Add recent API usage milestone
+    if (recentUsage && recentUsage.length > 0) {
+      const { count: totalUsage } = await supabase
+        .from('api_usage')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+      
+      if (totalUsage && totalUsage > 0 && totalUsage % 1000 === 0) {
+        activity.push({
+          id: `usage_${recentUsage[0].created_at}`,
+          type: "request",
+          message: `${totalUsage.toLocaleString()} API requests milestone reached`,
+          time: formatRelativeTime(recentUsage[0].created_at),
+          icon: Activity
+        })
+      }
+    }
+
+    // Sort by most recent and limit to 4 items
+    return activity
+      .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+      .slice(0, 4)
+  } catch (error) {
+    console.error('Error fetching recent activity:', error)
     return []
+  }
+}
+
+function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffHours / 24)
+  
+  if (diffDays > 0) {
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+  } else if (diffHours > 0) {
+    return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+  } else {
+    return 'Just now'
   }
 }
 

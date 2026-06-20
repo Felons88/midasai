@@ -6,47 +6,46 @@ async function getApiKeys(userId: string) {
   try {
     const supabase = await createClient()
     
-    // Mock data for now - will be replaced with real database queries
-    return [
-      {
-        id: "1",
-        name: "Production API Key",
-        prefix: "midas_prod_",
-        permissions: ["read", "write", "analytics"],
-        environment: "production",
-        lastUsed: "2 hours ago",
-        createdAt: "2024-01-15",
-        expiresAt: "2025-01-15",
-        rateLimit: 10000,
-        status: "active"
-      },
-      {
-        id: "2", 
-        name: "Development API Key",
-        prefix: "midas_dev_",
-        permissions: ["read", "write"],
-        environment: "development",
-        lastUsed: "1 day ago",
-        createdAt: "2024-02-01",
-        expiresAt: "2024-08-01",
-        rateLimit: 1000,
-        status: "active"
-      },
-      {
-        id: "3",
-        name: "Testing API Key",
-        prefix: "midas_test_",
-        permissions: ["read"],
-        environment: "sandbox",
-        lastUsed: "3 days ago", 
-        createdAt: "2024-01-20",
-        expiresAt: "2024-04-20",
-        rateLimit: 500,
-        status: "expired"
-      }
-    ]
-  } catch {
+    // Get real API keys from database
+    const { data: apiKeys, error } = await supabase
+      .from('api_keys')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    
+    return apiKeys?.map(key => ({
+      id: key.id,
+      name: key.name,
+      prefix: key.key_prefix,
+      permissions: key.permissions || [],
+      environment: "production", // All keys are production-ready as per requirements
+      lastUsed: key.last_used_at ? formatRelativeTime(key.last_used_at) : "Never",
+      createdAt: new Date(key.created_at).toLocaleDateString(),
+      expiresAt: key.expires_at ? new Date(key.expires_at).toLocaleDateString() : "Never",
+      rateLimit: key.rate_limit,
+      status: key.status.toLowerCase()
+    })) || []
+  } catch (error) {
+    console.error('Error fetching API keys:', error)
     return []
+  }
+}
+
+function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffHours / 24)
+  
+  if (diffDays > 0) {
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+  } else if (diffHours > 0) {
+    return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+  } else {
+    return 'Just now'
   }
 }
 

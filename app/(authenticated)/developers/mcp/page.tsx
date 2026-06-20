@@ -6,55 +6,32 @@ async function getMcpServers(userId: string) {
   try {
     const supabase = await createClient()
     
-    // Mock data for now - will be replaced with real database queries
-    return [
-      {
-        id: "1",
-        name: "Code Assistant MCP",
-        description: "AI-powered code completion and documentation generation",
-        status: "active",
-        lastUsed: "5 minutes ago",
-        totalRequests: 45678,
-        avgLatency: 142,
-        successRate: 99.8,
-        createdAt: "2024-01-15",
-        token: "mcp_token_••••••••••••••••",
-        endpoint: "https://api.midasai.com/mcp/code-assistant",
-        version: "1.2.0",
-        health: "healthy"
-      },
-      {
-        id: "2",
-        name: "Database Query MCP",
-        description: "Natural language to SQL query conversion and execution",
-        status: "active",
-        lastUsed: "2 hours ago",
-        totalRequests: 12345,
-        avgLatency: 289,
-        successRate: 98.5,
-        createdAt: "2024-02-01",
-        token: "mcp_token_••••••••••••••••",
-        endpoint: "https://api.midasai.com/mcp/db-query",
-        version: "1.0.3",
-        health: "healthy"
-      },
-      {
-        id: "3",
-        name: "File Processing MCP",
-        description: "Document parsing, analysis, and content extraction",
-        status: "error",
-        lastUsed: "1 day ago",
-        totalRequests: 8901,
-        avgLatency: 567,
-        successRate: 95.2,
-        createdAt: "2024-01-20",
-        token: "mcp_token_••••••••••••••••",
-        endpoint: "https://api.midasai.com/mcp/file-processor",
-        version: "0.9.1",
-        health: "unhealthy"
-      }
-    ]
-  } catch {
+    // Get real MCP servers from database
+    const { data: mcpServers, error } = await supabase
+      .from('mcp_servers')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    
+    return mcpServers?.map(server => ({
+      id: server.id,
+      name: server.name,
+      description: server.description,
+      status: server.status.toLowerCase(),
+      lastUsed: "Never", // Will be updated when usage tracking is implemented
+      totalRequests: server.total_requests,
+      avgLatency: server.avg_latency_ms,
+      successRate: 100, // Will be calculated from usage tracking
+      createdAt: new Date(server.created_at).toLocaleDateString(),
+      token: "mcp_token_" + "•".repeat(16), // Masked token
+      endpoint: server.endpoint,
+      version: server.version,
+      health: server.status === 'ACTIVE' ? 'healthy' : 'unhealthy'
+    })) || []
+  } catch (error) {
+    console.error('Error fetching MCP servers:', error)
     return []
   }
 }
