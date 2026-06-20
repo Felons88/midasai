@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import {
-  Key, Plus, Copy, Check, Trash2, MoreHorizontal, Search, Shield,
-  Zap, BarChart3, TrendingUp, Clock, ExternalLink, AlertTriangle,
-  ChevronDown, X, Eye, EyeOff, Activity, CheckCircle, XCircle
+  Key, Plus, Copy, Check, Trash2, Search, Shield,
+  Zap, BarChart3, TrendingUp, ExternalLink, AlertTriangle,
+  X, Download
 } from "lucide-react"
 import { createBrowserSupabaseClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -93,7 +93,7 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-function CreateKeyModal({ onClose, onCreated }: { onClose: () => void; onCreated: (key: string) => void }) {
+function CreateKeyModal({ onClose, onCreated }: { onClose: () => void; onCreated: (key: { raw: string; name: string }) => void }) {
   const [name, setName] = useState("")
   const [permissions, setPermissions] = useState<string[]>(["read"])
   const [rateLimit, setRateLimit] = useState(1000)
@@ -122,7 +122,7 @@ function CreateKeyModal({ onClose, onCreated }: { onClose: () => void; onCreated
       const hashBuffer = await crypto.subtle.digest('SHA-256', keyData)
       const keyHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
 
-      const { error } = await supabase.from('api_keys').insert({
+      const { data: newKey, error } = await supabase.from('api_keys').insert({
         user_id: user.id,
         name: name.trim(),
         key_hash: keyHash,
@@ -132,9 +132,19 @@ function CreateKeyModal({ onClose, onCreated }: { onClose: () => void; onCreated
         rate_limit: rateLimit,
         expires_at: expiresAt,
         status: 'ACTIVE',
-      })
+      }).select('id').single()
       if (error) throw error
-      onCreated(rawKey)
+
+      // Log the creation event
+      await supabase.from('api_logs').insert({
+        user_id: user.id,
+        api_key_id: newKey?.id ?? null,
+        level: 'INFO',
+        message: `API key created: ${name.trim()}`,
+        metadata: { name: name.trim(), permissions, rate_limit: rateLimit, expires_at: expiresAt },
+      })
+
+      onCreated({ raw: rawKey, name: name.trim() })
     } catch (e) {
       console.error(e)
       alert("Failed to create API key")
@@ -244,7 +254,7 @@ function CreateKeyModal({ onClose, onCreated }: { onClose: () => void; onCreated
   )
 }
 
-function RevealKeyModal({ rawKey, onClose }: { rawKey: string; onClose: () => void }) {
+function RevealKeyModal({ rawKey, keyName, onClose }: { rawKey: string; keyName: string; onClose: () => void }) {
   const [copied, setCopied] = useState(false)
   const router = useRouter()
 
@@ -252,6 +262,27 @@ function RevealKeyModal({ rawKey, onClose }: { rawKey: string; onClose: () => vo
     navigator.clipboard.writeText(rawKey)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleDownload = () => {
+    const content = [
+      `MidasAI API Key`,
+      `Name: ${keyName}`,
+      `Generated: ${new Date().toISOString()}`,
+      ``,
+      `API Key:`,
+      rawKey,
+      ``,
+      `IMPORTANT: Keep this key secret. Do not share it or commit it to version control.`,
+      `Store it in a secure password manager or secrets manager.`,
+    ].join('\n')
+    const blob = new Blob([content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `midasai-api-key-${keyName.toLowerCase().replace(/\s+/g, '-')}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   const handleDone = () => {
@@ -263,26 +294,39 @@ function RevealKeyModal({ rawKey, onClose }: { rawKey: string; onClose: () => vo
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
       <div className="w-full max-w-lg mx-4 bg-[#0f0f16] border border-amber-500/30 rounded-2xl shadow-2xl">
         <div className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0">
               <AlertTriangle className="h-5 w-5 text-amber-400" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Save Your API Key</h2>
-              <p className="text-sm text-amber-400/80">You will never be able to view this key again.</p>
+              <h2 className="text-lg font-semibold text-white">Your API Key Has Been Generated</h2>
+              <p className="text-sm text-amber-400/80">Copy or download it now — you will never see this key again.</p>
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-black/50 border border-white/[0.1] mb-4">
-            <div className="flex items-start justify-between gap-3">
-              <code className="text-sm text-amber-400 font-mono break-all leading-relaxed">{rawKey}</code>
-              <button
-                onClick={handleCopy}
-                className="flex-shrink-0 p-2 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] transition-colors"
-              >
-                {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4 text-white/60" />}
-              </button>
-            </div>
+          {/* Key display */}
+          <div className="p-4 rounded-xl bg-black/60 border border-amber-500/20 mb-4">
+            <p className="text-[10px] font-semibold text-white/30 uppercase tracking-wider mb-2">API Key</p>
+            <code className="text-sm text-amber-400 font-mono break-all leading-relaxed block">{rawKey}</code>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-3 mb-4">
+            <button
+              onClick={handleCopy}
+              className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl border border-white/[0.1] bg-white/[0.04] text-sm font-medium text-white hover:bg-white/[0.08] transition-colors"
+            >
+              {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+              {copied ? 'Copied!' : 'Copy Key'}
+            </button>
+            <button
+              onClick={handleDownload}
+              className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl border border-white/[0.1] bg-white/[0.04] text-sm font-medium text-white hover:bg-white/[0.08] transition-colors"
+            >
+              <Download className="h-4 w-4" />
+              Download .txt
+            </button>
           </div>
 
           <p className="text-xs text-white/40 mb-4">
@@ -303,7 +347,7 @@ function RevealKeyModal({ rawKey, onClose }: { rawKey: string; onClose: () => vo
 
 export default function ApiKeysClient({ data }: { data: PageData }) {
   const [showCreate, setShowCreate] = useState(false)
-  const [revealKey, setRevealKey] = useState<string | null>(null)
+  const [revealKey, setRevealKey] = useState<{ raw: string; name: string } | null>(null)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("All Status")
   const [revoking, setRevoking] = useState<string | null>(null)
@@ -357,7 +401,7 @@ export default function ApiKeysClient({ data }: { data: PageData }) {
         />
       )}
       {revealKey && (
-        <RevealKeyModal rawKey={revealKey} onClose={() => setRevealKey(null)} />
+        <RevealKeyModal rawKey={revealKey.raw} keyName={revealKey.name} onClose={() => setRevealKey(null)} />
       )}
 
       <div className="p-8 space-y-6">
@@ -444,59 +488,24 @@ export default function ApiKeysClient({ data }: { data: PageData }) {
           </div>
         </div>
 
-        {/* Create New API Key inline form */}
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6">
-          <div className="mb-4">
-            <h2 className="text-base font-semibold text-white">Create New API Key</h2>
+        {/* Create New API Key — single CTA card */}
+        <div
+          onClick={() => setShowCreate(true)}
+          className="rounded-xl border border-dashed border-white/[0.1] bg-white/[0.01] hover:bg-white/[0.03] hover:border-amber-500/30 transition-all cursor-pointer p-6 flex items-center justify-between group"
+        >
+          <div>
+            <h2 className="text-base font-semibold text-white group-hover:text-amber-400 transition-colors">Create New API Key</h2>
             <p className="text-sm text-white/40 mt-0.5">
-              Generate a new API key with custom permissions and rate{" "}
-              <Link href="/api-docs/rate-limits" className="text-amber-400 hover:underline">limits</Link>.
+              Generate a new API key with custom permissions and rate limits.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-white/60 mb-2">Key Name</label>
-              <input
-                onClick={() => setShowCreate(true)}
-                readOnly
-                placeholder="e.g., Production API Key"
-                className="w-full px-4 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/40 placeholder:text-white/30 focus:outline-none text-sm cursor-pointer hover:border-white/20 transition-colors"
-              />
-              <div className="mt-3">
-                <label className="block text-sm font-medium text-white/60 mb-2">Permissions</label>
-                <div className="flex gap-2">
-                  {['read', 'write', 'delete', 'admin'].map(p => (
-                    <span key={p} className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${PERMISSION_COLORS[p]}`}>{p}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col justify-between">
-              <div>
-                <label className="block text-sm font-medium text-white/60 mb-2">Rate Limit (requests/hour)</label>
-                <input
-                  readOnly
-                  value="1000"
-                  className="w-full px-4 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/60 text-sm focus:outline-none"
-                />
-                <p className="text-xs text-white/30 mt-1">Maximum requests per hour for this key</p>
-                <label className="block text-sm font-medium text-white/60 mt-3 mb-2">IP Restrictions (Optional)</label>
-                <input
-                  readOnly
-                  placeholder="e.g., 192.168.1.1, 10.0.0.0/24"
-                  className="w-full px-4 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/40 placeholder:text-white/30 text-sm focus:outline-none"
-                />
-                <p className="text-xs text-white/30 mt-1">Leave empty for no restrictions</p>
-              </div>
-              <button
-                onClick={() => setShowCreate(true)}
-                className="mt-4 w-full flex items-center justify-center gap-2 h-11 rounded-xl bg-amber-500 text-black font-semibold text-sm hover:bg-amber-400 transition-colors"
-              >
-                <Key className="h-4 w-4" />
-                Create API Key
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={e => { e.stopPropagation(); setShowCreate(true) }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 text-black font-semibold text-sm hover:bg-amber-400 transition-colors flex-shrink-0"
+          >
+            <Plus className="h-4 w-4" />
+            Generate API Key
+          </button>
         </div>
 
         {/* API Keys Table */}
