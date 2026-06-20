@@ -111,45 +111,63 @@ export default async function DashboardPage() {
       <div className="ambient-glow" />
       <div className="noise-overlay" />
       
-      <div className="container mx-auto px-4 py-12 relative">
-        <div className="mb-12 animate-fade-in-up">
-          <h1 className="text-5xl md:text-6xl font-bold mb-2 text-text-primary">Dashboard</h1>
-          <p className="text-xl text-text-secondary">Welcome back! Here's an overview of your account.</p>
+      <div className="px-8 py-10 relative">
+        <div className="mb-10 animate-fade-in-up">
+          <h1 className="text-4xl md:text-5xl font-bold mb-2 text-text-primary">Dashboard</h1>
+          <p className="text-lg text-text-secondary">Welcome back! Here's an overview of your account.</p>
         </div>
 
-        <div className="bento-grid mb-12 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <Card className="glass hover:shadow-glow transition-smooth">
             <CardHeader className="pb-3 space-y-2">
-              <CardTitle className="text-sm font-medium text-text-tertiary">Total Downloads</CardTitle>
-              <CardTitle className="text-4xl text-text-primary">{stats.downloads}</CardTitle>
+              <div className="flex items-center gap-2">
+                <Download className="h-4 w-4 text-cta" />
+                <CardTitle className="text-xs font-medium text-text-tertiary uppercase tracking-wider">Downloads</CardTitle>
+              </div>
+              <CardTitle className="text-3xl text-text-primary">{stats.downloads}</CardTitle>
             </CardHeader>
           </Card>
           <Card className="glass hover:shadow-glow transition-smooth">
             <CardHeader className="pb-3 space-y-2">
-              <CardTitle className="text-sm font-medium text-text-tertiary">Bookmarks</CardTitle>
-              <CardTitle className="text-4xl text-text-primary">{stats.bookmarks}</CardTitle>
+              <div className="flex items-center gap-2">
+                <Bookmark className="h-4 w-4 text-cta" />
+                <CardTitle className="text-xs font-medium text-text-tertiary uppercase tracking-wider">Bookmarks</CardTitle>
+              </div>
+              <CardTitle className="text-3xl text-text-primary">{stats.bookmarks}</CardTitle>
             </CardHeader>
           </Card>
           <Card className="glass hover:shadow-glow transition-smooth">
             <CardHeader className="pb-3 space-y-2">
-              <CardTitle className="text-sm font-medium text-text-tertiary">Listings</CardTitle>
-              <CardTitle className="text-4xl text-text-primary">{stats.listings}</CardTitle>
+              <div className="flex items-center gap-2">
+                <Settings className="h-4 w-4 text-cta" />
+                <CardTitle className="text-xs font-medium text-text-tertiary uppercase tracking-wider">Listings</CardTitle>
+              </div>
+              <CardTitle className="text-3xl text-text-primary">{stats.listings}</CardTitle>
             </CardHeader>
           </Card>
           <Card className="glass hover:shadow-glow transition-smooth">
             <CardHeader className="pb-3 space-y-2">
-              <CardTitle className="text-sm font-medium text-text-tertiary">Revenue</CardTitle>
-              <CardTitle className="text-4xl text-cta">${stats.revenue}</CardTitle>
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-cta" />
+                <CardTitle className="text-xs font-medium text-text-tertiary uppercase tracking-wider">Revenue</CardTitle>
+              </div>
+              <CardTitle className="text-3xl text-cta">${stats.revenue}</CardTitle>
             </CardHeader>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <Card className="glass">
             <CardHeader>
-              <CardTitle className="text-2xl text-text-primary">Quick Actions</CardTitle>
+              <CardTitle className="text-xl text-text-primary">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              <Button className="w-full justify-start transition-smooth shadow-glow" asChild>
+                <Link href="/creator/upload">
+                  <Download className="mr-2 h-4 w-4" />
+                  Create New Listing
+                </Link>
+              </Button>
               <Button variant="outline" className="w-full justify-start transition-smooth" asChild>
                 <Link href="/bookmarks">
                   <Bookmark className="mr-2 h-4 w-4" />
@@ -157,9 +175,9 @@ export default async function DashboardPage() {
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start transition-smooth" asChild>
-                <Link href="/notifications">
+                <Link href="/creator/analytics">
                   <Bell className="mr-2 h-4 w-4" />
-                  Notifications
+                  View Analytics
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start transition-smooth" asChild>
@@ -173,7 +191,7 @@ export default async function DashboardPage() {
 
           <Card className="glass">
             <CardHeader>
-              <CardTitle className="text-2xl text-text-primary">Recent Downloads</CardTitle>
+              <CardTitle className="text-xl text-text-primary">Recent Downloads</CardTitle>
               <CardDescription className="text-text-secondary">Your latest purchases</CardDescription>
             </CardHeader>
             <CardContent>
@@ -195,7 +213,7 @@ export default async function DashboardPage() {
                   </div>
                 ))}
                 {recentDownloads.length === 0 && (
-                  <p className="text-sm text-text-tertiary">No downloads yet.</p>
+                  <p className="text-sm text-text-tertiary">No downloads yet. Browse the marketplace to find great tools.</p>
                 )}
               </div>
             </CardContent>

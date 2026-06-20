@@ -8,7 +8,7 @@ async function getAnalyticsData(userId: string) {
     // Get total views from listings
     const { data: listings, error: listingsError } = await supabase
       .from('listings')
-      .select('views, downloads')
+      .select('id, title, views, downloads')
       .eq('creator_id', userId)
     
     if (listingsError) {
@@ -21,8 +21,9 @@ async function getAnalyticsData(userId: string) {
     // Get total sales from transactions
     const { data: transactions, error: transactionsError } = await supabase
       .from('transactions')
-      .select('amount, status')
+      .select('amount, status, created_at, listing_id')
       .eq('creator_id', userId)
+      .order('created_at', { ascending: false })
     
     if (transactionsError) {
       console.error('Error fetching transactions:', transactionsError)
@@ -36,10 +37,13 @@ async function getAnalyticsData(userId: string) {
     const conversionRate = totalViews > 0 ? ((totalSales / totalViews) * 100).toFixed(2) : '0.00'
     
     // Get average rating from reviews
-    const { data: reviews, error: reviewsError } = await supabase
-      .from('reviews')
-      .select('rating')
-      .in('listing_id', listings?.map((l: any) => l.id) || [])
+    const listingIds = listings?.map((l: any) => l.id) || []
+    const { data: reviews, error: reviewsError } = listingIds.length > 0
+      ? await supabase
+          .from('reviews')
+          .select('rating')
+          .in('listing_id', listingIds)
+      : { data: [], error: null }
     
     if (reviewsError) {
       console.error('Error fetching reviews:', reviewsError)
@@ -50,29 +54,30 @@ async function getAnalyticsData(userId: string) {
       : '0.0'
     
     // Get sales by listing
-    const salesByListing = await Promise.all(
-      (listings || []).map(async (listing: any) => {
-        const { data: sales } = await supabase
-          .from('transactions')
-          .select('amount')
-          .eq('listing_id', listing.id)
-          .eq('status', 'COMPLETED')
-        
-        const salesCount = sales?.length || 0
-        const revenue = sales?.reduce((sum: number, t: any) => sum + t.amount, 0) || 0
-        
-        return {
-          name: listing.title,
-          sales: salesCount,
-          revenue
-        }
-      })
-    )
+    const salesByListing = (listings || []).map((listing: any) => {
+      const listingTransactions = completedTransactions.filter((t: any) => t.listing_id === listing.id)
+      return {
+        name: listing.title,
+        sales: listingTransactions.length,
+        revenue: listingTransactions.reduce((sum: number, t: any) => sum + t.amount, 0)
+      }
+    })
     
     // Sort by sales and take top 5
     const topListings = salesByListing
       .sort((a, b) => b.sales - a.sales)
       .slice(0, 5)
+    
+    // Recent transactions (latest 10)
+    const recentTransactions = (transactions || []).slice(0, 10).map((t: any) => {
+      const listing = listings?.find((l: any) => l.id === t.listing_id)
+      return {
+        status: t.status,
+        amount: t.amount,
+        listing_title: listing?.title || 'Unknown',
+        created_at: t.created_at
+      }
+    })
     
     return {
       totalViews,
@@ -80,7 +85,8 @@ async function getAnalyticsData(userId: string) {
       conversionRate,
       averageRating,
       topListings,
-      totalReviews: reviews?.length || 0
+      totalReviews: reviews?.length || 0,
+      recentTransactions
     }
   } catch (error) {
     console.error('Error in getAnalyticsData:', error)
@@ -90,7 +96,8 @@ async function getAnalyticsData(userId: string) {
       conversionRate: '0.00',
       averageRating: '0.0',
       topListings: [],
-      totalReviews: 0
+      totalReviews: 0,
+      recentTransactions: []
     }
   }
 }
@@ -180,24 +187,27 @@ export default async function CreatorAnalyticsPage() {
           <Card className="glass">
             <CardHeader>
               <CardTitle className="text-2xl text-text-primary">Recent Activity</CardTitle>
-              <CardDescription className="text-text-secondary">Latest views and purchases</CardDescription>
+              <CardDescription className="text-text-secondary">Latest transactions</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {[
-                  { action: "Purchase", item: "AI Agent Builder", time: "2 hours ago" },
-                  { action: "View", item: "Claude Skill Pack Pro", time: "3 hours ago" },
-                  { action: "Purchase", item: "Cursor Rules for React", time: "5 hours ago" },
-                  { action: "View", item: "MCP Server Template", time: "6 hours ago" },
-                ].map((activity, i) => (
+                {data.recentTransactions.map((activity: any, i: number) => (
                   <div key={i} className="flex items-center justify-between text-sm">
                     <div>
-                      <span className="font-medium text-text-primary">{activity.action}</span>
-                      <span className="text-text-tertiary"> - {activity.item}</span>
+                      <span className={`font-medium ${activity.status === 'COMPLETED' ? 'text-cta' : activity.status === 'REFUNDED' ? 'text-red-400' : 'text-text-primary'}`}>
+                        {activity.status}
+                      </span>
+                      <span className="text-text-tertiary"> - {activity.listing_title}</span>
                     </div>
-                    <span className="text-text-tertiary">{activity.time}</span>
+                    <div className="text-right">
+                      <span className="font-medium text-text-primary">${activity.amount}</span>
+                      <p className="text-xs text-text-tertiary">{new Date(activity.created_at).toLocaleDateString()}</p>
+                    </div>
                   </div>
                 ))}
+                {data.recentTransactions.length === 0 && (
+                  <p className="text-sm text-text-tertiary">No recent activity.</p>
+                )}
               </div>
             </CardContent>
           </Card>
