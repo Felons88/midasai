@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { DeveloperSidebar } from "@/components/layout/DeveloperSidebar"
+import { getPlanLimits } from "@/lib/subscriptions"
 
 async function getDeveloperData(userId: string) {
   try {
@@ -36,13 +37,15 @@ async function getDeveloperData(userId: string) {
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
     
+    const tier = subscription?.tier || 'FREE'
+    const planLimits = getPlanLimits(tier)
     return {
       name: user?.name || '',
       email: user?.email || '',
       avatar_url: user?.avatar_url || '',
-      subscriptionTier: subscription?.tier || 'FREE',
+      subscriptionTier: tier,
       storageUsed: storageUsedGB,
-      storageTotal: 10, // 10 GB default
+      storageTotal: planLimits.storageGb,
       apiUsage: apiUsage || 0,
     }
   } catch (error) {
@@ -53,7 +56,7 @@ async function getDeveloperData(userId: string) {
       avatar_url: '',
       subscriptionTier: 'FREE',
       storageUsed: 0,
-      storageTotal: 10,
+      storageTotal: getPlanLimits('FREE').storageGb,
       apiUsage: 0,
     }
   }

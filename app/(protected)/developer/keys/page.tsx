@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import ApiKeysClient from "./ApiKeysClient"
+import { getPlanLimits } from "@/lib/subscriptions"
 
 function formatRelativeTime(dateString: string): string {
   const date = new Date(dateString)
@@ -66,13 +67,9 @@ async function getPageData(userId: string) {
     ? Math.round(todayUsage.reduce((s, u) => s + (u.latency_ms || 0), 0) / requestsToday)
     : 0
 
-  const tierLimits: Record<string, { requests: number; rateLimit: number }> = {
-    FREE: { requests: 10000, rateLimit: 100 },
-    PRO: { requests: 500000, rateLimit: 1000 },
-    ENTERPRISE: { requests: 10000000, rateLimit: 10000 },
-  }
   const tier = subscription?.tier || 'FREE'
-  const limits = tierLimits[tier] || tierLimits.FREE
+  const planLimits = getPlanLimits(tier)
+  const limits = { requests: planLimits.apiRateLimit * 24 * 30, rateLimit: planLimits.apiRateLimit }
 
   const keys = (apiKeys || []).map(k => {
     const keyUsageToday = todayUsage?.filter(u => u.api_key_id === k.id).length || 0
@@ -118,6 +115,7 @@ async function getPageData(userId: string) {
       requestLimit: limits.requests,
       requestsUsed: requestsMonth,
     },
+    userTier: tier,
     logs,
   }
 }
@@ -129,5 +127,5 @@ export default async function ApiKeysPage() {
 
   const data = await getPageData(user.id)
 
-  return <ApiKeysClient data={data} />
+  return <ApiKeysClient data={data} />  // userTier is inside data
 }

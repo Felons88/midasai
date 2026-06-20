@@ -4,11 +4,12 @@ import { useState } from "react"
 import {
   Key, Plus, Copy, Check, Trash2, Search, Shield,
   Zap, BarChart3, TrendingUp, ExternalLink, AlertTriangle,
-  X, Download
+  X, Download, Globe, ChevronRight
 } from "lucide-react"
 import { createBrowserSupabaseClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { getRateLimitOptions } from "@/lib/subscriptions"
 
 interface ApiKey {
   id: string
@@ -41,6 +42,7 @@ interface PageData {
     requestLimit: number
     requestsUsed: number
   }
+  userTier: string
   logs: Array<{
     method: string
     endpoint: string
@@ -66,12 +68,6 @@ const EXPIRY_OPTIONS = [
   { label: "1 Year", value: 365 },
 ]
 
-const RATE_LIMIT_OPTIONS = [
-  { label: "100 / hr", value: 100 },
-  { label: "1,000 / hr", value: 1000 },
-  { label: "10,000 / hr", value: 10000 },
-]
-
 function StatusBadge({ status }: { status: string }) {
   if (status === "ACTIVE") return (
     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -93,20 +89,53 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-function CreateKeyModal({ onClose, onCreated }: { onClose: () => void; onCreated: (key: { raw: string; name: string }) => void }) {
+type RestrictionType = 'none' | 'ip' | 'domain'
+
+function CreateKeyModal({ onClose, onCreated, userTier }: {
+  onClose: () => void
+  onCreated: (key: { raw: string; name: string }) => void
+  userTier: string
+}) {
+  const [step, setStep] = useState<1 | 2 | 3>(1)
+  // Step 1
   const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
   const [permissions, setPermissions] = useState<string[]>(["read"])
-  const [rateLimit, setRateLimit] = useState(1000)
+  const [rateLimit, setRateLimit] = useState<number>(100)
   const [expiryDays, setExpiryDays] = useState<number | null>(null)
+  // Step 2
+  const [restrictionType, setRestrictionType] = useState<RestrictionType>('none')
+  const [ipInput, setIpInput] = useState("")
+  const [allowedIps, setAllowedIps] = useState<string[]>([])
+  const [domainInput, setDomainInput] = useState("")
+  const [allowedDomains, setAllowedDomains] = useState<string[]>([])
+  // State
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
   const supabase = createBrowserSupabaseClient()
+
+  const rateLimitOptions = getRateLimitOptions(userTier)
+  // Set default to plan max on first render
+  const planMax = rateLimitOptions[rateLimitOptions.length - 1]?.value || 100
 
   const togglePerm = (p: string) =>
     setPermissions(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])
 
+  const addIp = () => {
+    const val = ipInput.trim()
+    if (val && !allowedIps.includes(val)) setAllowedIps(prev => [...prev, val])
+    setIpInput("")
+  }
+  const addDomain = () => {
+    const val = domainInput.trim().toLowerCase()
+    if (val && !allowedDomains.includes(val)) setAllowedDomains(prev => [...prev, val])
+    setDomainInput("")
+  }
+
   const handleCreate = async () => {
     if (!name.trim()) return
     setLoading(true)
+    setError("")
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("Not authenticated")
@@ -122,132 +151,275 @@ function CreateKeyModal({ onClose, onCreated }: { onClose: () => void; onCreated
       const hashBuffer = await crypto.subtle.digest('SHA-256', keyData)
       const keyHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
 
-      const { data: newKey, error } = await supabase.from('api_keys').insert({
+      const insertPayload: Record<string, unknown> = {
         user_id: user.id,
         name: name.trim(),
+        description: description.trim() || null,
         key_hash: keyHash,
         key_prefix: keyPrefix,
         key_value: rawKey,
         permissions,
-        rate_limit: rateLimit,
+        rate_limit: rateLimit || planMax,
         expires_at: expiresAt,
         status: 'ACTIVE',
-      }).select('id').single()
-      if (error) throw error
+        restriction_type: restrictionType,
+        allowed_ips: restrictionType === 'ip' && allowedIps.length > 0 ? allowedIps : null,
+        allowed_domains: restrictionType === 'domain' && allowedDomains.length > 0 ? allowedDomains : null,
+      }
 
-      // Log the creation event
+      const { data: newKey, error: insertErr } = await supabase
+        .from('api_keys')
+        .insert(insertPayload)
+        .select('id')
+        .single()
+      if (insertErr) throw insertErr
+
       await supabase.from('api_logs').insert({
         user_id: user.id,
         api_key_id: newKey?.id ?? null,
         level: 'INFO',
         message: `API key created: ${name.trim()}`,
-        metadata: { name: name.trim(), permissions, rate_limit: rateLimit, expires_at: expiresAt },
+        metadata: { name: name.trim(), permissions, rate_limit: rateLimit, restriction_type: restrictionType },
       })
 
       onCreated({ raw: rawKey, name: name.trim() })
     } catch (e) {
       console.error(e)
-      alert("Failed to create API key")
+      setError("Failed to create API key. Please try again.")
     } finally {
       setLoading(false)
     }
   }
 
+  const STEP_LABELS = ['Details', 'Restrictions', 'Review']
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-lg mx-4 bg-[#0f0f16] border border-white/[0.08] rounded-2xl shadow-2xl">
-        <div className="flex items-center justify-between p-6 border-b border-white/[0.06]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="w-full max-w-lg bg-[#0f0f16] border border-white/[0.08] rounded-2xl shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
           <div>
-            <h2 className="text-lg font-semibold text-white">Create New API Key</h2>
-            <p className="text-sm text-white/50 mt-0.5">Generate a new API key with custom permissions and rate limits.</p>
+            <h2 className="text-base font-semibold text-white">Create API Key</h2>
+            <div className="flex items-center gap-2 mt-1.5">
+              {STEP_LABELS.map((label, i) => (
+                <div key={label} className="flex items-center gap-1.5">
+                  <span className={`flex items-center justify-center h-5 w-5 rounded-full text-[10px] font-bold border ${
+                    step === i + 1 ? 'bg-amber-500 border-amber-500 text-black'
+                    : step > i + 1 ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
+                    : 'bg-white/[0.04] border-white/[0.1] text-white/40'
+                  }`}>{i + 1}</span>
+                  <span className={`text-xs ${ step === i + 1 ? 'text-white' : 'text-white/30'}`}>{label}</span>
+                  {i < 2 && <ChevronRight className="h-3 w-3 text-white/20" />}
+                </div>
+              ))}
+            </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/[0.06] text-white/40 hover:text-white transition-colors">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-5">
-          {/* Key Name */}
-          <div>
-            <label className="block text-sm font-medium text-white/70 mb-2">Key Name</label>
-            <input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="e.g., Production API Key"
-              className="w-full px-4 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/30 focus:outline-none focus:border-amber-500/50 text-sm"
-            />
+        {/* Step 1: Details */}
+        {step === 1 && (
+          <div className="p-5 space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5">Key Name *</label>
+              <input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="e.g., Production API Key"
+                autoFocus
+                className="w-full px-4 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/30 focus:outline-none focus:border-amber-500/50 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5">Description (Optional)</label>
+              <input
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                placeholder="What will this key be used for?"
+                className="w-full px-4 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/30 focus:outline-none focus:border-amber-500/50 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5">Permissions</label>
+              <div className="flex gap-2 flex-wrap">
+                {['read', 'write', 'delete', 'admin'].map(p => (
+                  <button key={p} onClick={() => togglePerm(p)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                      permissions.includes(p) ? PERMISSION_COLORS[p] : 'bg-white/[0.03] border-white/[0.08] text-white/50 hover:border-white/20'
+                    }`}>
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5">
+                  Rate Limit
+                  <span className="ml-1 text-amber-400/60 normal-case font-normal">(plan max: {planMax.toLocaleString()}/hr)</span>
+                </label>
+                <div className="flex flex-col gap-1.5">
+                  {rateLimitOptions.map(opt => (
+                    <button key={opt.value} onClick={() => setRateLimit(opt.value)}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium border text-left transition-all ${
+                        rateLimit === opt.value ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                        : 'bg-white/[0.03] border-white/[0.08] text-white/50 hover:border-white/20'
+                      }`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5">Expiration</label>
+                <div className="flex flex-col gap-1.5">
+                  {EXPIRY_OPTIONS.map(opt => (
+                    <button key={String(opt.value)} onClick={() => setExpiryDays(opt.value)}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium border text-left transition-all ${
+                        expiryDays === opt.value ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                        : 'bg-white/[0.03] border-white/[0.08] text-white/50 hover:border-white/20'
+                      }`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
+        )}
 
-          {/* Permissions */}
-          <div>
-            <label className="block text-sm font-medium text-white/70 mb-2">Permissions</label>
-            <div className="flex gap-2 flex-wrap">
-              {['read', 'write', 'delete', 'admin'].map(p => (
-                <button
-                  key={p}
-                  onClick={() => togglePerm(p)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                    permissions.includes(p)
-                      ? PERMISSION_COLORS[p]
-                      : 'bg-white/[0.03] border-white/[0.08] text-white/50 hover:border-white/20'
-                  }`}
-                >
-                  {p}
+        {/* Step 2: Restrictions */}
+        {step === 2 && (
+          <div className="p-5 space-y-4">
+            <p className="text-sm text-white/50">Restrict which IPs or domains can use this key. Leave unrestricted for global access.</p>
+            <div className="flex flex-col gap-2">
+              {(['none', 'ip', 'domain'] as RestrictionType[]).map(type => (
+                <button key={type} onClick={() => setRestrictionType(type)}
+                  className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
+                    restrictionType === type ? 'border-amber-500/30 bg-amber-500/[0.04]' : 'border-white/[0.08] bg-white/[0.01] hover:border-white/20'
+                  }`}>
+                  <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                    restrictionType === type ? 'border-amber-500' : 'border-white/20'
+                  }`}>
+                    {restrictionType === type && <div className="h-2 w-2 rounded-full bg-amber-500" />}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">
+                      {type === 'none' ? 'No Restriction' : type === 'ip' ? 'IP Restriction' : 'Domain Restriction'}
+                    </p>
+                    <p className="text-xs text-white/40">
+                      {type === 'none' ? 'Key can be used from any IP or domain'
+                       : type === 'ip' ? 'Only allow requests from specific IP addresses'
+                       : 'Only allow requests from specific domains'}
+                    </p>
+                  </div>
                 </button>
               ))}
             </div>
-          </div>
 
-          {/* Rate Limit + Expiry */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-white/70 mb-2">Rate Limit</label>
-              <div className="flex flex-col gap-1.5">
-                {RATE_LIMIT_OPTIONS.map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setRateLimit(opt.value)}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium border text-left transition-all ${
-                      rateLimit === opt.value
-                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                        : 'bg-white/[0.03] border-white/[0.08] text-white/50 hover:border-white/20'
-                    }`}
-                  >
-                    {opt.label}
+            {restrictionType === 'ip' && (
+              <div>
+                <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">Allowed IPs</label>
+                <div className="flex gap-2 mb-2">
+                  <input value={ipInput} onChange={e => setIpInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addIp()}
+                    placeholder="e.g., 192.168.1.1"
+                    className="flex-1 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/30 text-sm focus:outline-none focus:border-amber-500/50" />
+                  <button onClick={addIp} className="px-3 py-2 rounded-lg bg-amber-500 text-black text-xs font-semibold hover:bg-amber-400">
+                    Add
                   </button>
-                ))}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {allowedIps.map(ip => (
+                    <span key={ip} className="flex items-center gap-1.5 px-2 py-1 rounded bg-white/[0.06] text-xs text-white/70">
+                      {ip}
+                      <button onClick={() => setAllowedIps(prev => prev.filter(x => x !== ip))} className="text-white/30 hover:text-red-400">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-white/70 mb-2">Expiration</label>
-              <div className="flex flex-col gap-1.5">
-                {EXPIRY_OPTIONS.map(opt => (
-                  <button
-                    key={String(opt.value)}
-                    onClick={() => setExpiryDays(opt.value)}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium border text-left transition-all ${
-                      expiryDays === opt.value
-                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                        : 'bg-white/[0.03] border-white/[0.08] text-white/50 hover:border-white/20'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+            )}
 
-        <div className="p-6 border-t border-white/[0.06]">
-          <button
-            onClick={handleCreate}
-            disabled={loading || !name.trim()}
-            className="w-full flex items-center justify-center gap-2 h-11 rounded-xl bg-amber-500 text-black font-semibold text-sm hover:bg-amber-400 disabled:opacity-50 transition-colors"
-          >
-            <Key className="h-4 w-4" />
-            {loading ? 'Creating...' : 'Create API Key'}
-          </button>
+            {restrictionType === 'domain' && (
+              <div>
+                <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">Allowed Domains</label>
+                <div className="flex gap-2 mb-2">
+                  <input value={domainInput} onChange={e => setDomainInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addDomain()}
+                    placeholder="e.g., api.example.com"
+                    className="flex-1 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/30 text-sm focus:outline-none focus:border-amber-500/50" />
+                  <button onClick={addDomain} className="px-3 py-2 rounded-lg bg-amber-500 text-black text-xs font-semibold hover:bg-amber-400">
+                    Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {allowedDomains.map(d => (
+                    <span key={d} className="flex items-center gap-1.5 px-2 py-1 rounded bg-white/[0.06] text-xs text-white/70">
+                      <Globe className="h-3 w-3 text-white/40" />{d}
+                      <button onClick={() => setAllowedDomains(prev => prev.filter(x => x !== d))} className="text-white/30 hover:text-red-400">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 3: Review */}
+        {step === 3 && (
+          <div className="p-5 space-y-3">
+            <p className="text-sm text-white/50 mb-4">Review your API key settings before creating.</p>
+            {[
+              { label: 'Name', value: name },
+              { label: 'Description', value: description || '—' },
+              { label: 'Permissions', value: permissions.join(', ') },
+              { label: 'Rate Limit', value: `${(rateLimit || planMax).toLocaleString()} req/hr` },
+              { label: 'Expiration', value: expiryDays ? `${expiryDays} days` : 'Never' },
+              { label: 'Restrictions', value: restrictionType === 'none' ? 'None'
+                : restrictionType === 'ip' ? `IP: ${allowedIps.join(', ') || 'none set'}`
+                : `Domain: ${allowedDomains.join(', ') || 'none set'}` },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex items-start justify-between gap-4 py-2 border-b border-white/[0.04]">
+                <span className="text-xs text-white/40 flex-shrink-0 w-28">{label}</span>
+                <span className="text-sm text-white text-right">{value}</span>
+              </div>
+            ))}
+            {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
+          </div>
+        )}
+
+        {/* Footer nav */}
+        <div className="p-5 border-t border-white/[0.06] flex gap-3">
+          {step > 1 && (
+            <button onClick={() => setStep(s => (s - 1) as 1 | 2 | 3)}
+              className="flex-1 h-10 rounded-xl border border-white/[0.08] text-sm text-white/60 hover:text-white hover:border-white/20 transition-colors">
+              Back
+            </button>
+          )}
+          {step < 3 ? (
+            <button
+              onClick={() => setStep(s => (s + 1) as 1 | 2 | 3)}
+              disabled={step === 1 && !name.trim()}
+              className="flex-1 h-10 rounded-xl bg-amber-500 text-black font-semibold text-sm hover:bg-amber-400 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+            >
+              Next <ChevronRight className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              onClick={handleCreate}
+              disabled={loading}
+              className="flex-1 h-10 rounded-xl bg-amber-500 text-black font-semibold text-sm hover:bg-amber-400 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+            >
+              <Key className="h-4 w-4" />
+              {loading ? 'Creating...' : 'Create API Key'}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -355,7 +527,7 @@ export default function ApiKeysClient({ data }: { data: PageData }) {
   const router = useRouter()
   const supabase = createBrowserSupabaseClient()
 
-  const { keys, stats, plan, logs } = data
+  const { keys, stats, plan, logs, userTier } = data
 
   const filtered = keys.filter(k => {
     const matchSearch = k.name.toLowerCase().includes(search.toLowerCase()) || k.prefix.toLowerCase().includes(search.toLowerCase())
@@ -388,7 +560,9 @@ export default function ApiKeysClient({ data }: { data: PageData }) {
 
   const planColors: Record<string, string> = {
     FREE: "text-white/60",
+    STARTER: "text-blue-400",
     PRO: "text-amber-400",
+    BUSINESS: "text-purple-400",
     ENTERPRISE: "text-purple-400",
   }
 
@@ -398,6 +572,7 @@ export default function ApiKeysClient({ data }: { data: PageData }) {
         <CreateKeyModal
           onClose={() => setShowCreate(false)}
           onCreated={(key) => { setShowCreate(false); setRevealKey(key) }}
+          userTier={userTier}
         />
       )}
       {revealKey && (
