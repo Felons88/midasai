@@ -1,61 +1,37 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { BookOpen } from "lucide-react"
 import Link from "next/link"
 
 export default function BlogPage() {
-  const posts = [
-    {
-      title: "Getting Started with Claude Skills",
-      excerpt: "Learn how to use Claude Skills to enhance your AI workflow",
-      date: "2024-01-15",
-      readTime: "5 min read",
-    },
-    {
-      title: "Top 10 MCP Servers for 2024",
-      excerpt: "Discover the best MCP servers to extend your AI capabilities",
-      date: "2024-01-10",
-      readTime: "8 min read",
-    },
-    {
-      title: "Building Your First AI Agent",
-      excerpt: "A comprehensive guide to creating autonomous AI agents",
-      date: "2024-01-05",
-      readTime: "12 min read",
-    },
-    {
-      title: "Optimizing Cursor Rules for Better Code",
-      excerpt: "Tips and tricks for writing effective Cursor rules",
-      date: "2024-01-01",
-      readTime: "6 min read",
-    },
-  ]
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-4">Blog</h1>
-        <p className="text-muted-foreground text-lg">
-          Latest news, tutorials, and insights
-        </p>
-      </div>
+    <div className="flex flex-col min-h-screen bg-background">
+      <div className="ambient-glow" />
+      <div className="noise-overlay" />
+      
+      <div className="container mx-auto px-4 py-12 relative">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-12 animate-fade-in-up">
+            <div className="flex items-center gap-3 mb-4">
+              <BookOpen className="h-8 w-8 text-cta" />
+              <h1 className="text-5xl md:text-6xl font-bold text-text-primary">Blog</h1>
+            </div>
+            <p className="text-xl text-text-secondary">
+              Latest news, tutorials, and insights from the MidasAI team
+            </p>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        {posts.map((post) => (
-          <Link key={post.title} href={`/blog/${post.title.toLowerCase().replace(/ /g, '-')}`}>
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-              <CardHeader>
-                <CardTitle>{post.title}</CardTitle>
-                <CardDescription>{post.excerpt}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span>{post.date}</span>
-                  <span>•</span>
-                  <span>{post.readTime}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+          <Card className="glass text-center py-16 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+            <CardContent>
+              <BookOpen className="h-16 w-16 text-text-tertiary mx-auto mb-4" />
+              <p className="text-xl text-text-secondary mb-2">Blog coming soon</p>
+              <p className="text-text-tertiary mb-6">We're working on great content about AI tools, workflows, and best practices.</p>
+              <Button asChild>
+                <Link href="/">Back to Marketplace</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )
