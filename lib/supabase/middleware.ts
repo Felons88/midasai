@@ -51,6 +51,7 @@ export async function updateSession(request: NextRequest) {
     '/collections',
     '/messages',
     '/account',
+    '/developers',
   ]
 
   const isProtected = protectedPaths.some(path => 

@@ -21,10 +21,12 @@ import {
   Star,
   Settings,
   Shield,
+  ShieldCheck,
   FileText,
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Key,
 } from "lucide-react"
 
 interface SidebarProps {
@@ -66,6 +68,17 @@ const navSections = [
       { href: "/creator/payouts", label: "Payouts", icon: Wallet },
       { href: "/creator/followers", label: "Followers", icon: Users },
       { href: "/creator/reviews", label: "Reviews", icon: Star },
+    ],
+  },
+  {
+    label: "Developer",
+    items: [
+      { href: "/developers", label: "Dashboard", icon: Sparkles },
+      { href: "/developers/keys", label: "API Keys", icon: Key },
+      { href: "/developers/webhooks", label: "Webhooks", icon: Bell },
+      { href: "/developers/applications", label: "Applications", icon: Package },
+      { href: "/developers/mcp", label: "MCP Servers", icon: ShieldCheck },
+      { href: "/developers/usage", label: "Usage Analytics", icon: BarChart3 },
     ],
   },
 ]
