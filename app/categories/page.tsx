@@ -1,18 +1,74 @@
 import { Card, CardContent } from "@/components/ui/card"
-import { Sparkles, Zap, TrendingUp, Users, FileText, Workflow, Layers, Bot } from "lucide-react"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/server"
 
-export default function CategoriesPage() {
-  const categories = [
-    { icon: Sparkles, name: "Claude Skills", count: 250, href: "/skills" },
-    { icon: Zap, name: "Cursor Rules", count: 180, href: "/plugins" },
-    { icon: TrendingUp, name: "MCP Servers", count: 120, href: "/mcp" },
-    { icon: Users, name: "AI Agents", count: 95, href: "/agents" },
-    { icon: FileText, name: "Prompt Packs", count: 320, href: "/prompts" },
-    { icon: Workflow, name: "Workflows", count: 150, href: "/workflows" },
-    { icon: Layers, name: "Templates", count: 200, href: "/templates" },
-    { icon: Bot, name: "Automations", count: 75, href: "/automations" },
-  ]
+async function getCategoriesWithCounts() {
+  try {
+    const supabase = await createClient()
+    
+    const { data: categories, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name', { ascending: true })
+    
+    if (error) {
+      console.error('Error fetching categories:', error)
+      return []
+    }
+    
+    // Get counts per type
+    const { data: listings } = await supabase
+      .from('listings')
+      .select('type')
+      .eq('status', 'ACTIVE')
+    
+    const typeCounts: Record<string, number> = {}
+    listings?.forEach((l: any) => {
+      typeCounts[l.type] = (typeCounts[l.type] || 0) + 1
+    })
+    
+    // Map categories to their listing type counts
+    const typeMap: Record<string, string> = {
+      'claude-skills': 'SKILL',
+      'cursor-rules': 'PLUGIN',
+      'mcp-servers': 'MCP',
+      'ai-agents': 'AGENT',
+      'prompt-packs': 'PROMPT',
+      'windsurf-workflows': 'WORKFLOW',
+      'templates': 'TEMPLATE',
+      'automations': 'AUTOMATION',
+      'developer-tools': 'DEVELOPER_TOOL',
+      'plugins': 'PLUGIN',
+    }
+    
+    const slugToRoute: Record<string, string> = {
+      'claude-skills': '/skills',
+      'cursor-rules': '/plugins',
+      'mcp-servers': '/mcp',
+      'ai-agents': '/agents',
+      'prompt-packs': '/prompts',
+      'windsurf-workflows': '/workflows',
+      'templates': '/templates',
+      'automations': '/workflows',
+      'developer-tools': '/skills',
+      'github-copilot': '/plugins',
+      'plugins': '/plugins',
+      'documentation': '/templates',
+    }
+    
+    return (categories || []).map((cat: any) => ({
+      ...cat,
+      count: typeCounts[typeMap[cat.slug] || ''] || 0,
+      href: slugToRoute[cat.slug] || `/categories/${cat.slug}`,
+    }))
+  } catch (error) {
+    console.error('Error in getCategoriesWithCounts:', error)
+    return []
+  }
+}
+
+export default async function CategoriesPage() {
+  const categories = await getCategoriesWithCounts()
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -28,20 +84,27 @@ export default function CategoriesPage() {
         </div>
 
         <div className="bento-grid animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          {categories.map((category, index) => (
-            <Link key={category.name} href={category.href} className="bento-item-1">
+          {categories.map((category: any, index: number) => (
+            <Link key={category.id} href={category.href} className="bento-item-1">
               <Card className="glass hover:shadow-glow transition-smooth group h-full" style={{ animationDelay: `${index * 0.05}s` }}>
                 <CardContent className="p-8 space-y-4">
                   <div className="w-16 h-16 rounded-xl bg-surface flex items-center justify-center group-hover:bg-elevated transition-smooth">
-                    <category.icon className="h-8 w-8 text-cta" />
+                    <span className="text-3xl">{category.icon}</span>
                   </div>
                   <h3 className="text-2xl font-semibold text-text-primary">{category.name}</h3>
+                  <p className="text-text-secondary text-sm">{category.description}</p>
                   <p className="text-text-tertiary">{category.count} listings</p>
                 </CardContent>
               </Card>
             </Link>
           ))}
         </div>
+        
+        {categories.length === 0 && (
+          <div className="text-center py-24 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <p className="text-xl text-text-secondary">No categories found.</p>
+          </div>
+        )}
       </div>
     </div>
   )
