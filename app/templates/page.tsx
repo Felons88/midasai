@@ -61,7 +61,7 @@ export default async function TemplatesPage() {
                     <span className="text-sm text-text-tertiary ml-2">{listing.downloads || 0} downloads</span>
                   </div>
                   <Button className="group-hover:shadow-glow transition-smooth" asChild>
-                    <a href={`/listing/${listing.id}`}>View Details</a>
+                    <a href={`/details/${listing.id}`}>View Details</a>
                   </Button>
                 </div>
               </CardContent>
