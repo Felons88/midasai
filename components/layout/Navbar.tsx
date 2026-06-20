@@ -12,6 +12,7 @@ export function Navbar() {
     '/dashboard', '/creator', '/admin', '/bookmarks',
     '/notifications', '/profile', '/settings', '/explore',
     '/marketplace', '/downloads', '/collections', '/messages', '/account',
+    '/developers',
   ]
   const isAuthenticatedRoute = authenticatedPrefixes.some(p => pathname.startsWith(p))
 

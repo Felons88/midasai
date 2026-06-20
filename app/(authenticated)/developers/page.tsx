@@ -1,5 +1,25 @@
 import { createClient } from "@/lib/supabase/server"
-import { Key, BarChart3, Package, Bell, ShieldCheck, TrendingUp, Activity, Clock, Zap } from "lucide-react"
+import { 
+  Key, 
+  BarChart3, 
+  Package, 
+  Bell, 
+  ShieldCheck, 
+  TrendingUp, 
+  Activity, 
+  Clock, 
+  Zap,
+  Code,
+  Globe,
+  FileText,
+  Settings,
+  ChevronRight,
+  Plus,
+  ArrowUpRight,
+  Users,
+  Server,
+  CheckCircle
+} from "lucide-react"
 import Link from "next/link"
 
 async function getDeveloperStats(userId: string) {
@@ -190,134 +210,156 @@ export default async function DeveloperDashboardPage() {
   const stats = await getDeveloperStats(user.id)
   const recentActivity = await getRecentActivity(user.id)
   
+  const appCards = [
+    { title: 'API Keys', desc: 'Create and manage production API keys', icon: Key, href: '/developers/keys', count: stats.apiKeys },
+    { title: 'Webhooks', desc: 'Configure real-time event notifications', icon: Bell, href: '/developers/webhooks', count: stats.webhooks },
+    { title: 'Applications', desc: 'Register OAuth applications and manage access', icon: Package, href: '/developers/applications', count: stats.applications },
+    { title: 'Usage Analytics', desc: 'Monitor API performance and usage patterns', icon: BarChart3, href: '/developers/usage', count: stats.requestsToday },
+    { title: 'MCP Servers', desc: 'Connect and manage Model Context Protocol servers', icon: ShieldCheck, href: '/developers/mcp', count: stats.mcpServers },
+    { title: 'API Playground', desc: 'Test API endpoints with interactive tools', icon: Code, href: '/developers/playground', count: null },
+    { title: 'Documentation', desc: 'Comprehensive API documentation and guides', icon: FileText, href: '/api-docs', count: null },
+    { title: 'Logs', desc: 'View detailed API logs and error tracking', icon: Activity, href: '/developers/logs', count: null },
+    { title: 'Settings', desc: 'Configure developer preferences and defaults', icon: Settings, href: '/developers/settings', count: null }
+  ]
+
   return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-1">Developer Dashboard</h1>
-        <p className="text-white/50 text-sm">Manage your API keys, webhooks, and developer applications</p>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="p-5 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-          <div className="flex items-center gap-2 mb-3">
-            <Key className="h-4 w-4 text-amber-400" />
-            <span className="text-[10px] font-semibold text-white/30 uppercase tracking-wider">API Keys</span>
+    <div className="min-h-screen bg-[#07070b]">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-blue-500/5" />
+        <div className="relative px-8 py-12">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-2">Developer Portal</h1>
+              <p className="text-lg text-white/60 max-w-2xl">Build powerful integrations with the MidasAI platform</p>
+            </div>
+            <Link href="/developers/keys/new" className="flex items-center gap-2 h-11 px-6 rounded-lg bg-amber-500 text-black hover:bg-amber-400 transition-all text-sm font-semibold shadow-lg shadow-amber-500/25">
+              <Plus className="h-4 w-4" /> Create API Key
+            </Link>
           </div>
-          <p className="text-2xl font-bold text-white">{stats.apiKeys}</p>
-        </div>
-        <div className="p-5 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="h-4 w-4 text-amber-400" />
-            <span className="text-[10px] font-semibold text-white/30 uppercase tracking-wider">Requests Today</span>
-          </div>
-          <p className="text-2xl font-bold text-white">{stats.requestsToday.toLocaleString()}</p>
-        </div>
-        <div className="p-5 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-          <div className="flex items-center gap-2 mb-3">
-            <Zap className="h-4 w-4 text-amber-400" />
-            <span className="text-[10px] font-semibold text-white/30 uppercase tracking-wider">Success Rate</span>
-          </div>
-          <p className="text-2xl font-bold text-amber-400">{stats.successRate}%</p>
-        </div>
-        <div className="p-5 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-          <div className="flex items-center gap-2 mb-3">
-            <Clock className="h-4 w-4 text-amber-400" />
-            <span className="text-[10px] font-semibold text-white/30 uppercase tracking-wider">Avg Latency</span>
-          </div>
-          <p className="text-2xl font-bold text-white">{stats.avgLatency}ms</p>
         </div>
       </div>
 
-      {/* Two-column layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Quick Actions */}
-        <div className="p-6 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-          <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
-          <div className="space-y-2">
-            <Link href="/developers/keys" className="flex items-center justify-between p-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/15 transition-colors group">
-              <div className="flex items-center gap-3">
-                <Key className="h-4 w-4 text-amber-400" />
-                <span className="text-sm font-medium text-amber-400">Create API Key</span>
+      {/* Modern Stats Overview */}
+      <div className="px-8 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="p-6 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-amber-500/10 to-amber-600/5 hover:from-amber-500/15 hover:to-amber-600/10 transition-all">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-12 w-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                <Key className="h-6 w-6 text-amber-400" />
               </div>
-            </Link>
-            <Link href="/developers/webhooks" className="flex items-center justify-between p-3 rounded-lg hover:bg-white/[0.04] transition-colors group">
-              <div className="flex items-center gap-3">
-                <Bell className="h-4 w-4 text-white/40" />
-                <span className="text-sm text-white/60">Configure Webhook</span>
+              <TrendingUp className="h-4 w-4 text-amber-400/60" />
+            </div>
+            <p className="text-3xl font-bold text-white mb-1">{stats.apiKeys}</p>
+            <p className="text-sm text-white/50">API Keys</p>
+          </div>
+          <div className="p-6 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:from-blue-500/15 hover:to-blue-600/10 transition-all">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-12 w-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                <Activity className="h-6 w-6 text-blue-400" />
               </div>
-            </Link>
-            <Link href="/developers/applications" className="flex items-center justify-between p-3 rounded-lg hover:bg-white/[0.04] transition-colors group">
-              <div className="flex items-center gap-3">
-                <Package className="h-4 w-4 text-white/40" />
-                <span className="text-sm text-white/60">Register Application</span>
+              <Zap className="h-4 w-4 text-blue-400/60" />
+            </div>
+            <p className="text-3xl font-bold text-white mb-1">{stats.requestsToday.toLocaleString()}</p>
+            <p className="text-sm text-white/50">Requests Today</p>
+          </div>
+          <div className="p-6 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-green-500/10 to-green-600/5 hover:from-green-500/15 hover:to-green-600/10 transition-all">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-12 w-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-green-400" />
               </div>
-            </Link>
-            <Link href="/api-docs" className="flex items-center justify-between p-3 rounded-lg hover:bg-white/[0.04] transition-colors group">
-              <div className="flex items-center gap-3">
-                <BarChart3 className="h-4 w-4 text-white/40" />
-                <span className="text-sm text-white/60">View API Documentation</span>
+              <CheckCircle className="h-4 w-4 text-green-400/60" />
+            </div>
+            <p className="text-3xl font-bold text-white mb-1">{stats.successRate}%</p>
+            <p className="text-sm text-white/50">Success Rate</p>
+          </div>
+          <div className="p-6 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-purple-500/10 to-purple-600/5 hover:from-purple-500/15 hover:to-purple-600/10 transition-all">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-12 w-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                <Clock className="h-6 w-6 text-purple-400" />
               </div>
-            </Link>
+              <Activity className="h-4 w-4 text-purple-400/60" />
+            </div>
+            <p className="text-3xl font-bold text-white mb-1">{stats.avgLatency}ms</p>
+            <p className="text-sm text-white/50">Avg Latency</p>
           </div>
         </div>
 
-        {/* Recent Activity */}
-        <div className="p-6 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
-            <Link href="/developers/usage" className="text-xs text-amber-400 hover:text-amber-300 transition-colors">
-              View all →
-            </Link>
+        {/* App Launcher Grid */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-white">Developer Tools</h2>
+            <p className="text-sm text-white/50">Click any tool to get started</p>
           </div>
-          <div className="space-y-3">
-            {recentActivity.map((activity) => {
-              const Icon = activity.icon
-              return (
-                <div key={activity.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-white/[0.03] transition-colors">
-                  <div className="h-8 w-8 rounded-lg bg-white/[0.04] flex items-center justify-center mt-0.5">
-                    <Icon className="h-4 w-4 text-amber-400" />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {appCards.map((app) => (
+              <Link
+                key={app.title}
+                href={app.href}
+                className="group relative p-6 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.02] to-white/[0.01] hover:from-white/[0.04] hover:to-white/[0.02] hover:border-white/[0.15] transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="h-14 w-14 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <app.icon className="h-7 w-7 text-amber-400" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white">{activity.message}</p>
-                    <p className="text-[11px] text-white/30">{activity.time}</p>
+                  <ChevronRight className="h-5 w-5 text-white/20 group-hover:text-white/40 transition-colors" />
+                </div>
+                
+                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-white/95 transition-colors">
+                  {app.title}
+                </h3>
+                <p className="text-sm text-white/60 mb-4 line-clamp-2">
+                  {app.desc}
+                </p>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-white/50">
+                    {app.count !== null ? `${app.count} active` : 'Coming soon'}
+                  </span>
+                  {app.count !== null && app.count > 0 && (
+                    <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+      {/* Recent Activity */}
+        <div className="p-6 rounded-2xl border border-white/[0.08] bg-white/[0.02]">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-white">Recent Activity</h2>
+            <Link
+              href="/developers/logs"
+              className="flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 transition-colors"
+            >
+              View all logs
+              <ArrowUpRight className="h-3 w-3" />
+            </Link>
+          </div>
+          
+          <div className="space-y-3">
+            {recentActivity.length > 0 ? (
+              recentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-colors">
+                  <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                    <activity.icon className="h-5 w-5 text-amber-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-white">{activity.message}</p>
+                    <p className="text-xs text-white/40">{activity.time}</p>
                   </div>
                 </div>
-              )
-            })}
-            {recentActivity.length === 0 && (
-              <div className="text-center py-8">
-                <Activity className="h-8 w-8 text-white/10 mx-auto mb-2" />
-                <p className="text-sm text-white/30">No recent activity</p>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <Activity className="h-16 w-16 text-white/10 mx-auto mb-4" />
+                <p className="text-white/40 mb-2">No recent activity</p>
+                <p className="text-sm text-white/20">Start building to see your activity here</p>
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Additional Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-        <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-          <div className="flex items-center gap-2 mb-2">
-            <Bell className="h-4 w-4 text-white/40" />
-            <span className="text-[10px] font-semibold text-white/30 uppercase tracking-wider">Webhooks</span>
-          </div>
-          <p className="text-xl font-bold text-white">{stats.webhooks}</p>
-        </div>
-        <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-          <div className="flex items-center gap-2 mb-2">
-            <Package className="h-4 w-4 text-white/40" />
-            <span className="text-[10px] font-semibold text-white/30 uppercase tracking-wider">Applications</span>
-          </div>
-          <p className="text-xl font-bold text-white">{stats.applications}</p>
-        </div>
-        <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-          <div className="flex items-center gap-2 mb-2">
-            <ShieldCheck className="h-4 w-4 text-white/40" />
-            <span className="text-[10px] font-semibold text-white/30 uppercase tracking-wider">MCP Servers</span>
-          </div>
-          <p className="text-xl font-bold text-white">{stats.mcpServers}</p>
         </div>
       </div>
     </div>

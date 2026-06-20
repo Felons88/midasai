@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Search, Bell, MessageSquare, Plus, Command, User, CreditCard, ShieldCheck, Settings, Key, LogOut } from "lucide-react"
+import { Search, Bell, MessageSquare, Plus, Command, User, CreditCard, ShieldCheck, Settings, Code, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -45,7 +45,7 @@ export function TopBar({ userEmail, userName, userAvatar, onSearchOpen }: TopBar
     { href: "/account/billing", label: "Billing", icon: CreditCard },
     { href: "/account/security", label: "Security", icon: ShieldCheck },
     { href: "/account/settings", label: "Settings", icon: Settings },
-    { href: "/account/api-keys", label: "API Keys", icon: Key },
+    { href: "/developers", label: "Developer Portal", icon: Code },
   ]
 
   return (
