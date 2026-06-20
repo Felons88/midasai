@@ -29,7 +29,7 @@ MidasAI is a marketplace for AI tools including Claude Skills, Cursor Rules, Win
 - notifications
 - site_settings
 
-**Status**: Schema defined in `supabase/schema.sql` with RLS policies, but NOT APPLIED to database yet.
+**Status**: Schema alignment COMPLETE. Missing developer-platform tables (api_keys, api_usage, api_logs, webhooks, webhook_deliveries, applications, oauth_tokens, mcp_servers, mcp_tokens, mcp_connections, mcp_usage) plus payouts and usage_records have been created in the live database with indexes, RLS policies, and updated_at triggers. TypeScript types regenerated.
 
 ## Route Summary
 - **Public Routes (18)**: Home, Search, Skills, Plugins, MCP, Agents, Prompts, Workflows, Templates, Collections, Categories, Trending, Featured, Pricing, Blog, Docs, About, Contact
@@ -40,9 +40,9 @@ MidasAI is a marketplace for AI tools including Claude Skills, Cursor Rules, Win
 - **Marketplace Routes (1)**: Listing detail page
 
 ## Current Status
-**Date**: 2025-01-19
-**Phase**: Full Orchestrator Audit Complete
-**Production Readiness Score**: 15/100
+**Date**: 2026-06-20
+**Phase**: Phase 1 — Database Alignment Complete
+**Production Readiness Score**: 15/100 (schema blocker removed)
 
 **Completed Foundation:**
 - Next.js 15 project structure with TypeScript
@@ -56,7 +56,7 @@ MidasAI is a marketplace for AI tools including Claude Skills, Cursor Rules, Win
 - Dark luxury theme implemented
 
 **Critical Issues Identified:**
-1. Database schema NOT APPLIED to Supabase
+1. Database schema alignment COMPLETE (developer-platform tables, RLS, indexes, triggers applied)
 2. All pages use mock data (100% of pages)
 3. Zero real database queries in codebase
 4. No API routes or server actions
@@ -99,9 +99,9 @@ MidasAI is a marketplace for AI tools including Claude Skills, Cursor Rules, Win
 11. Implement downloads tracking
 
 ## Next Steps
-Proceeding with Phase 1: Foundation Audit implementation
-- Apply database schema via Supabase MCP
-- Create TypeScript types from database
-- Implement real data queries starting with homepage
-- Add error boundaries and loading states
-- Fix admin route security
+- Proceed to configure missing external integrations (GitHub, Gemini, Stripe) now that backing tables exist.
+- Fix `/creator/payouts` page — it now has the required `payouts` table.
+- Fix `/support` route or remove the sidebar link.
+- Fix admin route security (move from `/admin` to env-based hidden route).
+- Seed marketplace data so the marketplace is not empty.
+- Add real analytics event tracking beyond the empty table.
