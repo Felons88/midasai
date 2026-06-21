@@ -17,13 +17,13 @@ export async function POST(request: NextRequest) {
     const { repoFullName } = validatedData
 
     // Get GitHub connection
-    const { data: connection, error: connectionError } = await supabase
+    const { data: connection } = await supabase
       .from('github_connections')
       .select('github_access_token')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (connectionError || !connection) {
+    if (!connection?.github_access_token) {
       return NextResponse.json({ error: 'GitHub not connected' }, { status: 400 })
     }
 
@@ -61,7 +61,16 @@ export async function POST(request: NextRequest) {
     // AI Analysis using Gemini
     const geminiKey = process.env.GEMINI_API_KEY
     if (!geminiKey) {
-      return NextResponse.json({ error: 'Gemini API not configured' }, { status: 500 })
+      // Return repo data without AI analysis if key not configured
+      return NextResponse.json({
+        title: repoData.name?.replace(/-/g, ' '),
+        description: repoData.description || '',
+        type: 'SKILL',
+        tags: repoData.topics || [],
+        price: 'Free',
+        github_url: repoData.html_url,
+        readme: readme.substring(0, 5000),
+      })
     }
 
     const analysisPrompt = `
@@ -86,7 +95,7 @@ export async function POST(request: NextRequest) {
       Return only valid JSON, no markdown.
     `
 
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiKey}`, {
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

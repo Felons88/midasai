@@ -11,13 +11,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Get GitHub connection
-    const { data: connection, error: connectionError } = await supabase
+    const { data: connection } = await supabase
       .from('github_connections')
       .select('github_access_token')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (connectionError || !connection) {
+    if (!connection?.github_access_token) {
       return NextResponse.json({ error: 'GitHub not connected' }, { status: 400 })
     }
 
