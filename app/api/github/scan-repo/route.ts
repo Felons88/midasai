@@ -107,8 +107,20 @@ export async function POST(request: NextRequest) {
       })
     })
 
+    const fallbackResult = {
+      title: repoData.name?.replace(/-/g, ' '),
+      description: repoData.description || '',
+      type: 'SKILL',
+      tags: repoData.topics || [],
+      price: 'Free',
+      github_url: repoData.html_url,
+      readme: readme.substring(0, 5000),
+    }
+
     if (!geminiResponse.ok) {
-      return NextResponse.json({ error: 'AI analysis failed' }, { status: 500 })
+      const geminiError = await geminiResponse.text()
+      console.error('Gemini API error:', geminiResponse.status, geminiError)
+      return NextResponse.json(fallbackResult)
     }
 
     const geminiData = await geminiResponse.json()
@@ -117,15 +129,19 @@ export async function POST(request: NextRequest) {
     // Parse JSON from AI response
     const jsonMatch = aiText.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 })
+      console.error('Failed to parse Gemini response:', aiText)
+      return NextResponse.json(fallbackResult)
     }
 
-    const analysisResult = JSON.parse(jsonMatch[0])
-
-    return NextResponse.json({
-      ...analysisResult,
-      readme: readme.substring(0, 5000), // Store first 5000 chars
-    })
+    try {
+      const analysisResult = JSON.parse(jsonMatch[0])
+      return NextResponse.json({
+        ...analysisResult,
+        readme: readme.substring(0, 5000),
+      })
+    } catch {
+      return NextResponse.json(fallbackResult)
+    }
   } catch (error) {
     console.error('GitHub scan-repo error:', error)
     
