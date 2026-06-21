@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getPlanLimits } from "@/lib/subscriptions"
 import WebhooksClient from "./WebhooksClient"
 
 function formatRelativeTime(dateString: string): string {
@@ -15,11 +16,14 @@ function formatRelativeTime(dateString: string): string {
 
 async function getPageData(userId: string) {
   const supabase = await createClient()
-  const { data: rows } = await supabase
-    .from("webhooks")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
+
+  const [{ data: rows }, { data: sub }] = await Promise.all([
+    supabase.from("webhooks").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
+    supabase.from("subscriptions").select("tier").eq("user_id", userId).eq("status", "ACTIVE").maybeSingle(),
+  ])
+
+  const tier = sub?.tier ?? "FREE"
+  const limits = getPlanLimits(tier)
 
   const webhooks = (rows || []).map(w => ({
     id: w.id,
@@ -44,6 +48,7 @@ async function getPageData(userId: string) {
   return {
     webhooks,
     stats: { total: webhooks.length, active, totalDeliveries, successRate },
+    plan: { tier, maxWebhooks: limits.maxWebhooks },
   }
 }
 
@@ -51,6 +56,6 @@ export default async function WebhooksPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { webhooks, stats } = await getPageData(user.id)
-  return <WebhooksClient webhooks={webhooks} stats={stats} />
+  const { webhooks, stats, plan } = await getPageData(user.id)
+  return <WebhooksClient webhooks={webhooks} stats={stats} plan={plan} />
 }

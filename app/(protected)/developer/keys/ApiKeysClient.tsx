@@ -4,12 +4,12 @@ import { useState } from "react"
 import {
   Key, Plus, Copy, Check, Trash2, Search, Shield,
   Zap, BarChart3, TrendingUp, ExternalLink, AlertTriangle,
-  X, Download, Globe, ChevronRight
+  X, Download, Globe, ChevronRight, ArrowUpRight
 } from "lucide-react"
 import { createBrowserSupabaseClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { getRateLimitOptions } from "@/lib/subscriptions"
+import { getRateLimitOptions, getPlanLimits } from "@/lib/subscriptions"
 
 interface ApiKey {
   id: string
@@ -91,9 +91,10 @@ function StatusBadge({ status }: { status: string }) {
 
 type RestrictionType = 'none' | 'ip' | 'domain'
 
-function CreateKeyModal({ onClose, onCreated, userTier }: {
+function CreateKeyModal({ onClose, onCreated, onLimitExceeded, userTier }: {
   onClose: () => void
   onCreated: (key: { raw: string; name: string }) => void
+  onLimitExceeded: (info: { currentCount: number; limit: number; tier: string; upgradeRequired?: string }) => void
   userTier: string
 }) {
   const [step, setStep] = useState<1 | 2 | 3>(1)
@@ -137,55 +138,38 @@ function CreateKeyModal({ onClose, onCreated, userTier }: {
     setLoading(true)
     setError("")
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("Not authenticated")
-
-      const rawKey = `midas_live_${crypto.randomUUID().replace(/-/g, '')}${crypto.randomUUID().replace(/-/g, '')}`
-      const keyPrefix = rawKey.substring(0, 16)
       const expiresAt = expiryDays
         ? new Date(Date.now() + expiryDays * 86400000).toISOString()
         : null
 
-      const encoder = new TextEncoder()
-      const keyData = encoder.encode(rawKey)
-      const hashBuffer = await crypto.subtle.digest('SHA-256', keyData)
-      const keyHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+      const res = await fetch("/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          description: description.trim() || null,
+          permissions,
+          rateLimit: rateLimit || planMax,
+          expiresAt,
+          restrictionType,
+          allowedIps: restrictionType === 'ip' && allowedIps.length > 0 ? allowedIps : null,
+          allowedDomains: restrictionType === 'domain' && allowedDomains.length > 0 ? allowedDomains : null,
+        }),
+      })
+      const data = await res.json()
 
-      const insertPayload: Record<string, unknown> = {
-        user_id: user.id,
-        name: name.trim(),
-        description: description.trim() || null,
-        key_hash: keyHash,
-        key_prefix: keyPrefix,
-        key_value: rawKey,
-        permissions,
-        rate_limit: rateLimit || planMax,
-        expires_at: expiresAt,
-        status: 'ACTIVE',
-        restriction_type: restrictionType,
-        allowed_ips: restrictionType === 'ip' && allowedIps.length > 0 ? allowedIps : null,
-        allowed_domains: restrictionType === 'domain' && allowedDomains.length > 0 ? allowedDomains : null,
+      if (!res.ok) {
+        if (res.status === 403 && data.error === "limit_exceeded") {
+          onLimitExceeded(data)
+          return
+        }
+        throw new Error(data.message || data.error || "Failed to create API key")
       }
 
-      const { data: newKey, error: insertErr } = await supabase
-        .from('api_keys')
-        .insert(insertPayload)
-        .select('id')
-        .single()
-      if (insertErr) throw insertErr
-
-      await supabase.from('api_logs').insert({
-        user_id: user.id,
-        api_key_id: newKey?.id ?? null,
-        level: 'INFO',
-        message: `API key created: ${name.trim()}`,
-        metadata: { name: name.trim(), permissions, rate_limit: rateLimit, restriction_type: restrictionType },
-      })
-
-      onCreated({ raw: rawKey, name: name.trim() })
-    } catch (e) {
+      onCreated({ raw: data.key.raw, name: data.key.name })
+    } catch (e: any) {
       console.error(e)
-      setError("Failed to create API key. Please try again.")
+      setError(e.message || "Failed to create API key. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -517,8 +501,40 @@ function RevealKeyModal({ rawKey, keyName, onClose }: { rawKey: string; keyName:
   )
 }
 
+function LimitReachedModal({ currentCount, limit, tier, upgradeRequired, onClose }: {
+  currentCount: number; limit: number; tier: string; upgradeRequired?: string; onClose: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="w-full max-w-sm bg-[#0f0f16] border border-amber-500/30 rounded-2xl shadow-2xl p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+            <AlertTriangle className="h-5 w-5 text-amber-400" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-white">API Key limit reached</h2>
+            <p className="text-xs text-white/40 mt-0.5">{currentCount} of {limit === -1 ? "∞" : limit} used on {tier} plan</p>
+          </div>
+        </div>
+        <p className="text-sm text-white/60 mb-5">
+          Your <span className="text-white font-medium">{tier}</span> plan supports <span className="text-amber-400 font-semibold">{limit === -1 ? "unlimited" : limit} API key{limit !== 1 ? "s" : ""}</span>.
+          {upgradeRequired && <> Upgrade to <span className="text-amber-400 font-semibold">{upgradeRequired}</span> to create more.</>}
+        </p>
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 h-10 rounded-xl border border-white/[0.08] text-sm text-white/60 hover:text-white hover:border-white/20 transition-colors">Cancel</button>
+          <a href="/developer/billing"
+            className="flex-1 h-10 rounded-xl bg-amber-500 text-black font-semibold text-sm hover:bg-amber-400 transition-colors flex items-center justify-center gap-2">
+            Upgrade Plan <ArrowUpRight className="h-3.5 w-3.5" />
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ApiKeysClient({ data }: { data: PageData }) {
   const [showCreate, setShowCreate] = useState(false)
+  const [limitInfo, setLimitInfo] = useState<{ currentCount: number; limit: number; tier: string; upgradeRequired?: string } | null>(null)
   const [revealKey, setRevealKey] = useState<{ raw: string; name: string } | null>(null)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("All Status")
@@ -526,6 +542,10 @@ export default function ApiKeysClient({ data }: { data: PageData }) {
   const [copied, setCopied] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createBrowserSupabaseClient()
+
+  const planLimits = getPlanLimits(data.userTier)
+  const maxApiKeys = planLimits.maxApplications
+  const atLimit = maxApiKeys !== -1 && data.keys.length >= maxApiKeys
 
   const { keys, stats, plan, logs, userTier } = data
 
@@ -572,7 +592,17 @@ export default function ApiKeysClient({ data }: { data: PageData }) {
         <CreateKeyModal
           onClose={() => setShowCreate(false)}
           onCreated={(key) => { setShowCreate(false); setRevealKey(key) }}
+          onLimitExceeded={(info) => { setShowCreate(false); setLimitInfo(info) }}
           userTier={userTier}
+        />
+      )}
+      {limitInfo && (
+        <LimitReachedModal
+          currentCount={limitInfo.currentCount}
+          limit={limitInfo.limit}
+          tier={limitInfo.tier}
+          upgradeRequired={limitInfo.upgradeRequired}
+          onClose={() => setLimitInfo(null)}
         />
       )}
       {revealKey && (
@@ -663,23 +693,54 @@ export default function ApiKeysClient({ data }: { data: PageData }) {
           </div>
         </div>
 
+        {/* Plan usage bar */}
+        {maxApiKeys !== -1 && (
+          <div className="flex items-center gap-4 px-5 py-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+            <Key className="h-4 w-4 text-white/30 flex-shrink-0" />
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-white/50">API Keys used</span>
+                <span className={`text-xs font-semibold ${atLimit ? "text-red-400" : "text-white/70"}`}>
+                  {data.keys.length} / {maxApiKeys}
+                </span>
+              </div>
+              <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${atLimit ? "bg-red-500" : data.keys.length / maxApiKeys > 0.8 ? "bg-amber-500" : "bg-emerald-500"}`}
+                  style={{ width: `${Math.min((data.keys.length / maxApiKeys) * 100, 100)}%` }}
+                />
+              </div>
+            </div>
+            {atLimit && (
+              <a href="/developer/billing" className="flex-shrink-0 text-xs text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1">
+                Upgrade <ArrowUpRight className="h-3 w-3" />
+              </a>
+            )}
+          </div>
+        )}
+
         {/* Create New API Key — single CTA card */}
         <div
-          onClick={() => setShowCreate(true)}
-          className="rounded-xl border border-dashed border-white/[0.1] bg-white/[0.01] hover:bg-white/[0.03] hover:border-amber-500/30 transition-all cursor-pointer p-6 flex items-center justify-between group"
+          onClick={() => atLimit ? setLimitInfo({ currentCount: data.keys.length, limit: maxApiKeys, tier: userTier, upgradeRequired: userTier === 'FREE' ? 'STARTER' : userTier === 'STARTER' ? 'PRO' : 'BUSINESS' }) : setShowCreate(true)}
+          className={`rounded-xl border border-dashed transition-all cursor-pointer p-6 flex items-center justify-between group ${
+            atLimit ? "border-red-500/20 bg-red-500/[0.01] hover:border-red-500/30" : "border-white/[0.1] bg-white/[0.01] hover:bg-white/[0.03] hover:border-amber-500/30"
+          }`}
         >
           <div>
-            <h2 className="text-base font-semibold text-white group-hover:text-amber-400 transition-colors">Create New API Key</h2>
+            <h2 className={`text-base font-semibold transition-colors ${
+              atLimit ? "text-red-400" : "text-white group-hover:text-amber-400"
+            }`}>
+              {atLimit ? `Limit reached — ${userTier} plan allows ${maxApiKeys} API key${maxApiKeys !== 1 ? "s" : ""}` : "Create New API Key"}
+            </h2>
             <p className="text-sm text-white/40 mt-0.5">
-              Generate a new API key with custom permissions and rate limits.
+              {atLimit ? "Upgrade your plan to create more API keys." : "Generate a new API key with custom permissions and rate limits."}
             </p>
           </div>
           <button
-            onClick={e => { e.stopPropagation(); setShowCreate(true) }}
+            onClick={e => { e.stopPropagation(); atLimit ? setLimitInfo({ currentCount: data.keys.length, limit: maxApiKeys, tier: userTier, upgradeRequired: userTier === 'FREE' ? 'STARTER' : userTier === 'STARTER' ? 'PRO' : 'BUSINESS' }) : setShowCreate(true) }}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 text-black font-semibold text-sm hover:bg-amber-400 transition-colors flex-shrink-0"
           >
-            <Plus className="h-4 w-4" />
-            Generate API Key
+            {atLimit ? <><ArrowUpRight className="h-4 w-4" /> Upgrade Plan</> : <><Plus className="h-4 w-4" /> Generate API Key</>}
           </button>
         </div>
 

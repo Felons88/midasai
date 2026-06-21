@@ -4,10 +4,11 @@ import { useState } from "react"
 import {
   Server, Plus, Trash2, Copy, Check, AlertTriangle,
   Download, Zap, Key, Code, ExternalLink, RefreshCw,
-  Terminal, Sparkles, Globe
+  Terminal, Sparkles, Globe, ArrowUpRight
 } from "lucide-react"
 import { createBrowserSupabaseClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 interface McpConnection {
   id: string
@@ -21,6 +22,7 @@ interface McpConnection {
 interface McpClientProps {
   connections: McpConnection[]
   projectUrl: string
+  plan: { tier: string; maxMcpServers: number }
 }
 
 function RevealTokenModal({ token, name, onClose }: { token: string; name: string; onClose: () => void }) {
@@ -145,8 +147,9 @@ function RevealTokenModal({ token, name, onClose }: { token: string; name: strin
   )
 }
 
-export default function McpClient({ connections: initial, projectUrl }: McpClientProps) {
+export default function McpClient({ connections: initial, projectUrl, plan }: McpClientProps) {
   const [showCreate, setShowCreate] = useState(false)
+  const [showUpgrade, setShowUpgrade] = useState(false)
   const [newName, setNewName] = useState("")
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState("")
@@ -157,39 +160,44 @@ export default function McpClient({ connections: initial, projectUrl }: McpClien
   const supabase = createBrowserSupabaseClient()
   const router = useRouter()
 
+  const atLimit = plan.maxMcpServers !== -1 && connections.length >= plan.maxMcpServers
+
+  const handleCreateClick = () => {
+    if (atLimit) { setShowUpgrade(true) } else { setShowCreate(true) }
+  }
+
   const handleCreate = async () => {
     if (!newName.trim()) return
     setCreating(true)
     setCreateError("")
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("Not authenticated")
-
-      const token = `mcp_${crypto.randomUUID().replace(/-/g, "")}${crypto.randomUUID().replace(/-/g, "")}`
-
-      const { data, error } = await supabase.from("mcp_servers").insert({
-        user_id: user.id,
-        name: newName.trim(),
-        description: "MidasAI MCP connection for AI assistants",
-        endpoint: projectUrl,
-        version: "1.0.0",
-        status: "ACTIVE",
-        total_requests: 0,
-        avg_latency_ms: 0,
-      }).select().single()
-
-      if (error) throw error
-
-      await supabase.from("mcp_tokens").insert({
-        user_id: user.id,
-        mcp_server_id: data.id,
-        token,
-        status: "ACTIVE",
+      const res = await fetch("/api/mcp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName.trim(), projectUrl }),
       })
+      const data = await res.json()
+
+      if (!res.ok) {
+        if (res.status === 403 && data.error === "limit_exceeded") {
+          setShowCreate(false)
+          setShowUpgrade(true)
+          return
+        }
+        throw new Error(data.message || data.error || "Failed to create connection")
+      }
 
       setShowCreate(false)
       setNewName("")
-      setRevealToken({ token, name: newName.trim() })
+      setRevealToken({ token: data.connection.token, name: data.connection.name })
+      setConnections(prev => [...prev, {
+        id: data.connection.id,
+        name: data.connection.name,
+        token: data.connection.token,
+        status: "active",
+        createdAt: new Date().toLocaleDateString(),
+        lastUsed: null,
+      }])
     } catch (e: any) {
       setCreateError(e.message || "Failed to create connection")
     } finally {
@@ -214,6 +222,32 @@ export default function McpClient({ connections: initial, projectUrl }: McpClien
   return (
     <>
       {revealToken && <RevealTokenModal token={revealToken.token} name={revealToken.name} onClose={() => setRevealToken(null)} />}
+      {showUpgrade && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm bg-[#0f0f16] border border-amber-500/30 rounded-2xl shadow-2xl p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="h-5 w-5 text-amber-400" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-white">MCP Connection limit reached</h2>
+                <p className="text-xs text-white/40 mt-0.5">{connections.length} of {plan.maxMcpServers === -1 ? "∞" : plan.maxMcpServers} used on {plan.tier} plan</p>
+              </div>
+            </div>
+            <p className="text-sm text-white/60 mb-5">
+              Your <span className="text-white font-medium">{plan.tier}</span> plan supports <span className="text-amber-400 font-semibold">{plan.maxMcpServers === -1 ? "unlimited" : plan.maxMcpServers} MCP connection{plan.maxMcpServers !== 1 ? "s" : ""}</span>.
+              {plan.tier !== "BUSINESS" && <> Upgrade to add more.</>}
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowUpgrade(false)} className="flex-1 h-10 rounded-xl border border-white/[0.08] text-sm text-white/60 hover:text-white transition-colors">Cancel</button>
+              <Link href="/developer/billing" onClick={() => setShowUpgrade(false)}
+                className="flex-1 h-10 rounded-xl bg-amber-500 text-black font-semibold text-sm hover:bg-amber-400 transition-colors flex items-center justify-center gap-2">
+                Upgrade Plan <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="p-8 space-y-6">
         {/* Header */}
@@ -247,6 +281,32 @@ export default function McpClient({ connections: initial, projectUrl }: McpClien
           ))}
         </div>
 
+        {/* Plan usage bar */}
+        {plan.maxMcpServers !== -1 && (
+          <div className="flex items-center gap-4 px-5 py-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+            <Server className="h-4 w-4 text-white/30 flex-shrink-0" />
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-white/50">MCP Connections used</span>
+                <span className={`text-xs font-semibold ${atLimit ? "text-red-400" : "text-white/70"}`}>
+                  {connections.length} / {plan.maxMcpServers}
+                </span>
+              </div>
+              <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${atLimit ? "bg-red-500" : connections.length / plan.maxMcpServers > 0.8 ? "bg-amber-500" : "bg-emerald-500"}`}
+                  style={{ width: `${Math.min((connections.length / plan.maxMcpServers) * 100, 100)}%` }}
+                />
+              </div>
+            </div>
+            {atLimit && (
+              <Link href="/developer/billing" className="flex-shrink-0 text-xs text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1">
+                Upgrade <ArrowUpRight className="h-3 w-3" />
+              </Link>
+            )}
+          </div>
+        )}
+
         {/* Create new connection */}
         {showCreate ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.03] p-5 space-y-4">
@@ -277,15 +337,23 @@ export default function McpClient({ connections: initial, projectUrl }: McpClien
             </div>
           </div>
         ) : (
-          <div onClick={() => setShowCreate(true)}
-            className="rounded-xl border border-dashed border-white/[0.1] bg-white/[0.01] hover:bg-white/[0.03] hover:border-amber-500/30 transition-all cursor-pointer p-6 flex items-center justify-between group">
+          <div onClick={handleCreateClick}
+            className={`rounded-xl border border-dashed transition-all cursor-pointer p-6 flex items-center justify-between group ${
+              atLimit ? "border-red-500/20 bg-red-500/[0.01] hover:border-red-500/30" : "border-white/[0.1] bg-white/[0.01] hover:bg-white/[0.03] hover:border-amber-500/30"
+            }`}>
             <div>
-              <h2 className="text-base font-semibold text-white group-hover:text-amber-400 transition-colors">New MCP Connection</h2>
-              <p className="text-sm text-white/40 mt-0.5">Generate a token for Claude, Cursor, Windsurf, or any MCP-compatible tool.</p>
+              <h2 className={`text-base font-semibold transition-colors ${
+                atLimit ? "text-red-400" : "text-white group-hover:text-amber-400"
+              }`}>
+                {atLimit ? `Limit reached — ${plan.tier} plan allows ${plan.maxMcpServers} connection${plan.maxMcpServers !== 1 ? "s" : ""}` : "New MCP Connection"}
+              </h2>
+              <p className="text-sm text-white/40 mt-0.5">
+                {atLimit ? "Upgrade your plan to add more MCP connections." : "Generate a token for Claude, Cursor, Windsurf, or any MCP-compatible tool."}
+              </p>
             </div>
-            <button onClick={e => { e.stopPropagation(); setShowCreate(true) }}
+            <button onClick={e => { e.stopPropagation(); handleCreateClick() }}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 text-black font-semibold text-sm hover:bg-amber-400 transition-colors flex-shrink-0">
-              <Plus className="h-4 w-4" /> New Connection
+              {atLimit ? <><ArrowUpRight className="h-4 w-4" /> Upgrade Plan</> : <><Plus className="h-4 w-4" /> New Connection</>}
             </button>
           </div>
         )}
@@ -306,7 +374,7 @@ export default function McpClient({ connections: initial, projectUrl }: McpClien
               <p className="text-sm text-white/40 mb-6 max-w-sm">
                 Generate your first MCP token to let AI assistants access your MidasAI account.
               </p>
-              <button onClick={() => setShowCreate(true)}
+              <button onClick={handleCreateClick}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 text-black font-semibold text-sm hover:bg-amber-400 transition-colors">
                 <Plus className="h-4 w-4" /> New Connection
               </button>
