@@ -125,6 +125,67 @@ export async function POST(request: NextRequest) {
       try { packageJson = JSON.parse(Buffer.from(pkgData.content, 'base64').toString()) } catch {}
     }
 
+    // If no README, scan repo files to build context
+    if (!readme) {
+      const treeRes = await fetch(`https://api.github.com/repos/${repoFullName}/git/trees/HEAD?recursive=1`, { headers: gh })
+      if (treeRes.ok) {
+        const treeData = await treeRes.json()
+        const allFiles: string[] = (treeData.tree || [])
+          .filter((f: any) => f.type === 'blob')
+          .map((f: any) => f.path as string)
+
+        // Priority files to read for context
+        const PRIORITY = [
+          'index.ts', 'index.js', 'index.tsx', 'index.jsx',
+          'main.ts', 'main.js', 'main.py', 'app.py', 'app.ts', 'app.js',
+          'src/index.ts', 'src/index.js', 'src/main.ts', 'src/main.py',
+          'claude.md', 'CLAUDE.md', 'agent.md', 'AGENT.md',
+          '.cursorrules', 'cursorrules.md',
+          'pyproject.toml', 'requirements.txt', 'Cargo.toml', 'go.mod',
+          'docker-compose.yml', 'Dockerfile',
+        ]
+
+        // Readable text extensions
+        const TEXT_EXT = ['.ts','.tsx','.js','.jsx','.py','.go','.rs','.md','.txt','.toml','.yml','.yaml','.json']
+
+        const toRead = [
+          // Priority files first
+          ...PRIORITY.filter(p => allFiles.includes(p)),
+          // Then any src/ files that are text
+          ...allFiles.filter(f =>
+            f.startsWith('src/') &&
+            TEXT_EXT.some(ext => f.endsWith(ext)) &&
+            !PRIORITY.includes(f)
+          ).slice(0, 8),
+          // Then root-level text files
+          ...allFiles.filter(f =>
+            !f.includes('/') &&
+            TEXT_EXT.some(ext => f.endsWith(ext)) &&
+            !PRIORITY.includes(f) &&
+            f !== 'package.json'
+          ).slice(0, 4),
+        ].slice(0, 12) // max 12 files
+
+        const fileContents = await Promise.all(
+          toRead.map(async (path) => {
+            try {
+              const res = await fetch(`https://api.github.com/repos/${repoFullName}/contents/${path}`, { headers: gh })
+              if (!res.ok) return null
+              const data = await res.json()
+              if (!data.content) return null
+              const text = Buffer.from(data.content, 'base64').toString().substring(0, 400)
+              return `// ${path}\n${text}`
+            } catch { return null }
+          })
+        )
+
+        const scanned = fileContents.filter(Boolean).join('\n\n')
+        if (scanned) {
+          readme = `[No README — scanned ${toRead.length} files]\n\nFile listing (${allFiles.length} total):\n${allFiles.slice(0, 30).join(', ')}\n\nKey file contents:\n${scanned}`.substring(0, 3000)
+        }
+      }
+    }
+
     const fallback = buildFallback(repoData, packageJson, readme)
 
     const openrouterKey = process.env.OPENROUTER_API_KEY
