@@ -91,11 +91,10 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
 
   const connectGitHub = async () => {
     try {
-      const response = await fetch('/api/github/auth')
+      const response = await fetch('/api/github/auth', { cache: 'no-store' })
+      if (!response.ok) throw new Error(`Auth request failed: ${response.status}`)
       const data = await response.json()
-      
       if (data.error) throw new Error(data.error)
-      
       window.location.href = data.authUrl
     } catch (error) {
       console.error('Error connecting to GitHub:', error)
