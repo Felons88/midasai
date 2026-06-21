@@ -1,22 +1,88 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { validateBody, githubRepoSchema } from '@/lib/validation/schemas'
+
+const FREE_MODELS = [
+  'meta-llama/llama-3.1-8b-instruct:free',
+  'mistralai/mistral-7b-instruct:free',
+  'google/gemma-3-12b-it:free',
+]
+
+function buildFallback(repoData: any, packageJson: any, readme: string) {
+  const name: string = repoData.name || ''
+  const lang: string = (repoData.language || '').toLowerCase()
+  const topics: string[] = repoData.topics || []
+  const keywords: string[] = packageJson?.keywords || []
+  const deps = Object.keys(packageJson?.dependencies || {})
+  const depStr = deps.join(' ').toLowerCase()
+  const nameStr = name.toLowerCase()
+
+  let type = 'SKILL'
+  if (nameStr.includes('workflow') || nameStr.includes('pipeline') || depStr.includes('n8n')) type = 'WORKFLOW'
+  else if (nameStr.includes('template') || nameStr.includes('boilerplate') || nameStr.includes('starter')) type = 'TEMPLATE'
+  else if (nameStr.includes('plugin') || nameStr.includes('extension') || depStr.includes('vscode')) type = 'PLUGIN'
+
+  const tags: string[] = [...topics, ...keywords, ...(lang ? [lang] : []), 'open-source']
+    .filter((v): v is string => typeof v === 'string' && v.length > 0)
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .slice(0, 10)
+
+  return {
+    title: name.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+    description: repoData.description || packageJson?.description || `A ${repoData.language || 'code'} project: ${name}`,
+    type,
+    tags,
+    price: 0,
+    github_url: repoData.html_url,
+    readme: readme.substring(0, 5000),
+  }
+}
+
+async function tryOpenRouter(key: string, prompt: string): Promise<string | null> {
+  for (const model of FREE_MODELS) {
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${key}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://midasai.tech',
+          'X-Title': 'MidasAI',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 600,
+          temperature: 0.2,
+        }),
+      })
+
+      if (!res.ok) {
+        console.error(`OpenRouter ${model} error:`, res.status, (await res.text()).substring(0, 200))
+        continue
+      }
+
+      const data = await res.json()
+      const text: string = data.choices?.[0]?.message?.content || ''
+      if (text.includes('{')) return text
+    } catch (e) {
+      console.error(`OpenRouter ${model} threw:`, e)
+    }
+  }
+  return null
+}
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await request.json()
-    const validatedData = await validateBody(githubRepoSchema, body)
-    
-    const { repoFullName } = validatedData
+    const repoFullName: string = body?.repoFullName
+    if (!repoFullName || !repoFullName.includes('/')) {
+      return NextResponse.json({ error: 'repoFullName is required (owner/repo)' }, { status: 400 })
+    }
 
-    // Get GitHub connection
     const { data: connection } = await supabase
       .from('github_connections')
       .select('github_access_token')
@@ -27,178 +93,78 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'GitHub not connected' }, { status: 400 })
     }
 
-    // Fetch repository details from GitHub
-    const repoResponse = await fetch(`https://api.github.com/repos/${repoFullName}`, {
-      headers: {
-        'Authorization': `Bearer ${connection.github_access_token}`,
-        'User-Agent': 'MidasAI-Platform',
-        'Accept': 'application/vnd.github.v3+json',
-      },
-    })
-
-    if (!repoResponse.ok) {
-      return NextResponse.json({ error: 'Failed to fetch repository' }, { status: 500 })
-    }
-
-    const repoData = await repoResponse.json()
-
-    const ghHeaders = {
+    const gh = {
       'Authorization': `Bearer ${connection.github_access_token}`,
       'User-Agent': 'MidasAI-Platform',
       'Accept': 'application/vnd.github.v3+json',
     }
 
-    // Fetch README
+    // Parallel fetch: repo info, readme, package.json
+    const [repoRes, readmeRes, pkgRes] = await Promise.all([
+      fetch(`https://api.github.com/repos/${repoFullName}`, { headers: gh }),
+      fetch(`https://api.github.com/repos/${repoFullName}/readme`, { headers: gh }),
+      fetch(`https://api.github.com/repos/${repoFullName}/contents/package.json`, { headers: gh }),
+    ])
+
+    if (!repoRes.ok) {
+      return NextResponse.json({ error: 'Repository not found or no access' }, { status: 400 })
+    }
+
+    const repoData = await repoRes.json()
+
     let readme = ''
-    const readmeResponse = await fetch(`https://api.github.com/repos/${repoFullName}/readme`, { headers: ghHeaders })
-    if (readmeResponse.ok) {
-      const readmeData = await readmeResponse.json()
-      const contentResponse = await fetch(readmeData.download_url)
-      readme = await contentResponse.text()
+    if (readmeRes.ok) {
+      const readmeData = await readmeRes.json()
+      const raw = await fetch(readmeData.download_url)
+      if (raw.ok) readme = (await raw.text()).substring(0, 3000)
     }
 
-    // Fetch repo tree to find key files
     let packageJson: Record<string, any> = {}
-    const treeResponse = await fetch(`https://api.github.com/repos/${repoFullName}/git/trees/HEAD?recursive=1`, { headers: ghHeaders })
-    if (treeResponse.ok) {
-      const treeData = await treeResponse.json()
-      const pkgFile = treeData.tree?.find((f: any) => f.path === 'package.json')
-      if (pkgFile) {
-        const pkgResponse = await fetch(`https://api.github.com/repos/${repoFullName}/contents/package.json`, { headers: ghHeaders })
-        if (pkgResponse.ok) {
-          const pkgData = await pkgResponse.json()
-          try {
-            packageJson = JSON.parse(Buffer.from(pkgData.content, 'base64').toString())
-          } catch {}
-        }
-      }
+    if (pkgRes.ok) {
+      const pkgData = await pkgRes.json()
+      try { packageJson = JSON.parse(Buffer.from(pkgData.content, 'base64').toString()) } catch {}
     }
 
-    // Build rich context from all available data
-    const repoContext = {
-      name: repoData.name,
-      fullName: repoData.full_name,
-      description: repoData.description || packageJson.description || '',
-      language: repoData.language,
-      topics: repoData.topics || [],
-      stars: repoData.stargazers_count,
-      packageName: packageJson.name,
-      packageKeywords: packageJson.keywords || [],
-      dependencies: Object.keys(packageJson.dependencies || {}),
-      readme: readme.substring(0, 10000),
-    }
+    const fallback = buildFallback(repoData, packageJson, readme)
 
-    // Derive tags from all sources
-    const langTag = repoContext.language?.toLowerCase()
-    const allTags: string[] = [
-      ...repoContext.topics,
-      ...repoContext.packageKeywords,
-      ...(langTag ? [langTag] : []),
-      'open-source',
-    ].filter((v): v is string => typeof v === 'string' && v.length > 0)
-     .filter((v, i, a) => a.indexOf(v) === i)
-     .slice(0, 10)
-
-    // Detect type from dependencies and name
-    const depString = repoContext.dependencies.join(' ').toLowerCase()
-    const nameStr = repoContext.name.toLowerCase()
-    let detectedType = 'SKILL'
-    if (nameStr.includes('workflow') || nameStr.includes('pipeline') || depString.includes('n8n')) detectedType = 'WORKFLOW'
-    else if (nameStr.includes('template') || nameStr.includes('boilerplate') || nameStr.includes('starter')) detectedType = 'TEMPLATE'
-    else if (nameStr.includes('plugin') || nameStr.includes('extension') || depString.includes('vscode')) detectedType = 'PLUGIN'
-
-    const fallbackResult = {
-      title: repoContext.name.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
-      description: repoContext.description || `A ${repoContext.language || 'code'} project: ${repoContext.name}`,
-      type: detectedType,
-      tags: allTags,
-      price: 0,
-      github_url: repoData.html_url,
-      readme: readme.substring(0, 5000),
-    }
-
-    // AI Analysis using OpenRouter
     const openrouterKey = process.env.OPENROUTER_API_KEY
-    if (!openrouterKey) {
-      return NextResponse.json(fallbackResult)
-    }
+    if (!openrouterKey) return NextResponse.json(fallback)
 
-    const analysisPrompt = `Analyze this GitHub repository and generate a marketplace listing for an AI tools marketplace.
+    const prompt = `You are generating a marketplace listing for an AI tools marketplace. Reply with ONLY a JSON object, no markdown.
 
-Repository: ${repoContext.fullName}
-Description: ${repoContext.description || 'No description'}
-Language: ${repoContext.language || 'Unknown'}
-Topics: ${repoContext.topics.join(', ') || 'None'}
-Dependencies: ${repoContext.dependencies.slice(0, 20).join(', ') || 'None'}
-Keywords: ${repoContext.packageKeywords.join(', ') || 'None'}
+Repo: ${repoData.full_name}
+Language: ${repoData.language || 'Unknown'}
+Description: ${repoData.description || packageJson?.description || 'None'}
+Topics: ${(repoData.topics || []).join(', ') || 'None'}
+Deps: ${Object.keys(packageJson?.dependencies || {}).slice(0, 15).join(', ') || 'None'}
+README: ${readme.substring(0, 1500)}
 
-README (first 6000 chars):
-${repoContext.readme}
+Return JSON: {"title":"...","description":"...","type":"SKILL|WORKFLOW|TEMPLATE|PLUGIN","tags":["..."],"price":0,"github_url":"${repoData.html_url}"}`
 
-Generate a JSON response with these exact fields:
-- title: A catchy, descriptive title for the marketplace listing (max 60 chars)
-- description: A compelling SEO-optimized description explaining what this does and who it's for (min 100 chars, max 500 chars)
-- type: One of SKILL, WORKFLOW, TEMPLATE, or PLUGIN based on what this repo actually is
-- tags: Array of 5-10 relevant tags (lowercase, hyphen-separated)
-- price: 0
-- github_url: "${repoData.html_url}"
+    const aiText = await tryOpenRouter(openrouterKey, prompt)
 
-Return ONLY a valid JSON object. No markdown, no code fences, no explanation.`
+    if (!aiText) return NextResponse.json(fallback)
 
-    const aiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openrouterKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://midasai.tech',
-        'X-Title': 'MidasAI',
-      },
-      body: JSON.stringify({
-        model: 'meta-llama/llama-3.1-8b-instruct:free',
-        messages: [{ role: 'user', content: analysisPrompt }],
-        max_tokens: 1000,
-        temperature: 0.3,
-      })
-    })
-
-    if (!aiResponse.ok) {
-      const aiError = await aiResponse.text()
-      console.error('OpenRouter error:', aiResponse.status, aiError.substring(0, 500))
-      return NextResponse.json(fallbackResult)
-    }
-
-    const aiData = await aiResponse.json()
-    const aiText = aiData.choices?.[0]?.message?.content || ''
-
-    const jsonMatch = aiText.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      console.error('Failed to parse OpenRouter response:', aiText.substring(0, 300))
-      return NextResponse.json(fallbackResult)
-    }
+    const match = aiText.match(/\{[\s\S]*?\}(?=\s*$|\s*```)/)?.[0] || aiText.match(/\{[\s\S]*\}/)?.[0]
+    if (!match) return NextResponse.json(fallback)
 
     try {
-      const analysisResult = JSON.parse(jsonMatch[0])
+      const result = JSON.parse(match)
       return NextResponse.json({
-        ...analysisResult,
-        price: typeof analysisResult.price === 'number' ? analysisResult.price : 0,
-        tags: Array.isArray(analysisResult.tags) ? analysisResult.tags : allTags,
+        title: result.title || fallback.title,
+        description: result.description || fallback.description,
+        type: ['SKILL','WORKFLOW','TEMPLATE','PLUGIN'].includes(result.type) ? result.type : fallback.type,
+        tags: Array.isArray(result.tags) && result.tags.length > 0 ? result.tags : fallback.tags,
+        price: 0,
+        github_url: repoData.html_url,
         readme: readme.substring(0, 5000),
       })
     } catch {
-      return NextResponse.json(fallbackResult)
+      return NextResponse.json(fallback)
     }
+
   } catch (error) {
-    console.error('GitHub scan-repo error:', error)
-    
-    // Handle validation errors
-    if (error instanceof Error && error.message.startsWith('[')) {
-      const validationErrors = JSON.parse(error.message)
-      return NextResponse.json({ 
-        error: "Validation failed", 
-        details: validationErrors 
-      }, { status: 400 })
-    }
-    
+    console.error('scan-repo error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
