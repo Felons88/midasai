@@ -167,10 +167,10 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
           price: typeof formData.price === 'number' ? formData.price : parseFloat(formData.price as any) || 0,
           github_url: formData.github_url,
           status: 'PENDING',
-          readme: scanResult?.readme,
-          language: selectedRepo?.language,
-          topics: selectedRepo?.topics,
-          license: selectedRepo?.license,
+          readme: scanResult?.readme || null,
+          language: selectedRepo?.language || null,
+          topics: Array.isArray(selectedRepo?.topics) ? selectedRepo.topics : [],
+          license: selectedRepo?.license || null,
         })
 
       if (error) throw error
