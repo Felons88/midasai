@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         description: repoContext.description || `A ${repoContext.language || 'code'} project: ${repoContext.name}`,
         type: detectedType,
         tags: allTags,
-        price: 'Free',
+        price: 0,
         github_url: repoData.html_url,
         readme: readme.substring(0, 5000),
       })
@@ -135,7 +135,7 @@ Generate a JSON response with these exact fields:
 - description: A compelling SEO-optimized description explaining what this does and who it's for (min 100 chars, max 500 chars)
 - type: One of SKILL, WORKFLOW, TEMPLATE, or PLUGIN based on what this repo actually is
 - tags: Array of 5-10 relevant tags (lowercase, no spaces, use hyphens)
-- price: "Free"
+- price: 0 (numeric, not a string)
 - github_url: "${repoData.html_url}"
 
 Return ONLY valid JSON. No markdown, no code blocks, no explanation.
@@ -158,7 +158,7 @@ Return ONLY valid JSON. No markdown, no code blocks, no explanation.
       description: repoContext.description || `A ${repoContext.language || 'code'} project: ${repoContext.name}`,
       type: detectedType,
       tags: allTags,
-      price: 'Free',
+      price: 0,
       github_url: repoData.html_url,
       readme: readme.substring(0, 5000),
     }
@@ -183,6 +183,7 @@ Return ONLY valid JSON. No markdown, no code blocks, no explanation.
       const analysisResult = JSON.parse(jsonMatch[0])
       return NextResponse.json({
         ...analysisResult,
+        price: typeof analysisResult.price === 'number' ? analysisResult.price : 0,
         readme: readme.substring(0, 5000),
       })
     } catch {
