@@ -79,9 +79,9 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
 
       const { data: connection } = await supabase
         .from('github_connections')
-        .select('*')
+        .select('id')
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
 
       setIsConnected(!!connection)
     } catch (error) {
