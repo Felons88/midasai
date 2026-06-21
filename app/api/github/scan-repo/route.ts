@@ -7,35 +7,31 @@ const FREE_MODELS = [
   'google/gemma-3-12b-it:free',
 ]
 
-function extractDescriptionFromContent(readme: string, repoName: string): string {
-  // Try to extract a meaningful sentence from scanned files
-  const lines = readme.split('\n').map(l => l.trim()).filter(Boolean)
+function extractProjectSummary(readme: string): string {
+  // Lines that describe the project itself (not instructions to an AI)
+  const SKIP_PATTERNS = [
+    /you are a/i, /your job/i, /your role/i, /working style/i,
+    /before making/i, /read project/i, /understand the/i,
+    /never leave/i, /always/i, /do not/i, /must /i,
+    /^##/, /^---/, /^\[no readme/i,
+  ]
 
-  // Look for purpose/description lines in CLAUDE.md or similar
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
-    // Skip headers, file markers, paths, short lines
-    if (line.startsWith('//') || line.startsWith('#') || line.startsWith('[') || line.length < 40) continue
-    if (line.includes('.md') || line.includes('.ts') || line.includes('.js')) continue
-    // Good candidate: a real sentence
-    if (line.endsWith('.') || line.endsWith('!') || line.length > 60) {
-      return line.substring(0, 500)
+  const lines = readme.split('\n').map(l => l.trim()).filter(Boolean)
+  const goodLines: string[] = []
+
+  for (const line of lines) {
+    if (line.startsWith('//') || line.startsWith('#') || line.startsWith('[')) continue
+    if (line.length < 30) continue
+    if (line.includes('.md,') || line.includes('.ts,') || line.includes('.js,')) continue
+    if (SKIP_PATTERNS.some(p => p.test(line))) continue
+    // Real project description lines
+    if (line.match(/marketplace|platform|tool|library|framework|app|system|api|server|client/i)) {
+      goodLines.push(line)
+      if (goodLines.length >= 3) break
     }
   }
 
-  // Look for "X is a marketplace/platform/tool for..." patterns
-  const isAMatch = readme.match(/\w+\s+is\s+a\s+([^.!?\n]{40,300}[.!?])/i)
-  if (isAMatch) return isAMatch[0].trim().substring(0, 500)
-
-  // Look for lines after "Purpose" or "Description" headings
-  const purposeIdx = readme.toLowerCase().indexOf('purpose')
-  if (purposeIdx !== -1) {
-    const after = readme.substring(purposeIdx + 10, purposeIdx + 600)
-    const sentence = after.split('\n').map(l => l.trim()).find(l => l.length > 40 && !l.startsWith('#'))
-    if (sentence) return sentence.substring(0, 500)
-  }
-
-  return ''
+  return goodLines.join(' ').substring(0, 400)
 }
 
 function buildFallback(repoData: any, packageJson: any, readme: string) {
@@ -74,7 +70,7 @@ function buildFallback(repoData: any, packageJson: any, readme: string) {
     .slice(0, 10)
 
   // Try to get a real description
-  const extractedDesc = extractDescriptionFromContent(readme, name)
+  const extractedDesc = extractProjectSummary(readme)
   const description = repoData.description
     || packageJson?.description
     || extractedDesc
@@ -245,16 +241,33 @@ export async function POST(request: NextRequest) {
     const openrouterKey = process.env.OPENROUTER_API_KEY
     if (!openrouterKey) return NextResponse.json(fallback)
 
-    const prompt = `You are generating a marketplace listing for an AI tools marketplace. Reply with ONLY a JSON object, no markdown.
+    const cleanContent = readme
+      .replace(/you are a senior/gi, '')
+      .replace(/your job is to/gi, '')
+      .substring(0, 2000)
 
-Repo: ${repoData.full_name}
-Language: ${repoData.language || 'Unknown'}
-Description: ${repoData.description || packageJson?.description || 'None'}
-Topics: ${(repoData.topics || []).join(', ') || 'None'}
-Deps: ${Object.keys(packageJson?.dependencies || {}).slice(0, 15).join(', ') || 'None'}
-README: ${readme.substring(0, 1500)}
+    const prompt = `You are a copywriter creating a marketplace listing for an AI tools marketplace called MidasAI.
 
-Return JSON: {"title":"...","description":"...","type":"SKILL|WORKFLOW|TEMPLATE|PLUGIN","tags":["..."],"price":0,"github_url":"${repoData.html_url}"}`
+REPO INFO:
+- Name: ${repoData.full_name}
+- Language: ${repoData.language || 'Unknown'}
+- GitHub description: ${repoData.description || 'None'}
+- Dependencies: ${Object.keys(packageJson?.dependencies || {}).slice(0, 20).join(', ') || 'None'}
+- Topics/Keywords: ${[...(repoData.topics || []), ...(packageJson?.keywords || [])].join(', ') || 'None'}
+
+REPO CONTENT (from files):
+${cleanContent}
+
+Write a marketplace listing. Rules:
+- title: Short, catchy product name (NOT the repo name, make it descriptive, max 60 chars)
+- description: 2-3 sentences. First sentence: what it IS and does. Second: key features or tech stack highlights. Third: who it's for. NO "You are" or "your job" language. Write as if describing a product to a buyer. Min 120 chars, max 480 chars.
+- type: SKILL, WORKFLOW, TEMPLATE, or PLUGIN
+- tags: 6-10 lowercase tags from the actual tech stack and use case
+- price: 0
+- github_url: "${repoData.html_url}"
+
+Reply with ONLY this JSON, no markdown, no explanation:
+{"title":"...","description":"...","type":"...","tags":["...","..."],"price":0,"github_url":"${repoData.html_url}"}`
 
     const aiText = await tryOpenRouter(openrouterKey, prompt)
 
