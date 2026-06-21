@@ -154,7 +154,7 @@ Return ONLY a valid JSON object. No markdown, no code fences, no explanation.`
         'X-Title': 'MidasAI',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3-haiku',
+        model: 'meta-llama/llama-3.1-8b-instruct:free',
         messages: [{ role: 'user', content: analysisPrompt }],
         max_tokens: 1000,
         temperature: 0.3,
