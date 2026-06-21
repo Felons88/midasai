@@ -156,25 +156,25 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('User not authenticated')
 
-      const { error } = await supabase
-        .from('listings')
-        .insert({
-          creator_id: user.id,
+      const res = await fetch('/api/listings/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           title: formData.title,
           description: formData.description,
           type: formData.type,
           tags: Array.isArray(formData.tags) ? formData.tags : [],
-          images: [],
           topics: Array.isArray(selectedRepo?.topics) ? selectedRepo.topics : [],
-          price: typeof formData.price === 'number' ? formData.price : parseFloat(formData.price as any) || 0,
+          price: typeof formData.price === 'number' ? formData.price : 0,
           github_url: formData.github_url || null,
-          status: 'PENDING',
           readme: scanResult?.readme || null,
           language: selectedRepo?.language || null,
           license: selectedRepo?.license || null,
-        })
+        }),
+      })
 
-      if (error) throw error
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Failed to create listing')
 
       setStep('upload')
       setTimeout(() => {
