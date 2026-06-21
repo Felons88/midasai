@@ -1,8 +1,6 @@
 import { Resend } from 'resend'
 import { emailTemplates, EmailTemplate } from './templates'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export interface SendEmailOptions {
   to: string
   subject: string
@@ -17,6 +15,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
       return { success: false, error: 'Email service not configured' }
     }
 
+    const resend = new Resend(process.env.RESEND_API_KEY)
     const { data, error } = await resend.emails.send({
       from: 'MidasAI <noreply@midasai.tech>',
       to: options.to,
