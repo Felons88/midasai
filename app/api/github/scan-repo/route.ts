@@ -42,31 +42,75 @@ export async function POST(request: NextRequest) {
 
     const repoData = await repoResponse.json()
 
-    // Fetch README
-    const readmeResponse = await fetch(`https://api.github.com/repos/${repoFullName}/readme`, {
-      headers: {
-        'Authorization': `Bearer ${connection.github_access_token}`,
-        'User-Agent': 'MidasAI-Platform',
-        'Accept': 'application/vnd.github.v3+json',
-      },
-    })
+    const ghHeaders = {
+      'Authorization': `Bearer ${connection.github_access_token}`,
+      'User-Agent': 'MidasAI-Platform',
+      'Accept': 'application/vnd.github.v3+json',
+    }
 
+    // Fetch README
     let readme = ''
+    const readmeResponse = await fetch(`https://api.github.com/repos/${repoFullName}/readme`, { headers: ghHeaders })
     if (readmeResponse.ok) {
       const readmeData = await readmeResponse.json()
       const contentResponse = await fetch(readmeData.download_url)
       readme = await contentResponse.text()
     }
 
+    // Fetch repo tree to find key files
+    let packageJson: Record<string, any> = {}
+    const treeResponse = await fetch(`https://api.github.com/repos/${repoFullName}/git/trees/HEAD?recursive=1`, { headers: ghHeaders })
+    if (treeResponse.ok) {
+      const treeData = await treeResponse.json()
+      const pkgFile = treeData.tree?.find((f: any) => f.path === 'package.json')
+      if (pkgFile) {
+        const pkgResponse = await fetch(`https://api.github.com/repos/${repoFullName}/contents/package.json`, { headers: ghHeaders })
+        if (pkgResponse.ok) {
+          const pkgData = await pkgResponse.json()
+          try {
+            packageJson = JSON.parse(Buffer.from(pkgData.content, 'base64').toString())
+          } catch {}
+        }
+      }
+    }
+
+    // Build rich context from all available data
+    const repoContext = {
+      name: repoData.name,
+      fullName: repoData.full_name,
+      description: repoData.description || packageJson.description || '',
+      language: repoData.language,
+      topics: repoData.topics || [],
+      stars: repoData.stargazers_count,
+      packageName: packageJson.name,
+      packageKeywords: packageJson.keywords || [],
+      dependencies: Object.keys(packageJson.dependencies || {}),
+      readme: readme.substring(0, 10000),
+    }
+
+    // Derive tags from all sources
+    const allTags = [
+      ...repoContext.topics,
+      ...repoContext.packageKeywords,
+      repoContext.language?.toLowerCase(),
+    ].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).slice(0, 10) as string[]
+
+    // Detect type from dependencies and name
+    const depString = repoContext.dependencies.join(' ').toLowerCase()
+    const nameStr = repoContext.name.toLowerCase()
+    let detectedType = 'SKILL'
+    if (nameStr.includes('workflow') || nameStr.includes('pipeline') || depString.includes('n8n')) detectedType = 'WORKFLOW'
+    else if (nameStr.includes('template') || nameStr.includes('boilerplate') || nameStr.includes('starter')) detectedType = 'TEMPLATE'
+    else if (nameStr.includes('plugin') || nameStr.includes('extension') || depString.includes('vscode')) detectedType = 'PLUGIN'
+
     // AI Analysis using Gemini
     const geminiKey = process.env.GEMINI_API_KEY
     if (!geminiKey) {
-      // Return repo data without AI analysis if key not configured
       return NextResponse.json({
-        title: repoData.name?.replace(/-/g, ' '),
-        description: repoData.description || '',
-        type: 'SKILL',
-        tags: repoData.topics || [],
+        title: repoContext.name.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+        description: repoContext.description || `A ${repoContext.language || 'code'} project: ${repoContext.name}`,
+        type: detectedType,
+        tags: allTags,
         price: 'Free',
         github_url: repoData.html_url,
         readme: readme.substring(0, 5000),
@@ -74,26 +118,28 @@ export async function POST(request: NextRequest) {
     }
 
     const analysisPrompt = `
-      Analyze this GitHub repository and generate a marketplace listing:
-      
-      Repository: ${repoData.full_name}
-      Description: ${repoData.description || 'No description'}
-      Language: ${repoData.language || 'Unknown'}
-      Topics: ${repoData.topics?.join(', ') || 'None'}
-      
-      README:
-      ${readme.substring(0, 10000)}
-      
-      Generate a JSON response with:
-      - title: A catchy, descriptive title (max 60 chars)
-      - description: A compelling description (max 500 chars)
-      - type: One of SKILL, WORKFLOW, TEMPLATE, or PLUGIN
-      - tags: 5-10 relevant tags as an array
-      - price: "Free" (GitHub projects are free)
-      - github_url: ${repoData.html_url}
-      
-      Return only valid JSON, no markdown.
-    `
+Analyze this GitHub repository and generate a marketplace listing for an AI tools marketplace.
+
+Repository: ${repoContext.fullName}
+Description: ${repoContext.description || 'No description'}
+Language: ${repoContext.language || 'Unknown'}
+Topics: ${repoContext.topics.join(', ') || 'None'}
+Dependencies: ${repoContext.dependencies.slice(0, 20).join(', ') || 'None'}
+Keywords: ${repoContext.packageKeywords.join(', ') || 'None'}
+
+README (first 8000 chars):
+${repoContext.readme}
+
+Generate a JSON response with these exact fields:
+- title: A catchy, descriptive title for the marketplace listing (max 60 chars)
+- description: A compelling SEO-optimized description explaining what this does and who it's for (min 100 chars, max 500 chars)
+- type: One of SKILL, WORKFLOW, TEMPLATE, or PLUGIN based on what this repo actually is
+- tags: Array of 5-10 relevant tags (lowercase, no spaces, use hyphens)
+- price: "Free"
+- github_url: "${repoData.html_url}"
+
+Return ONLY valid JSON. No markdown, no code blocks, no explanation.
+`
 
     const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
       method: 'POST',
@@ -108,10 +154,10 @@ export async function POST(request: NextRequest) {
     })
 
     const fallbackResult = {
-      title: repoData.name?.replace(/-/g, ' '),
-      description: repoData.description || '',
-      type: 'SKILL',
-      tags: repoData.topics || [],
+      title: repoContext.name.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+      description: repoContext.description || `A ${repoContext.language || 'code'} project: ${repoContext.name}`,
+      type: detectedType,
+      tags: allTags,
       price: 'Free',
       github_url: repoData.html_url,
       readme: readme.substring(0, 5000),
