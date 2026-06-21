@@ -32,7 +32,7 @@ export function AuthenticatedShell({
           userAvatar={userAvatar}
         />
 
-        <div className="ml-[260px] min-h-screen flex flex-col">
+        <div className="ml-[240px] min-h-screen flex flex-col transition-all duration-300">
           <TopBar
             userEmail={userEmail}
             userName={userName}

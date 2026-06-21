@@ -4,27 +4,12 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import {
-  Store,
-  Compass,
-  Bookmark,
-  Download,
-  ShoppingBag,
-  Wrench,
-  Code,
-  Settings,
-  LifeBuoy,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-  User,
-  Crown,
-  Database,
-  LogOut,
-  Activity,
-  TrendingUp,
-  Bell,
-  Server,
-  Key,
+  LayoutDashboard, Activity, Bell, Users, FileText, Receipt,
+  CreditCard, Briefcase, CalendarDays, Clock, Store, Search,
+  UserCheck, Package, Server, Sparkles, Bot, Zap, Star,
+  LayoutGrid, DollarSign, BarChart3, Plug2, Settings,
+  ChevronLeft, ChevronRight, Crown, Database, LogOut, LifeBuoy,
+  ChevronDown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
@@ -37,43 +22,66 @@ interface AppSidebarProps {
   userAvatar?: string
 }
 
-const mainNav = [
-  { href: "/dashboard", label: "Dashboard", icon: Store },
-  { href: "/explore", label: "Explore", icon: Compass },
-  { href: "/feed", label: "Activity Feed", icon: Activity },
-  { href: "/bookmarks", label: "Bookmarks", icon: Bookmark },
-  { href: "/collections", label: "Collections", icon: Download },
-  { href: "/purchases", label: "Purchases", icon: ShoppingBag },
-]
+interface NavItem {
+  href: string
+  label: string
+  icon: React.ElementType
+  badge?: string
+}
 
-const creatorNav = [
-  { href: "/creator/dashboard", label: "Creator Studio", icon: Wrench },
-  { href: "/creator/upload", label: "Upload Listing", icon: Sparkles },
-  { href: "/creator/listings", label: "My Listings", icon: Database },
-  { href: "/creator/analytics", label: "Analytics", icon: User },
-  { href: "/creator/payouts", label: "Payouts", icon: Crown },
-  { href: "/creator/settings", label: "Settings", icon: Settings },
-]
+interface NavGroup {
+  label: string
+  items: NavItem[]
+  roleRequired?: string[]
+}
 
-const developerNav = [
-  { href: "/developer", label: "Developer Portal", icon: Code },
-  { href: "/developer/keys", label: "API Keys", icon: Key },
-  { href: "/developer/webhooks", label: "Webhooks", icon: Bell },
-  { href: "/developer/mcp", label: "MCP Connections", icon: Server },
-  { href: "/developer/usage", label: "Usage", icon: TrendingUp },
-  { href: "/developer/billing", label: "Billing", icon: Crown },
-]
-
-const adminNav = [
-  { href: "/admin/dashboard", label: "Admin Dashboard", icon: Wrench },
-  { href: "/admin/listings", label: "Listings", icon: Database },
-  { href: "/admin/users", label: "Users", icon: User },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
-]
-
-const bottomNav = [
-  { href: "/account/settings", label: "Account Settings", icon: Settings },
-  { href: "/support", label: "Support", icon: LifeBuoy },
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: "HOME",
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/feed", label: "Activity Feed", icon: Activity },
+      { href: "/notifications", label: "Notifications", icon: Bell },
+    ],
+  },
+  {
+    label: "MARKETPLACE",
+    items: [
+      { href: "/explore", label: "Browse Services", icon: Search },
+      { href: "/bookmarks", label: "Saved Items", icon: Star },
+      { href: "/purchases", label: "Purchases", icon: Receipt },
+      { href: "/developer/mcp", label: "MCP Marketplace", icon: Server },
+    ],
+  },
+  {
+    label: "AI",
+    items: [
+      { href: "/ai/assistant", label: "AI Assistant", icon: Bot, badge: "Soon" },
+      { href: "/ai/automations", label: "AI Automations", icon: Zap, badge: "Soon" },
+      { href: "/notifications", label: "AI Notifications", icon: Sparkles },
+    ],
+  },
+  {
+    label: "CREATOR",
+    roleRequired: ["CREATOR", "ADMIN", "OWNER"],
+    items: [
+      { href: "/creator/dashboard", label: "Creator Dashboard", icon: LayoutGrid },
+      { href: "/creator/listings", label: "Products", icon: Package },
+      { href: "/creator/upload", label: "New Product", icon: Store },
+      { href: "/developer/mcp", label: "MCP Servers", icon: Server },
+      { href: "/creator/payouts", label: "Revenue", icon: DollarSign },
+      { href: "/creator/analytics", label: "Analytics", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "BUSINESS",
+    items: [
+      { href: "/developer/billing", label: "Billing", icon: CreditCard },
+      { href: "/developer", label: "Integrations", icon: Plug2 },
+      { href: "/settings", label: "Settings", icon: Settings },
+      { href: "/support", label: "Support", icon: LifeBuoy },
+    ],
+  },
 ]
 
 export function AppSidebar({
@@ -88,15 +96,10 @@ export function AppSidebar({
   const supabase = createBrowserSupabaseClient()
 
   const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(href + "/")
+    pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"))
 
   const initials = userName
-    ? userName
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+    ? userName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : userEmail?.charAt(0).toUpperCase() || "?"
 
   const handleLogout = async () => {
@@ -105,221 +108,117 @@ export function AppSidebar({
     router.refresh()
   }
 
+  const visibleGroups = NAV_GROUPS.filter((g) => {
+    if (!g.roleRequired) return true
+    return g.roleRequired.includes(userRole || "")
+  })
+
   return (
     <aside
-      className={`fixed left-0 top-0 z-40 h-screen border-r border-white/[0.06] bg-[#0a0a0f]/98 backdrop-blur-2xl flex flex-col transition-all duration-300 ease-in-out ${
-        collapsed ? "w-[68px]" : "w-[260px]"
+      className={`fixed left-0 top-0 z-40 h-screen border-r border-white/[0.06] bg-[#08080f] flex flex-col transition-all duration-300 ease-in-out ${
+        collapsed ? "w-[64px]" : "w-[240px]"
       }`}
     >
-      {/* Logo + Collapse */}
-      <div className="flex items-center justify-between h-14 px-4 border-b border-white/[0.06]">
-        <Link href="/" className="flex items-center gap-2.5 group overflow-hidden">
-          <div className="h-8 w-8 min-w-[32px] rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+      {/* Logo */}
+      <div className="flex items-center justify-between h-14 px-4 border-b border-white/[0.06] flex-shrink-0">
+        <Link href="/dashboard" className="flex items-center gap-2.5 group overflow-hidden">
+          <div className="h-8 w-8 min-w-[32px] rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:shadow-amber-500/40 transition-shadow">
             <Sparkles className="h-4 w-4 text-black" />
           </div>
           {!collapsed && (
-            <span className="text-base font-bold text-white whitespace-nowrap">MidasAI</span>
+            <span className="text-[15px] font-bold text-white tracking-tight whitespace-nowrap">MidasAI</span>
           )}
         </Link>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="h-7 w-7 min-w-[28px] flex items-center justify-center rounded-md hover:bg-white/[0.06] text-white/40 hover:text-white/80 transition-colors"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="h-6 w-6 min-w-[24px] flex items-center justify-center rounded-md hover:bg-white/[0.06] text-white/30 hover:text-white/70 transition-colors"
+          aria-label={collapsed ? "Expand" : "Collapse"}
         >
-          {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+          {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
         </button>
       </div>
 
-      {/* Main Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1 scrollbar-thin">
-        {mainNav.map((item) => {
-          const active = isActive(item.href)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              title={collapsed ? item.label : undefined}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 ${
-                active
-                  ? "bg-white/[0.08] text-white shadow-sm"
-                  : "text-white/50 hover:text-white/90 hover:bg-white/[0.04]"
-              } ${collapsed ? "justify-center px-0" : ""}`}
-            >
-              <item.icon className={`h-4 w-4 flex-shrink-0 ${active ? "text-amber-400" : ""}`} />
-              {!collapsed && <span className="truncate">{item.label}</span>}
-            </Link>
-          )
-        })}
+      {/* Nav Groups */}
+      <nav className="flex-1 overflow-y-auto py-3 scrollbar-thin">
+        {visibleGroups.map((group, gi) => (
+          <div key={group.label} className={gi > 0 ? "mt-1" : ""}>
+            {/* Group label */}
+            {!collapsed && (
+              <p className="px-4 pt-3 pb-1 text-[10px] font-semibold tracking-widest text-white/25 uppercase select-none">
+                {group.label}
+              </p>
+            )}
+            {collapsed && gi > 0 && <div className="mx-3 my-2 h-px bg-white/[0.06]" />}
 
-        {/* Divider */}
-        <div className="my-3 h-px bg-white/[0.06]" />
-
-        {/* Creator Studio */}
-        {(userRole === "CREATOR" || userRole === "ADMIN" || userRole === "OWNER") && (
-          <>
-            {creatorNav.map((item) => {
-              const active = isActive(item.href)
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  title={collapsed ? item.label : undefined}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 ${
-                    active
-                      ? "bg-white/[0.08] text-white shadow-sm"
-                      : "text-white/50 hover:text-white/90 hover:bg-white/[0.04]"
-                  } ${collapsed ? "justify-center px-0" : ""}`}
-                >
-                  <item.icon className={`h-4 w-4 flex-shrink-0 ${active ? "text-amber-400" : ""}`} />
-                  {!collapsed && <span className="truncate">{item.label}</span>}
-                </Link>
-              )
-            })}
-          </>
-        )}
-
-        {/* Developer Portal */}
-        {(userRole === "DEVELOPER" || userRole === "CREATOR" || userRole === "ADMIN" || userRole === "OWNER") && (
-          <>
-            {developerNav.map((item) => {
-              const active = isActive(item.href)
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  title={collapsed ? item.label : undefined}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 ${
-                    active
-                      ? "bg-white/[0.08] text-white shadow-sm"
-                      : "text-white/50 hover:text-white/90 hover:bg-white/[0.04]"
-                  } ${collapsed ? "justify-center px-0" : ""}`}
-                >
-                  <item.icon className={`h-4 w-4 flex-shrink-0 ${active ? "text-amber-400" : ""}`} />
-                  {!collapsed && <span className="truncate">{item.label}</span>}
-                </Link>
-              )
-            })}
-          </>
-        )}
-
-        {/* Divider */}
-        <div className="my-3 h-px bg-white/[0.06]" />
-
-        {/* Admin Panel */}
-        {(userRole === "ADMIN" || userRole === "OWNER") && (
-          <>
-            {adminNav.map((item) => {
-              const active = isActive(item.href)
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  title={collapsed ? item.label : undefined}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 ${
-                    active
-                      ? "bg-white/[0.08] text-white shadow-sm"
-                      : "text-white/50 hover:text-white/90 hover:bg-white/[0.04]"
-                  } ${collapsed ? "justify-center px-0" : ""}`}
-                >
-                  <item.icon className={`h-4 w-4 flex-shrink-0 ${active ? "text-amber-400" : ""}`} />
-                  {!collapsed && <span className="truncate">{item.label}</span>}
-                </Link>
-              )
-            })}
-          </>
-        )}
-
-        {/* Divider */}
-        <div className="my-3 h-px bg-white/[0.06]" />
-
-        {/* Bottom Nav */}
-        {bottomNav.map((item) => {
-          const active = isActive(item.href)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              title={collapsed ? item.label : undefined}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 ${
-                active
-                  ? "bg-white/[0.08] text-white shadow-sm"
-                  : "text-white/50 hover:text-white/90 hover:bg-white/[0.04]"
-              } ${collapsed ? "justify-center px-0" : ""}`}
-            >
-              <item.icon className={`h-4 w-4 flex-shrink-0 ${active ? "text-amber-400" : ""}`} />
-              {!collapsed && <span className="truncate">{item.label}</span>}
-            </Link>
-          )
-        })}
+            <div className="px-2 space-y-0.5">
+              {group.items.map((item) => {
+                const active = isActive(item.href)
+                const Icon = item.icon
+                return (
+                  <Link
+                    key={item.href + item.label}
+                    href={item.href}
+                    title={collapsed ? item.label : undefined}
+                    className={`group flex items-center gap-3 px-2.5 py-[7px] rounded-lg text-[13px] font-medium transition-all duration-150 ${
+                      active
+                        ? "bg-amber-500/[0.12] text-white"
+                        : "text-white/40 hover:text-white/80 hover:bg-white/[0.04]"
+                    } ${collapsed ? "justify-center" : ""}`}
+                  >
+                    <Icon
+                      className={`h-[15px] w-[15px] flex-shrink-0 transition-colors ${
+                        active ? "text-amber-400" : "group-hover:text-white/70"
+                      }`}
+                    />
+                    {!collapsed && (
+                      <span className="flex-1 truncate leading-none">{item.label}</span>
+                    )}
+                    {!collapsed && item.badge && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-white/[0.06] text-white/30 uppercase tracking-wide">
+                        {item.badge}
+                      </span>
+                    )}
+                    {active && !collapsed && (
+                      <div className="h-1.5 w-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+                    )}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
-      {/* Bottom: User Profile Card */}
-      <div className="px-3 py-3 border-t border-white/[0.06]">
-        <div
-          className={`flex items-center gap-3 rounded-lg bg-white/[0.02] p-2.5 ${
-            collapsed ? "justify-center" : ""
-          }`}
-        >
+      {/* User footer */}
+      <div className="flex-shrink-0 border-t border-white/[0.06] p-3 space-y-1">
+        {/* Avatar row */}
+        <div className={`flex items-center gap-3 px-1 py-1.5 ${collapsed ? "justify-center" : ""}`}>
           {userAvatar ? (
-            <img
-              src={userAvatar}
-              alt={userName || "User"}
-              className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10"
-            />
+            <img src={userAvatar} alt={userName || "User"} className="h-7 w-7 min-w-[28px] rounded-full object-cover ring-1 ring-white/10" />
           ) : (
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-amber-400/80 to-amber-600/80 flex items-center justify-center ring-1 ring-white/10">
-              <span className="text-[11px] font-bold text-black">{initials}</span>
+            <div className="h-7 w-7 min-w-[28px] rounded-full bg-gradient-to-br from-amber-400/80 to-amber-600/80 flex items-center justify-center ring-1 ring-white/10">
+              <span className="text-[10px] font-bold text-black">{initials}</span>
             </div>
           )}
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{userName || "User"}</p>
-              <p className="text-[11px] text-white/30 truncate">{userEmail || ""}</p>
+              <p className="text-[13px] font-medium text-white/80 truncate leading-tight">{userName || "User"}</p>
+              <p className="text-[10px] text-white/25 truncate leading-tight mt-0.5">{userRole || "USER"}</p>
             </div>
           )}
         </div>
 
-        {/* Subscription Tier */}
-        {!collapsed && (
-          <div className="mt-3 px-2.5">
-            <div className="flex items-center justify-between text-[11px] text-white/40 mb-1">
-              <span className="flex items-center gap-1.5">
-                <Crown className="h-3 w-3 text-amber-400" />
-                Pro Plan
-              </span>
-              <span>Active</span>
-            </div>
-          </div>
-        )}
-
-        {/* Storage Usage */}
-        {!collapsed && (
-          <div className="mt-2 px-2.5">
-            <div className="flex items-center justify-between text-[11px] text-white/40 mb-1">
-              <span className="flex items-center gap-1.5">
-                <Database className="h-3 w-3" />
-                Storage
-              </span>
-              <span>45%</span>
-            </div>
-            <div className="h-1 w-full rounded-full bg-white/[0.06]">
-              <div className="h-1 w-[45%] rounded-full bg-amber-400" />
-            </div>
-          </div>
-        )}
-
-        {/* Logout */}
-        <Button
-          variant="ghost"
-          size="sm"
+        {/* Sign out */}
+        <button
           onClick={handleLogout}
-          className={`mt-3 w-full text-white/40 hover:text-white hover:bg-white/[0.04] ${
-            collapsed ? "px-0" : ""
+          className={`w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[13px] font-medium text-white/30 hover:text-white/70 hover:bg-white/[0.04] transition-colors ${
+            collapsed ? "justify-center" : ""
           }`}
+          title={collapsed ? "Sign out" : undefined}
         >
-          <LogOut className="h-4 w-4" />
-          {!collapsed && <span className="ml-2 text-[13px]">Sign out</span>}
-        </Button>
+          <LogOut className="h-[15px] w-[15px] flex-shrink-0" />
+          {!collapsed && <span>Sign out</span>}
+        </button>
       </div>
     </aside>
   )

@@ -173,7 +173,6 @@ export default function McpClient({ connections: initial, projectUrl }: McpClien
         description: "MidasAI MCP connection for AI assistants",
         endpoint: projectUrl,
         version: "1.0.0",
-        auth_type: "bearer",
         status: "ACTIVE",
         total_requests: 0,
         avg_latency_ms: 0,

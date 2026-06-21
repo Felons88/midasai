@@ -14,15 +14,11 @@ export default async function CreatorLayout({
     redirect('/auth/login?redirect=/creator/dashboard')
   }
 
-  // Check if user has creator role
+  // Check if user has creator role — redirect to upgrade/onboarding, never dead-end
   const hasAccess = await canAccessCreator(user.id)
   if (!hasAccess) {
-    redirect('/dashboard')
+    redirect('/dashboard?upgrade=creator')
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      {children}
-    </div>
-  )
+  return <>{children}</>
 }
