@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Search, Sparkles, Bell, Bookmark, User, ChevronDown } from "lucide-react"
+import { Search, Sparkles, Bookmark, User, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { usePathname } from "next/navigation"
 import { 
@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { NotificationBell } from "@/components/notification-bell"
 
 interface AuthenticatedNavbarProps {
   userName?: string
@@ -57,6 +58,9 @@ export function AuthenticatedNavbar({
                 <Link href="/explore" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
                   Explore
                 </Link>
+                <Link href="/categories" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
+                  Categories
+                </Link>
                 <Link href="/skills" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
                   Skills
                 </Link>
@@ -71,6 +75,9 @@ export function AuthenticatedNavbar({
                 </Link>
                 <Link href="/plugins" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
                   Plugins
+                </Link>
+                <Link href="/api-docs" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
+                  API Docs
                 </Link>
               </div>
             </div>
@@ -89,10 +96,8 @@ export function AuthenticatedNavbar({
 
             {/* RIGHT: User Actions */}
             <div className="flex items-center gap-3">
-              {/* Notifications */}
-              <Button variant="ghost" size="sm" className="text-text-secondary hover:text-text-primary">
-                <Bell className="h-4 w-4" />
-              </Button>
+              {/* Notifications - Real-time */}
+              <NotificationBell />
 
               {/* Bookmarks */}
               <Button variant="ghost" size="sm" asChild className="text-text-secondary hover:text-text-primary">

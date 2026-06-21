@@ -201,6 +201,8 @@ CREATE TABLE subscriptions (
   tier subscription_tier_enum DEFAULT 'FREE',
   status subscription_status_enum DEFAULT 'ACTIVE',
   stripe_subscription_id TEXT,
+  stripe_price_id TEXT,
+  stripe_customer_id TEXT,
   current_period_start TIMESTAMP WITH TIME ZONE,
   current_period_end TIMESTAMP WITH TIME ZONE,
   cancel_at_period_end BOOLEAN DEFAULT FALSE,

@@ -43,6 +43,7 @@ export default async function AuthenticatedLayout({
       userEmail={userData.email || user.email || ''}
       userName={userData.name}
       userAvatar={userData.avatar_url}
+      userId={user.id}
     >
       {children}
     </AuthenticatedShell>

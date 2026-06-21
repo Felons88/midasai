@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { DeveloperSidebar } from "@/components/layout/DeveloperSidebar"
 import { getPlanLimits } from "@/lib/subscriptions"
+import { canAccessDeveloper } from "@/lib/roles"
 
 async function getDeveloperData(userId: string) {
   try {
@@ -72,6 +73,12 @@ export default async function DeveloperLayout({
 
   if (!user) {
     redirect('/auth/login')
+  }
+
+  // Check if user has at least USER role (required for developer access)
+  const hasAccess = await canAccessDeveloper(user.id)
+  if (!hasAccess) {
+    redirect('/dashboard')
   }
 
   const developerData = await getDeveloperData(user.id)

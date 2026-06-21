@@ -1,0 +1,41 @@
+name: Ollama Multi-Model Stack
+version: 1.0.0
+schema: v1
+
+models:
+  # FAST AUTOCOMPLETE (TAB)
+  - name: Qwen Coder 3B (Fast)
+    provider: ollama
+    model: qwen2.5-coder:3b
+    roles:
+      - autocomplete
+
+  # MAIN CODING ENGINE
+  - name: Qwen Coder 7B (Main)
+    provider: ollama
+    model: qwen2.5-coder:7b
+    roles:
+      - chat
+      - edit
+      - apply
+
+  # PLANNING / ARCHITECTURE
+  - name: Qwen Planner 8B
+    provider: ollama
+    model: qwen3:8b
+    roles:
+      - chat
+
+  # DEEP DEBUG / REASONING
+  - name: DeepSeek Reasoner
+    provider: ollama
+    model: deepseek-r1:8b
+    roles:
+      - chat
+
+  # GENERAL CHAT / SAFE FALLBACK
+  - name: Gemma Chat 12B
+    provider: ollama
+    model: gemma3:12b
+    roles:
+      - chat

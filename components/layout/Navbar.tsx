@@ -25,6 +25,9 @@ export function Navbar() {
               <Link href="/explore" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
                 Explore
               </Link>
+              <Link href="/categories" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
+                Categories
+              </Link>
               <Link href="/skills" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
                 Skills
               </Link>
@@ -39,6 +42,9 @@ export function Navbar() {
               </Link>
               <Link href="/plugins" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
                 Plugins
+              </Link>
+              <Link href="/api-docs" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
+                API Docs
               </Link>
             </div>
           </div>

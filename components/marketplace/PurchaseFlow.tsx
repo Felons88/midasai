@@ -47,25 +47,41 @@ export function PurchaseFlow({
     setError("")
 
     try {
-      // Create purchase record
-      const { error: purchaseError } = await supabase
-        .from('purchases')
-        .insert({
-          user_id: userId,
-          listing_id: listingId,
-          amount: listingPrice,
-          status: 'completed',
-          created_at: new Date().toISOString()
-        })
+      // Create Stripe checkout session
+      const { data: checkoutData, error: checkoutError } = await supabase
+        .from('listings')
+        .select('creator_id, title')
+        .eq('id', listingId)
+        .single()
 
-      if (purchaseError) {
-        setError("Failed to process purchase. Please try again.")
+      if (checkoutError || !checkoutData) {
+        setError("Failed to load listing details. Please try again.")
         return
       }
 
-      // Mark as purchased
-      setPurchased(true)
-      onPurchaseComplete?.()
+      // Call Stripe checkout API for listing purchase
+      const response = await fetch('/api/stripe/checkout/listing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          listingId,
+          listingTitle: checkoutData.title,
+          listingPrice: listingPrice,
+          creatorId: checkoutData.creator_id,
+        }),
+      })
+
+      const { url, error: apiError } = await response.json()
+
+      if (apiError) {
+        setError(apiError)
+        return
+      }
+
+      // Redirect to Stripe checkout
+      if (url) {
+        window.location.href = url
+      }
 
     } catch (err) {
       setError("An unexpected error occurred. Please try again.")

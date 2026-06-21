@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server"
 import { 
   Key, 
   BarChart3, 
-  Package, 
   Bell, 
   ShieldCheck, 
   TrendingUp, 
@@ -30,13 +29,11 @@ async function getDeveloperStats(userId: string) {
     const [
       { count: apiKeys },
       { count: webhooks },
-      { count: applications },
       { count: mcpServers },
       { data: todayUsage }
     ] = await Promise.all([
       supabase.from('api_keys').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'ACTIVE'),
       supabase.from('webhooks').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'ACTIVE'),
-      supabase.from('applications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'ACTIVE'),
       supabase.from('mcp_servers').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'ACTIVE'),
       supabase
         .from('api_usage')
@@ -67,7 +64,6 @@ async function getDeveloperStats(userId: string) {
       successRate: Math.round(successRate * 10) / 10,
       avgLatency,
       webhooks: webhooks || 0,
-      applications: applications || 0,
       mcpServers: mcpServers || 0,
     }
   } catch (error) {
@@ -79,7 +75,6 @@ async function getDeveloperStats(userId: string) {
       successRate: 0,
       avgLatency: 0,
       webhooks: 0,
-      applications: 0,
       mcpServers: 0,
     }
   }
@@ -213,9 +208,8 @@ export default async function DeveloperDashboardPage() {
   const appCards = [
     { title: 'API Keys', desc: 'Create and manage production API keys', icon: Key, href: '/developer/keys', count: stats.apiKeys },
     { title: 'Webhooks', desc: 'Configure real-time event notifications', icon: Bell, href: '/developer/webhooks', count: stats.webhooks },
-    { title: 'Applications', desc: 'Register OAuth applications and manage access', icon: Package, href: '/developer/applications', count: stats.applications },
     { title: 'Usage Analytics', desc: 'Monitor API performance and usage patterns', icon: BarChart3, href: '/developer/usage', count: stats.requestsToday },
-    { title: 'MCP Servers', desc: 'Connect and manage Model Context Protocol servers', icon: ShieldCheck, href: '/developer/mcp', count: stats.mcpServers },
+    { title: 'MCP Connections', desc: 'Let AI assistants access your account via MCP protocol', icon: Server, href: '/developer/mcp', count: stats.mcpServers },
     { title: 'API Playground', desc: 'Test API endpoints with interactive tools', icon: Code, href: '/developer/playground', count: null },
     { title: 'Documentation', desc: 'Comprehensive API documentation and guides', icon: FileText, href: '/api-docs', count: null },
     { title: 'Logs', desc: 'View detailed API logs and error tracking', icon: Activity, href: '/developer/logs', count: null },

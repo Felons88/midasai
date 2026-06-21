@@ -178,3 +178,18 @@ export function isPlanAtLeast(userTier: string | null | undefined, requiredTier:
   const reqIdx = PLAN_ORDER.indexOf(requiredTier)
   return userIdx >= reqIdx
 }
+
+/** Check if user can create more of a resource based on their plan limit */
+export function canCreateResource(
+  currentCount: number,
+  limit: number
+): { allowed: boolean; reason?: string } {
+  if (limit === -1) return { allowed: true }
+  if (currentCount >= limit) {
+    return { 
+      allowed: false, 
+      reason: `You have reached your plan limit of ${limit} items. Upgrade to create more.` 
+    }
+  }
+  return { allowed: true }
+}

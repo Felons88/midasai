@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, DollarSign, FileText, AlertCircle } from "lucide-react"
+import { Users, DollarSign, FileText, AlertCircle, TrendingUp, Package, CreditCard, Activity } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 
 async function getAdminStats() {
@@ -19,7 +19,7 @@ async function getAdminStats() {
     // Get total revenue from completed transactions
     const { data: transactions, error: transactionsError } = await supabase
       .from('transactions')
-      .select('amount')
+      .select('amount, created_at')
       .eq('status', 'COMPLETED')
     
     if (transactionsError) {
@@ -28,6 +28,13 @@ async function getAdminStats() {
     
     const totalRevenue = transactions?.reduce((sum: number, t: any) => sum + t.amount, 0) || 0
     
+    // Revenue this month
+    const now = new Date()
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const revenueThisMonth = transactions
+      ?.filter((t: any) => new Date(t.created_at) >= firstDayOfMonth)
+      .reduce((sum: number, t: any) => sum + t.amount, 0) || 0
+    
     // Get total listings
     const { count: totalListings, error: listingsError } = await supabase
       .from('listings')
@@ -35,6 +42,16 @@ async function getAdminStats() {
     
     if (listingsError) {
       console.error('Error fetching total listings:', listingsError)
+    }
+    
+    // Get active listings
+    const { count: activeListings, error: activeError } = await supabase
+      .from('listings')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'ACTIVE')
+    
+    if (activeError) {
+      console.error('Error fetching active listings:', activeError)
     }
     
     // Get pending listings (PENDING status)
@@ -47,15 +64,58 @@ async function getAdminStats() {
       console.error('Error fetching pending listings:', pendingError)
     }
     
+    // Get total creators (users with listings)
+    const { count: totalCreators, error: creatorsError } = await supabase
+      .from('listings')
+      .select('creator_id', { count: 'exact', head: true })
+    
+    if (creatorsError) {
+      console.error('Error fetching creators:', creatorsError)
+    }
+    
+    // Get total downloads
+    const { count: totalDownloads, error: downloadsError } = await supabase
+      .from('downloads')
+      .select('*', { count: 'exact', head: true })
+    
+    if (downloadsError) {
+      console.error('Error fetching downloads:', downloadsError)
+    }
+    
+    // Get active subscriptions
+    const { count: activeSubscriptions, error: subsError } = await supabase
+      .from('subscriptions')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'ACTIVE')
+    
+    if (subsError) {
+      console.error('Error fetching subscriptions:', subsError)
+    }
+    
     return {
       totalUsers: totalUsers || 0,
       totalRevenue,
+      revenueThisMonth,
       totalListings: totalListings || 0,
-      pendingListings: pendingListings || 0
+      activeListings: activeListings || 0,
+      pendingListings: pendingListings || 0,
+      totalCreators: totalCreators || 0,
+      totalDownloads: totalDownloads || 0,
+      activeSubscriptions: activeSubscriptions || 0,
     }
   } catch (error) {
     console.error('Error in getAdminStats:', error)
-    return { totalUsers: 0, totalRevenue: 0, totalListings: 0, pendingListings: 0 }
+    return { 
+      totalUsers: 0, 
+      totalRevenue: 0, 
+      revenueThisMonth: 0,
+      totalListings: 0, 
+      activeListings: 0,
+      pendingListings: 0,
+      totalCreators: 0,
+      totalDownloads: 0,
+      activeSubscriptions: 0,
+    }
   }
 }
 
@@ -133,15 +193,39 @@ export default async function AdminDashboardPage() {
           </Card>
           <Card className="glass hover:shadow-glow transition-smooth">
             <CardHeader className="pb-3 space-y-2">
-              <CardTitle className="text-sm font-medium text-text-tertiary">Total Listings</CardTitle>
-              <CardTitle className="text-4xl text-text-primary">{stats.totalListings}</CardTitle>
+              <CardTitle className="text-sm font-medium text-text-tertiary">Revenue This Month</CardTitle>
+              <CardTitle className="text-4xl text-text-primary">${stats.revenueThisMonth}</CardTitle>
+            </CardHeader>
+          </Card>
+          <Card className="glass hover:shadow-glow transition-smooth">
+            <CardHeader className="pb-3 space-y-2">
+              <CardTitle className="text-sm font-medium text-text-tertiary">Active Listings</CardTitle>
+              <CardTitle className="text-4xl text-text-primary">{stats.activeListings}</CardTitle>
+            </CardHeader>
+          </Card>
+          <Card className="glass hover:shadow-glow transition-smooth">
+            <CardHeader className="pb-3 space-y-2">
+              <CardTitle className="text-sm font-medium text-text-tertiary">Total Creators</CardTitle>
+              <CardTitle className="text-4xl text-text-primary">{stats.totalCreators}</CardTitle>
+            </CardHeader>
+          </Card>
+          <Card className="glass hover:shadow-glow transition-smooth">
+            <CardHeader className="pb-3 space-y-2">
+              <CardTitle className="text-sm font-medium text-text-tertiary">Total Downloads</CardTitle>
+              <CardTitle className="text-4xl text-text-primary">{stats.totalDownloads}</CardTitle>
+            </CardHeader>
+          </Card>
+          <Card className="glass hover:shadow-glow transition-smooth">
+            <CardHeader className="pb-3 space-y-2">
+              <CardTitle className="text-sm font-medium text-text-tertiary">Active Subscriptions</CardTitle>
+              <CardTitle className="text-4xl text-text-primary">{stats.activeSubscriptions}</CardTitle>
             </CardHeader>
           </Card>
           <Card className="glass hover:shadow-glow transition-smooth">
             <CardHeader className="pb-3 space-y-2">
               <CardTitle className="text-sm font-medium text-text-tertiary">Pending Reviews</CardTitle>
               <CardTitle className="text-4xl text-text-primary">{stats.pendingListings}</CardTitle>
-              <CardDescription className="text-xs text-cta">Needs attention</CardDescription>
+              {stats.pendingListings > 0 && <CardDescription className="text-xs text-cta">Needs attention</CardDescription>}
             </CardHeader>
           </Card>
         </div>

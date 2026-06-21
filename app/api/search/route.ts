@@ -48,10 +48,16 @@ export async function GET(request: NextRequest) {
       dbQuery = dbQuery.lte('price', parseFloat(maxPrice))
     }
 
-    // Full-text search
+    // Full-text search using PostgreSQL tsvector
     if (query) {
-      // PostgreSQL full-text search using websearch_to_tsquery for better matching
-      dbQuery = dbQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.ilike.%${query}%`)
+      // Use tsvector for full-text search with ranking
+      const searchQuery = query.trim()
+      if (searchQuery) {
+        dbQuery = dbQuery.textSearch('search_vector', searchQuery, {
+          type: 'websearch',
+          config: 'english'
+        })
+      }
     }
 
     // Apply sorting
@@ -97,7 +103,13 @@ export async function GET(request: NextRequest) {
       .eq('status', 'ACTIVE')
     
     if (query) {
-      countQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.ilike.%${query}%`)
+      const searchQuery = query.trim()
+      if (searchQuery) {
+        countQuery.textSearch('search_vector', searchQuery, {
+          type: 'websearch',
+          config: 'english'
+        })
+      }
     }
     
     const { count } = await countQuery

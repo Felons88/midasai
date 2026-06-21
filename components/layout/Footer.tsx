@@ -32,6 +32,9 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Marketplace</h4>
             <ul className="space-y-2 text-sm">
+              <li><Link href="/explore" className="hover:text-primary">Explore</Link></li>
+              <li><Link href="/categories" className="hover:text-primary">Categories</Link></li>
+              <li><Link href="/search" className="hover:text-primary">Search</Link></li>
               <li><Link href="/skills" className="hover:text-primary">Skills</Link></li>
               <li><Link href="/plugins" className="hover:text-primary">Plugins</Link></li>
               <li><Link href="/mcp" className="hover:text-primary">MCP Servers</Link></li>
@@ -41,12 +44,22 @@ export function Footer() {
           </div>
           
           <div>
+            <h4 className="font-semibold mb-4">Resources</h4>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/api-docs" className="hover:text-primary">API Documentation</Link></li>
+              <li><Link href="/faq" className="hover:text-primary">FAQ</Link></li>
+              <li><Link href="/docs" className="hover:text-primary">Documentation</Link></li>
+              <li><Link href="/pricing" className="hover:text-primary">Pricing</Link></li>
+            </ul>
+          </div>
+          
+          <div>
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="/about" className="hover:text-primary">About</Link></li>
               <li><Link href="/blog" className="hover:text-primary">Blog</Link></li>
-              <li><Link href="/pricing" className="hover:text-primary">Pricing</Link></li>
               <li><Link href="/contact" className="hover:text-primary">Contact</Link></li>
+              <li><Link href="/support" className="hover:text-primary">Support</Link></li>
             </ul>
           </div>
           

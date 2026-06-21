@@ -20,6 +20,11 @@ import {
   Crown,
   Database,
   LogOut,
+  Activity,
+  TrendingUp,
+  Bell,
+  Server,
+  Key,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
@@ -33,23 +38,41 @@ interface AppSidebarProps {
 }
 
 const mainNav = [
-  { href: "/marketplace", label: "Marketplace", icon: Store },
+  { href: "/dashboard", label: "Dashboard", icon: Store },
   { href: "/explore", label: "Explore", icon: Compass },
+  { href: "/feed", label: "Activity Feed", icon: Activity },
   { href: "/bookmarks", label: "Bookmarks", icon: Bookmark },
-  { href: "/downloads", label: "Downloads", icon: Download },
+  { href: "/collections", label: "Collections", icon: Download },
   { href: "/purchases", label: "Purchases", icon: ShoppingBag },
 ]
 
 const creatorNav = [
   { href: "/creator/dashboard", label: "Creator Studio", icon: Wrench },
+  { href: "/creator/upload", label: "Upload Listing", icon: Sparkles },
+  { href: "/creator/listings", label: "My Listings", icon: Database },
+  { href: "/creator/analytics", label: "Analytics", icon: User },
+  { href: "/creator/payouts", label: "Payouts", icon: Crown },
+  { href: "/creator/settings", label: "Settings", icon: Settings },
 ]
 
 const developerNav = [
   { href: "/developer", label: "Developer Portal", icon: Code },
+  { href: "/developer/keys", label: "API Keys", icon: Key },
+  { href: "/developer/webhooks", label: "Webhooks", icon: Bell },
+  { href: "/developer/mcp", label: "MCP Connections", icon: Server },
+  { href: "/developer/usage", label: "Usage", icon: TrendingUp },
+  { href: "/developer/billing", label: "Billing", icon: Crown },
+]
+
+const adminNav = [
+  { href: "/admin/dashboard", label: "Admin Dashboard", icon: Wrench },
+  { href: "/admin/listings", label: "Listings", icon: Database },
+  { href: "/admin/users", label: "Users", icon: User },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ]
 
 const bottomNav = [
-  { href: "/account/settings", label: "Settings", icon: Settings },
+  { href: "/account/settings", label: "Account Settings", icon: Settings },
   { href: "/support", label: "Support", icon: LifeBuoy },
 ]
 
@@ -159,6 +182,33 @@ export function AppSidebar({
         {(userRole === "DEVELOPER" || userRole === "CREATOR" || userRole === "ADMIN" || userRole === "OWNER") && (
           <>
             {developerNav.map((item) => {
+              const active = isActive(item.href)
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  title={collapsed ? item.label : undefined}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 ${
+                    active
+                      ? "bg-white/[0.08] text-white shadow-sm"
+                      : "text-white/50 hover:text-white/90 hover:bg-white/[0.04]"
+                  } ${collapsed ? "justify-center px-0" : ""}`}
+                >
+                  <item.icon className={`h-4 w-4 flex-shrink-0 ${active ? "text-amber-400" : ""}`} />
+                  {!collapsed && <span className="truncate">{item.label}</span>}
+                </Link>
+              )
+            })}
+          </>
+        )}
+
+        {/* Divider */}
+        <div className="my-3 h-px bg-white/[0.06]" />
+
+        {/* Admin Panel */}
+        {(userRole === "ADMIN" || userRole === "OWNER") && (
+          <>
+            {adminNav.map((item) => {
               const active = isActive(item.href)
               return (
                 <Link

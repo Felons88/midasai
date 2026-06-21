@@ -139,6 +139,44 @@ export async function POST(request: NextRequest) {
         break
       }
 
+      case "payment_intent.succeeded": {
+        const paymentIntent = event.data.object
+        const userId = paymentIntent.metadata?.user_id
+        const listingId = paymentIntent.metadata?.listing_id
+        const creatorId = paymentIntent.metadata?.creator_id
+        const platformFee = parseFloat(paymentIntent.metadata?.platform_fee || "0")
+        const creatorPayout = parseFloat(paymentIntent.metadata?.creator_payout || "0")
+
+        if (!userId || !listingId || !creatorId) break
+
+        // Create transaction record
+        await supabase.from("transactions").insert({
+          user_id: userId,
+          listing_id: listingId,
+          creator_id: creatorId,
+          type: "PURCHASE",
+          status: "COMPLETED",
+          amount: paymentIntent.amount / 100, // Convert from cents
+          platform_fee: platformFee,
+          creator_payout: creatorPayout,
+          stripe_payment_intent_id: paymentIntent.id,
+          created_at: new Date().toISOString(),
+        })
+
+        // Increment listing downloads count
+        await supabase.from("listings")
+          .update({ downloads: (await supabase.from("listings").select("downloads").eq("id", listingId).single()).data?.downloads || 0 + 1 })
+          .eq("id", listingId)
+
+        await supabase.from("billing_events").insert({
+          user_id: userId,
+          event_type: "purchase.completed",
+          stripe_event_id: event.id,
+          metadata: { listing_id: listingId, amount: paymentIntent.amount / 100 },
+        })
+        break
+      }
+
       case "customer.subscription.updated": {
         const sub = event.data.object
         const userId = sub.metadata?.user_id

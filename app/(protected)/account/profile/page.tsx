@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { createBrowserSupabaseClient } from "@/lib/supabase/client"
-import { Loader2, CheckCircle } from "lucide-react"
+import { Loader2, CheckCircle, User, Camera } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function AccountProfilePage() {
   const [loading, setLoading] = useState(true)
@@ -81,89 +83,136 @@ export default function AccountProfilePage() {
   }
 
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-1">Profile</h1>
         <p className="text-white/50 text-sm">Manage your public profile</p>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-6">
-        <div className="space-y-4">
-          <div>
-            <label className="text-xs font-medium text-white/40 uppercase tracking-wider">Name</label>
-            <input
-              name="name"
-              value={form.name}
-              onChange={e => setForm({ ...form, name: e.target.value })}
-              className="mt-1.5 w-full h-10 px-4 rounded-lg border border-white/[0.08] bg-white/[0.02] text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-amber-400/50"
-              placeholder="Your name"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-white/40 uppercase tracking-wider">Email</label>
-            <input
-              value={form.email}
-              disabled
-              className="mt-1.5 w-full h-10 px-4 rounded-lg border border-white/[0.06] bg-white/[0.01] text-sm text-white/40"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-white/40 uppercase tracking-wider">Bio</label>
-            <textarea
-              name="bio"
-              value={form.bio}
-              onChange={e => setForm({ ...form, bio: e.target.value })}
-              className="mt-1.5 w-full min-h-[100px] px-4 py-3 rounded-lg border border-white/[0.08] bg-white/[0.02] text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-amber-400/50 resize-none"
-              placeholder="Tell people about yourself"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-white/40 uppercase tracking-wider">Avatar URL</label>
-            <input
-              name="avatar_url"
-              value={form.avatar_url}
-              onChange={e => setForm({ ...form, avatar_url: e.target.value })}
-              className="mt-1.5 w-full h-10 px-4 rounded-lg border border-white/[0.08] bg-white/[0.02] text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-amber-400/50"
-              placeholder="https://..."
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-white/40 uppercase tracking-wider">Website</label>
-            <input
-              name="website"
-              value={form.website}
-              onChange={e => setForm({ ...form, website: e.target.value })}
-              className="mt-1.5 w-full h-10 px-4 rounded-lg border border-white/[0.08] bg-white/[0.02] text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-amber-400/50"
-              placeholder="https://yoursite.com"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-white/40 uppercase tracking-wider">GitHub</label>
-            <input
-              name="github"
-              value={form.github}
-              onChange={e => setForm({ ...form, github: e.target.value })}
-              className="mt-1.5 w-full h-10 px-4 rounded-lg border border-white/[0.08] bg-white/[0.02] text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-amber-400/50"
-              placeholder="username"
-            />
-          </div>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Profile Preview Card */}
+        <Card className="border border-white/[0.06] bg-white/[0.02]">
+          <CardHeader>
+            <CardTitle className="text-lg text-white">Profile Preview</CardTitle>
+            <CardDescription className="text-sm text-white/50">How others see your profile</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center">
+              <div className="h-24 w-24 mx-auto mb-4 rounded-full bg-white/[0.04] flex items-center justify-center overflow-hidden">
+                {form.avatar_url ? (
+                  <img src={form.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="h-10 w-10 text-white/20" />
+                )}
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-1">{form.name || 'Your Name'}</h3>
+              <p className="text-sm text-white/40 mb-4">{form.email}</p>
+              {form.bio && (
+                <p className="text-sm text-white/60 mb-4 line-clamp-3">{form.bio}</p>
+              )}
+              <div className="flex justify-center gap-2">
+                {form.website && (
+                  <a href={form.website} target="_blank" rel="noopener noreferrer" className="text-xs text-amber-400 hover:text-amber-300">
+                    Website
+                  </a>
+                )}
+                {form.github && (
+                  <a href={`https://github.com/${form.github}`} target="_blank" rel="noopener noreferrer" className="text-xs text-amber-400 hover:text-amber-300">
+                    GitHub
+                  </a>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {error && <p className="text-sm text-red-400">{error}</p>}
-        {success && (
-          <p className="text-sm text-amber-400 flex items-center gap-1.5">
-            <CheckCircle className="h-3.5 w-3.5" /> Profile saved
-          </p>
-        )}
+        {/* Profile Form */}
+        <Card className="border border-white/[0.06] bg-white/[0.02] lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-lg text-white">Edit Profile</CardTitle>
+            <CardDescription className="text-sm text-white/50">Update your profile information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSave} className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-medium text-white/40 uppercase tracking-wider">Name</label>
+                  <input
+                    name="name"
+                    value={form.name}
+                    onChange={e => setForm({ ...form, name: e.target.value })}
+                    className="mt-1.5 w-full h-10 px-4 rounded-lg border border-white/[0.08] bg-white/[0.02] text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-amber-400/50"
+                    placeholder="Your name"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-white/40 uppercase tracking-wider">Email</label>
+                  <input
+                    value={form.email}
+                    disabled
+                    className="mt-1.5 w-full h-10 px-4 rounded-lg border border-white/[0.06] bg-white/[0.01] text-sm text-white/40"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-white/40 uppercase tracking-wider">Bio</label>
+                  <textarea
+                    name="bio"
+                    value={form.bio}
+                    onChange={e => setForm({ ...form, bio: e.target.value })}
+                    className="mt-1.5 w-full min-h-[100px] px-4 py-3 rounded-lg border border-white/[0.08] bg-white/[0.02] text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-amber-400/50 resize-none"
+                    placeholder="Tell people about yourself"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-white/40 uppercase tracking-wider">Avatar URL</label>
+                  <input
+                    name="avatar_url"
+                    value={form.avatar_url}
+                    onChange={e => setForm({ ...form, avatar_url: e.target.value })}
+                    className="mt-1.5 w-full h-10 px-4 rounded-lg border border-white/[0.08] bg-white/[0.02] text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-amber-400/50"
+                    placeholder="https://..."
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-white/40 uppercase tracking-wider">Website</label>
+                  <input
+                    name="website"
+                    value={form.website}
+                    onChange={e => setForm({ ...form, website: e.target.value })}
+                    className="mt-1.5 w-full h-10 px-4 rounded-lg border border-white/[0.08] bg-white/[0.02] text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-amber-400/50"
+                    placeholder="https://yoursite.com"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-white/40 uppercase tracking-wider">GitHub</label>
+                  <input
+                    name="github"
+                    value={form.github}
+                    onChange={e => setForm({ ...form, github: e.target.value })}
+                    className="mt-1.5 w-full h-10 px-4 rounded-lg border border-white/[0.08] bg-white/[0.02] text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-amber-400/50"
+                    placeholder="username"
+                  />
+                </div>
+              </div>
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="h-10 px-6 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 disabled:opacity-50 transition-colors"
-        >
-          {saving ? 'Saving...' : 'Save Profile'}
-        </button>
-      </form>
+              {error && <p className="text-sm text-red-400">{error}</p>}
+              {success && (
+                <p className="text-sm text-amber-400 flex items-center gap-1.5">
+                  <CheckCircle className="h-3.5 w-3.5" /> Profile saved
+                </p>
+              )}
+
+              <Button
+                type="submit"
+                disabled={saving}
+                className="w-full"
+              >
+                {saving ? 'Saving...' : 'Save Profile'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

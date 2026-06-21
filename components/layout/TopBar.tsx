@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Search, Bell, MessageSquare, Plus, Command, User, CreditCard, ShieldCheck, Settings, Code, LogOut } from "lucide-react"
+import { Search, MessageSquare, Plus, Command, User, CreditCard, ShieldCheck, Settings, Code, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createBrowserSupabaseClient } from "@/lib/supabase/client"
+import { NotificationBell } from "@/components/notifications/NotificationCenter"
 
 interface TopBarProps {
   userEmail?: string
@@ -89,16 +90,7 @@ export function TopBar({ userEmail, userName, userAvatar, onSearchOpen }: TopBar
         </Button>
 
         {/* Notifications */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0 text-white/40 hover:text-white hover:bg-white/[0.06] relative"
-          asChild
-        >
-          <Link href="/notifications">
-            <Bell className="h-4 w-4" />
-          </Link>
-        </Button>
+        <NotificationBell />
 
         {/* Divider */}
         <div className="h-6 w-px bg-white/[0.06] mx-2" />

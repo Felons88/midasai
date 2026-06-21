@@ -91,9 +91,11 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
 
   const connectGitHub = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('github/auth')
-      if (error) throw error
-
+      const response = await fetch('/api/github/auth')
+      const data = await response.json()
+      
+      if (data.error) throw new Error(data.error)
+      
       window.location.href = data.authUrl
     } catch (error) {
       console.error('Error connecting to GitHub:', error)
@@ -102,8 +104,10 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
 
   const fetchRepositories = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('github/repos')
-      if (error) throw error
+      const response = await fetch('/api/github/repos')
+      const data = await response.json()
+      
+      if (data.error) throw new Error(data.error)
 
       setRepositories(data.repositories || [])
       setStep('select')
@@ -118,11 +122,15 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
     setStep('scan')
 
     try {
-      const { data, error } = await supabase.functions.invoke('github/scan-repo', {
-        body: { repoFullName: repo.full_name }
+      const response = await fetch('/api/github/scan-repo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repoFullName: repo.full_name })
       })
-
-      if (error) throw error
+      
+      const data = await response.json()
+      
+      if (data.error) throw new Error(data.error)
 
       setScanResult(data)
       setFormData({
@@ -152,7 +160,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
       const { error } = await supabase
         .from('listings')
         .insert({
-          user_id: user.id,
+          creator_id: user.id,
           title: formData.title,
           description: formData.description,
           type: formData.type,

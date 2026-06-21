@@ -170,6 +170,32 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "slide-in-right": {
+          from: { transform: "translateX(110%)", opacity: "0" },
+          to:   { transform: "translateX(0)",    opacity: "1" },
+        },
+        "slide-out-right": {
+          from: { transform: "translateX(0)",    opacity: "1" },
+          to:   { transform: "translateX(110%)", opacity: "0" },
+        },
+        "bounce-in": {
+          "0%":   { transform: "translateX(110%)" },
+          "70%":  { transform: "translateX(-8px)" },
+          "85%":  { transform: "translateX(4px)" },
+          "100%": { transform: "translateX(0)" },
+        },
+        "pulse-subtle": {
+          "0%, 100%": { opacity: "1" },
+          "50%":      { opacity: "0.88" },
+        },
+        "shimmer-sweep": {
+          "0%":   { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(200%)" },
+        },
+        "notification-dot": {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%":      { transform: "scale(1.3)" },
+        },
       },
       animation: {
         float: 'float 3s ease-in-out infinite',
@@ -179,6 +205,11 @@ const config = {
         "scale-in": 'scale-in 0.3s ease-out',
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "slide-in-right": "bounce-in 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards",
+        "slide-out-right": "slide-out-right 0.3s ease-in forwards",
+        "pulse-subtle": "pulse-subtle 3s ease-in-out infinite",
+        "shimmer-sweep": "shimmer-sweep 0.8s ease-in-out",
+        "notification-dot": "notification-dot 1.5s ease-in-out infinite",
       },
       fontFamily: {
         sans: ["DM Sans", "system-ui", "sans-serif"],
