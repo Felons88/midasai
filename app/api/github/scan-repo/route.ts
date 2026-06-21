@@ -107,56 +107,6 @@ export async function POST(request: NextRequest) {
     else if (nameStr.includes('template') || nameStr.includes('boilerplate') || nameStr.includes('starter')) detectedType = 'TEMPLATE'
     else if (nameStr.includes('plugin') || nameStr.includes('extension') || depString.includes('vscode')) detectedType = 'PLUGIN'
 
-    // AI Analysis using Gemini
-    const geminiKey = process.env.GEMINI_API_KEY
-    if (!geminiKey) {
-      return NextResponse.json({
-        title: repoContext.name.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
-        description: repoContext.description || `A ${repoContext.language || 'code'} project: ${repoContext.name}`,
-        type: detectedType,
-        tags: allTags,
-        price: 0,
-        github_url: repoData.html_url,
-        readme: readme.substring(0, 5000),
-      })
-    }
-
-    const analysisPrompt = `
-Analyze this GitHub repository and generate a marketplace listing for an AI tools marketplace.
-
-Repository: ${repoContext.fullName}
-Description: ${repoContext.description || 'No description'}
-Language: ${repoContext.language || 'Unknown'}
-Topics: ${repoContext.topics.join(', ') || 'None'}
-Dependencies: ${repoContext.dependencies.slice(0, 20).join(', ') || 'None'}
-Keywords: ${repoContext.packageKeywords.join(', ') || 'None'}
-
-README (first 8000 chars):
-${repoContext.readme}
-
-Generate a JSON response with these exact fields:
-- title: A catchy, descriptive title for the marketplace listing (max 60 chars)
-- description: A compelling SEO-optimized description explaining what this does and who it's for (min 100 chars, max 500 chars)
-- type: One of SKILL, WORKFLOW, TEMPLATE, or PLUGIN based on what this repo actually is
-- tags: Array of 5-10 relevant tags (lowercase, no spaces, use hyphens)
-- price: 0 (numeric, not a string)
-- github_url: "${repoData.html_url}"
-
-Return ONLY valid JSON. No markdown, no code blocks, no explanation.
-`
-
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{ text: analysisPrompt }]
-        }]
-      })
-    })
-
     const fallbackResult = {
       title: repoContext.name.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
       description: repoContext.description || `A ${repoContext.language || 'code'} project: ${repoContext.name}`,
@@ -167,21 +117,62 @@ Return ONLY valid JSON. No markdown, no code blocks, no explanation.
       readme: readme.substring(0, 5000),
     }
 
-    if (!geminiResponse.ok) {
-      const geminiError = await geminiResponse.text()
-      console.error('Gemini API error:', geminiResponse.status, geminiError.substring(0, 500))
+    // AI Analysis using OpenRouter
+    const openrouterKey = process.env.OPENROUTER_API_KEY
+    if (!openrouterKey) {
       return NextResponse.json(fallbackResult)
     }
 
-    console.log('Gemini response status:', geminiResponse.status)
+    const analysisPrompt = `Analyze this GitHub repository and generate a marketplace listing for an AI tools marketplace.
 
-    const geminiData = await geminiResponse.json()
-    const aiText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || ''
+Repository: ${repoContext.fullName}
+Description: ${repoContext.description || 'No description'}
+Language: ${repoContext.language || 'Unknown'}
+Topics: ${repoContext.topics.join(', ') || 'None'}
+Dependencies: ${repoContext.dependencies.slice(0, 20).join(', ') || 'None'}
+Keywords: ${repoContext.packageKeywords.join(', ') || 'None'}
 
-    // Parse JSON from AI response
+README (first 6000 chars):
+${repoContext.readme}
+
+Generate a JSON response with these exact fields:
+- title: A catchy, descriptive title for the marketplace listing (max 60 chars)
+- description: A compelling SEO-optimized description explaining what this does and who it's for (min 100 chars, max 500 chars)
+- type: One of SKILL, WORKFLOW, TEMPLATE, or PLUGIN based on what this repo actually is
+- tags: Array of 5-10 relevant tags (lowercase, hyphen-separated)
+- price: 0
+- github_url: "${repoData.html_url}"
+
+Return ONLY a valid JSON object. No markdown, no code fences, no explanation.`
+
+    const aiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openrouterKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://midasai.tech',
+        'X-Title': 'MidasAI',
+      },
+      body: JSON.stringify({
+        model: 'anthropic/claude-3-haiku',
+        messages: [{ role: 'user', content: analysisPrompt }],
+        max_tokens: 1000,
+        temperature: 0.3,
+      })
+    })
+
+    if (!aiResponse.ok) {
+      const aiError = await aiResponse.text()
+      console.error('OpenRouter error:', aiResponse.status, aiError.substring(0, 500))
+      return NextResponse.json(fallbackResult)
+    }
+
+    const aiData = await aiResponse.json()
+    const aiText = aiData.choices?.[0]?.message?.content || ''
+
     const jsonMatch = aiText.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      console.error('Failed to parse Gemini response:', aiText)
+      console.error('Failed to parse OpenRouter response:', aiText.substring(0, 300))
       return NextResponse.json(fallbackResult)
     }
 
