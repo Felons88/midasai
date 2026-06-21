@@ -20,6 +20,8 @@ import {
   CheckCircle
 } from "lucide-react"
 import Link from "next/link"
+import { DeveloperConversionBanners } from "@/components/ui/DeveloperConversionBanners"
+import { getPlanLimits } from "@/lib/subscriptions"
 
 async function getDeveloperStats(userId: string) {
   try {
@@ -204,6 +206,27 @@ export default async function DeveloperDashboardPage() {
   
   const stats = await getDeveloperStats(user.id)
   const recentActivity = await getRecentActivity(user.id)
+
+  // Fetch subscription + usage for conversion banners
+  const [{ data: sub }, { count: monthlyApiCount }, { data: assets }] = await Promise.all([
+    supabase.from("subscriptions").select("tier, stripe_price_id").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).single(),
+    supabase.from("api_usage").select("id", { count: "exact", head: true }).eq("user_id", user.id).gte("created_at", new Date(new Date().setDate(1)).toISOString()),
+    supabase.from("assets").select("file_size").eq("user_id", user.id),
+  ])
+
+  const tier = (sub?.tier || "FREE") as string
+  const planLimits = getPlanLimits(tier)
+  const monthlyApiLimit = planLimits.apiRateLimit * 24 * 30
+  const apiUsagePct = monthlyApiLimit > 0 ? Math.round(((monthlyApiCount || 0) / monthlyApiLimit) * 100) : 0
+  const storageUsedBytes = assets?.reduce((s: number, a: { file_size?: number }) => s + (a.file_size || 0), 0) || 0
+  const storageUsedGb = storageUsedBytes / (1024 * 1024 * 1024)
+  // Detect annual via price ID env vars — if none match, assume monthly
+  const yearlyPriceIds = [
+    process.env.STRIPE_STARTER_YEARLY_PRICE_ID,
+    process.env.STRIPE_PRO_YEARLY_PRICE_ID,
+    process.env.STRIPE_BUSINESS_YEARLY_PRICE_ID,
+  ].filter(Boolean)
+  const isMonthlySub = !yearlyPriceIds.includes(sub?.stripe_price_id || "")
   
   const appCards = [
     { title: 'API Keys', desc: 'Create and manage production API keys', icon: Key, href: '/developer/keys', count: stats.apiKeys },
@@ -223,6 +246,15 @@ export default async function DeveloperDashboardPage() {
         <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
         <p className="text-white/60">Overview of your developer activity</p>
       </div>
+
+      {/* Conversion banners */}
+      <DeveloperConversionBanners
+        tier={tier}
+        apiUsagePct={apiUsagePct}
+        storageUsedGb={storageUsedGb}
+        storageLimitGb={planLimits.storageGb}
+        isMonthlySub={isMonthlySub}
+      />
 
       {/* Modern Stats Overview */}
       <div className="mb-8">
