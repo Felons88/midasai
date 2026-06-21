@@ -7,6 +7,37 @@ const FREE_MODELS = [
   'google/gemma-3-12b-it:free',
 ]
 
+function extractDescriptionFromContent(readme: string, repoName: string): string {
+  // Try to extract a meaningful sentence from scanned files
+  const lines = readme.split('\n').map(l => l.trim()).filter(Boolean)
+
+  // Look for purpose/description lines in CLAUDE.md or similar
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    // Skip headers, file markers, paths, short lines
+    if (line.startsWith('//') || line.startsWith('#') || line.startsWith('[') || line.length < 40) continue
+    if (line.includes('.md') || line.includes('.ts') || line.includes('.js')) continue
+    // Good candidate: a real sentence
+    if (line.endsWith('.') || line.endsWith('!') || line.length > 60) {
+      return line.substring(0, 500)
+    }
+  }
+
+  // Look for "X is a marketplace/platform/tool for..." patterns
+  const isAMatch = readme.match(/\w+\s+is\s+a\s+([^.!?\n]{40,300}[.!?])/i)
+  if (isAMatch) return isAMatch[0].trim().substring(0, 500)
+
+  // Look for lines after "Purpose" or "Description" headings
+  const purposeIdx = readme.toLowerCase().indexOf('purpose')
+  if (purposeIdx !== -1) {
+    const after = readme.substring(purposeIdx + 10, purposeIdx + 600)
+    const sentence = after.split('\n').map(l => l.trim()).find(l => l.length > 40 && !l.startsWith('#'))
+    if (sentence) return sentence.substring(0, 500)
+  }
+
+  return ''
+}
+
 function buildFallback(repoData: any, packageJson: any, readme: string) {
   const name: string = repoData.name || ''
   const lang: string = (repoData.language || '').toLowerCase()
@@ -21,14 +52,37 @@ function buildFallback(repoData: any, packageJson: any, readme: string) {
   else if (nameStr.includes('template') || nameStr.includes('boilerplate') || nameStr.includes('starter')) type = 'TEMPLATE'
   else if (nameStr.includes('plugin') || nameStr.includes('extension') || depStr.includes('vscode')) type = 'PLUGIN'
 
-  const tags: string[] = [...topics, ...keywords, ...(lang ? [lang] : []), 'open-source']
+  // Detect type from deps too
+  if (depStr.includes('next') || depStr.includes('react')) type = type === 'SKILL' ? 'TEMPLATE' : type
+
+  // Build tags from all sources + infer from deps
+  const depTags: string[] = []
+  if (depStr.includes('next')) depTags.push('nextjs')
+  if (depStr.includes('react')) depTags.push('react')
+  if (depStr.includes('supabase')) depTags.push('supabase')
+  if (depStr.includes('stripe')) depTags.push('stripe')
+  if (depStr.includes('tailwind')) depTags.push('tailwindcss')
+  if (depStr.includes('openai')) depTags.push('openai')
+  if (depStr.includes('anthropic')) depTags.push('anthropic')
+  if (depStr.includes('prisma')) depTags.push('prisma')
+  if (depStr.includes('express')) depTags.push('express')
+  if (depStr.includes('fastapi') || depStr.includes('flask') || depStr.includes('django')) depTags.push('python-api')
+
+  const tags: string[] = [...topics, ...keywords, ...depTags, ...(lang ? [lang] : []), 'open-source']
     .filter((v): v is string => typeof v === 'string' && v.length > 0)
     .filter((v, i, a) => a.indexOf(v) === i)
     .slice(0, 10)
 
+  // Try to get a real description
+  const extractedDesc = extractDescriptionFromContent(readme, name)
+  const description = repoData.description
+    || packageJson?.description
+    || extractedDesc
+    || `Open source ${lang || 'code'} project: ${name.replace(/-/g, ' ')}. Browse the repository to learn more.`
+
   return {
     title: name.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
-    description: repoData.description || packageJson?.description || `A ${repoData.language || 'code'} project: ${name}`,
+    description,
     type,
     tags,
     price: 0,
