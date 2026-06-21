@@ -164,12 +164,13 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
           description: formData.description,
           type: formData.type,
           tags: Array.isArray(formData.tags) ? formData.tags : [],
+          images: [],
+          topics: Array.isArray(selectedRepo?.topics) ? selectedRepo.topics : [],
           price: typeof formData.price === 'number' ? formData.price : parseFloat(formData.price as any) || 0,
-          github_url: formData.github_url,
+          github_url: formData.github_url || null,
           status: 'PENDING',
           readme: scanResult?.readme || null,
           language: selectedRepo?.language || null,
-          topics: Array.isArray(selectedRepo?.topics) ? selectedRepo.topics : [],
           license: selectedRepo?.license || null,
         })
 
