@@ -60,7 +60,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
     description: '',
     type: 'SKILL',
     tags: [] as string[],
-    price: '',
+    price: 0 as number,
     github_url: ''
   })
 
@@ -137,7 +137,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
         description: data.description,
         type: data.type.toUpperCase(),
         tags: data.tags,
-        price: data.price || '',
+        price: typeof data.price === 'number' ? data.price : 0,
         github_url: data.github_url
       })
       setStep('review')
@@ -164,7 +164,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
           description: formData.description,
           type: formData.type,
           tags: formData.tags,
-          price: formData.price,
+          price: typeof formData.price === 'number' ? formData.price : parseFloat(formData.price as any) || 0,
           github_url: formData.github_url,
           status: 'PENDING',
           readme: scanResult?.readme,
@@ -404,7 +404,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                     <label className="block text-sm font-medium text-white mb-2">Price</label>
                     <Input
                       value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                       placeholder="Free (GitHub projects)"
                       disabled
                       className="bg-white/[0.05] border-white/[0.1] text-white disabled:opacity-50"
