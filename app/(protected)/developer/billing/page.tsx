@@ -25,10 +25,10 @@ async function getPageData(userId: string) {
       .single(),
     supabase
       .from("billing_events")
-      .select("event_type, amount, currency, created_at, metadata")
+      .select("event_type, amount, currency, created_at, stripe_event_id, metadata")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(10),
+      .limit(50),
     supabase
       .from("api_usage")
       .select("id")

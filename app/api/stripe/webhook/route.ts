@@ -241,7 +241,14 @@ export async function POST(request: NextRequest) {
           amount: invoice.amount_paid,
           currency: invoice.currency,
           stripe_event_id: event.id,
-          metadata: { invoice_id: invoice.id },
+          metadata: {
+            invoice_id: invoice.id,
+            invoice_number: invoice.number,
+            invoice_pdf: invoice.invoice_pdf,
+            receipt_url: invoice.charge ? `https://dashboard.stripe.com/receipts/${invoice.charge}` : null,
+            hosted_invoice_url: invoice.hosted_invoice_url,
+            payment_method_type: invoice.payment_settings?.payment_method_types?.[0] || "card",
+          },
         })
         break
       }
@@ -254,7 +261,11 @@ export async function POST(request: NextRequest) {
           user_id: userId,
           event_type: "invoice.payment_failed",
           stripe_event_id: event.id,
-          metadata: { invoice_id: invoice.id },
+          metadata: {
+            invoice_id: invoice.id,
+            invoice_number: invoice.number,
+            hosted_invoice_url: invoice.hosted_invoice_url,
+          },
         })
         break
       }

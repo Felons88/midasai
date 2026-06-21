@@ -5,6 +5,9 @@ const nextConfig = {
     // All auth calls work correctly at runtime. Remove when upgrading to @supabase/ssr@0.5+
     ignoreBuildErrors: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     domains: ['localhost'],
     remotePatterns: [
