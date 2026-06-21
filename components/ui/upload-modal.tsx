@@ -133,12 +133,12 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
 
       setScanResult(data)
       setFormData({
-        title: data.title,
-        description: data.description,
-        type: data.type.toUpperCase(),
-        tags: data.tags,
+        title: data.title || '',
+        description: data.description || '',
+        type: (data.type || 'SKILL').toUpperCase(),
+        tags: Array.isArray(data.tags) ? data.tags : [],
         price: typeof data.price === 'number' ? data.price : 0,
-        github_url: data.github_url
+        github_url: data.github_url || ''
       })
       setStep('review')
     } catch (error) {
@@ -163,7 +163,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
           title: formData.title,
           description: formData.description,
           type: formData.type,
-          tags: formData.tags,
+          tags: Array.isArray(formData.tags) ? formData.tags : [],
           price: typeof formData.price === 'number' ? formData.price : parseFloat(formData.price as any) || 0,
           github_url: formData.github_url,
           status: 'PENDING',

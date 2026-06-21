@@ -89,11 +89,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Derive tags from all sources
-    const allTags = [
+    const langTag = repoContext.language?.toLowerCase()
+    const allTags: string[] = [
       ...repoContext.topics,
       ...repoContext.packageKeywords,
-      repoContext.language?.toLowerCase(),
-    ].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).slice(0, 10) as string[]
+      ...(langTag ? [langTag] : []),
+      'open-source',
+    ].filter((v): v is string => typeof v === 'string' && v.length > 0)
+     .filter((v, i, a) => a.indexOf(v) === i)
+     .slice(0, 10)
 
     // Detect type from dependencies and name
     const depString = repoContext.dependencies.join(' ').toLowerCase()
@@ -165,9 +169,11 @@ Return ONLY valid JSON. No markdown, no code blocks, no explanation.
 
     if (!geminiResponse.ok) {
       const geminiError = await geminiResponse.text()
-      console.error('Gemini API error:', geminiResponse.status, geminiError)
+      console.error('Gemini API error:', geminiResponse.status, geminiError.substring(0, 500))
       return NextResponse.json(fallbackResult)
     }
+
+    console.log('Gemini response status:', geminiResponse.status)
 
     const geminiData = await geminiResponse.json()
     const aiText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || ''
@@ -184,6 +190,7 @@ Return ONLY valid JSON. No markdown, no code blocks, no explanation.
       return NextResponse.json({
         ...analysisResult,
         price: typeof analysisResult.price === 'number' ? analysisResult.price : 0,
+        tags: Array.isArray(analysisResult.tags) ? analysisResult.tags : allTags,
         readme: readme.substring(0, 5000),
       })
     } catch {
