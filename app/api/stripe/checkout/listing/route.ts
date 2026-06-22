@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
     // Create Checkout Session for one-time payment
     const params = new URLSearchParams({
       customer: stripeCustomerId!,
+      "payment_method_types[0]": "card",
       "line_items[0][price_data][currency]": "usd",
       "line_items[0][price_data][product_data][name]": listingTitle,
       "line_items[0][price_data][product_data][metadata][listing_id]": listingId,
