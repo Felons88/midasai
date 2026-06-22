@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { User, Link as LinkIcon, Star } from "lucide-react"
-import { createClient } from "@/lib/supabase/server"
+import { createClient, createServiceClient } from "@/lib/supabase/server"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { FollowButton } from "@/components/creator/follow-button"
@@ -26,12 +26,15 @@ async function getFollowState(creatorId: string) {
 
 async function getCreator(userId: string) {
   try {
-    const supabase = await createClient()
+    // Use the service client and select only public-safe columns so creator
+    // profiles are viewable by anyone WITHOUT exposing sensitive fields
+    // (email, role) on the `users` table via public RLS.
+    const supabase = createServiceClient()
     const { data: creator, error } = await supabase
       .from('users')
-      .select('*')
+      .select('id, name, avatar_url, created_at')
       .eq('id', userId)
-      .single()
+      .maybeSingle()
 
     if (error) {
       console.error('Error fetching creator:', error)
