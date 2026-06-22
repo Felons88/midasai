@@ -13,10 +13,11 @@ Living status log for the autonomous execution cycles. Updated after each cycle.
 - Mapped routes (71 pages / 49 API), probed all public routes (all 200), inspected DB schema + row counts.
 - Authored `docs/GAP_ANALYSIS.md`, `docs/DESIGN.md`, this file.
 
-### Cycle 2 — Manual listing upload (F2) 🚧→✅
+### Cycle 2 — Manual listing upload (F2) ✅
 - Implemented `/creator/upload/manual` form wired to the existing `POST /api/listings/create`.
 - Enabled the previously "Coming Soon" Manual Upload action on `/creator/upload`.
-- Verified end-to-end (authenticated create → listing row persisted → redirect to `/creator/listings`).
+- Verified end-to-end in the browser as a CREATOR: filled the form → "Publish Listing" → redirected to `/creator/listings` with the new "Hello World Skill" card visible; confirmed in DB (`status=PENDING`, `type=SKILL`, `price=0`, `tags=[demo,hello-world,test]`). No errors.
+- Note: `/creator/*` is gated behind the CREATOR role (redirects to `/dashboard?upgrade=creator` otherwise) — expected behavior, not a bug.
 
 ---
 
@@ -42,10 +43,10 @@ Living status log for the autonomous execution cycles. Updated after each cycle.
 ---
 
 ## Current task
-Cycle 2: manual upload page — implemented, under verification.
+Cycle 2 complete and verified.
 
 ## Next task
-Cycle 3 (proposed, highest unresolved priority): F3 — fix listing-detail not-found HTTP status (P2), pending root-cause confirmation; or F4 billing wiring once Stripe secrets are provided.
+Cycle 3 (highest unresolved priority): F3 — fix listing-detail not-found HTTP status (P2), pending root-cause confirmation; or F4 billing wiring once Stripe secrets are provided.
 
 ## Blockers
 - F4 billing/AI/email/GitHub verification requires credentials (human action via Secrets): `STRIPE_SECRET_KEY` + price IDs + `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `GITHUB_CLIENT_ID/SECRET`.
