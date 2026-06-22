@@ -13,6 +13,12 @@ Living status log for the autonomous execution cycles. Updated after each cycle.
 - Mapped routes (71 pages / 49 API), probed all public routes (all 200), inspected DB schema + row counts.
 - Authored `docs/GAP_ANALYSIS.md`, `docs/DESIGN.md`, this file.
 
+### Cycle 6 — Stripe subscription checkout (F4 / Phase 10) ✅ (verified up to payment)
+- **Bug fixed:** checkout returned 500 `No valid payment method types for this Checkout Session`. The session didn't specify `payment_method_types`; the live account had no automatic payment methods configured. Now explicitly requests `card` (`app/api/stripe/checkout/route.ts`).
+- **Verified end-to-end** (user authorized using live keys): `/pricing` → "Upgrade to STARTER" → redirect to a real `checkout.stripe.com` session (`cs_live_…`) showing "Subscribe to Starter — $9.99/month" with the card form and pre-filled email. **Stopped before payment** (no charge, no completed subscription). Video reviewed.
+- **Open config issues (data, not code):** pricing UI shows STARTER $19/mo but the Stripe price is $9.99/mo (`PLAN_LIMITS.priceMonthly` vs Stripe product mismatch); `*_YEARLY_PRICE_ID`s still point at monthly prices; `STRIPE_CONNECT_ACCOUNT_ID` is a `we_…` not `acct_…`. Webhook → subscription persistence not yet verified (needs a completed payment or Stripe CLI event).
+- Side effect: a live Stripe Customer + `stripe_customers` row was created for the test user during verification.
+
 ### Cycle 5 — API key creation via enforced server route (F9, Phase 10) ✅
 - **F9 (BROKEN→FIXED):** the `/developer/keys/new` page inserted directly into `api_keys` with a non-existent `hashed_key` column (creation failed), generated keys insecurely client-side, and bypassed plan-limit enforcement.
 - Refactored it to call `POST /api/keys`, which enforces the plan limit (`enforceLimit`), hashes the key server-side (SHA-256), and returns the raw key once. Added a limit-reached upgrade prompt.
