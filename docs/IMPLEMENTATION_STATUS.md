@@ -13,6 +13,12 @@ Living status log for the autonomous execution cycles. Updated after each cycle.
 - Mapped routes (71 pages / 49 API), probed all public routes (all 200), inspected DB schema + row counts.
 - Authored `docs/GAP_ANALYSIS.md`, `docs/DESIGN.md`, this file.
 
+### Cycle 7 — Homepage search (UI, ui-ux-pro-max) ✅
+- Ran the `ui-ux-pro-max` skill (`--design-system`): confirmed the **Marketplace/Directory** pattern (search-focused hero). Kept the established **dark-luxury gold** brand + DM Sans (the skill's auto palette/fonts were purple/serif and off-brand) and applied its professional-UI rules.
+- Made the homepage hero search **functional**: it was a dead input; now a GET form to `/search?query=…`, and the "Popular:" chips link to pre-filled queries.
+- **Verified** in-browser: typing "Midas" → `/search?query=Midas` shows the "Midasai" result; "MCP Servers" chip → `/search?query=MCP%20Servers` pre-filled. Video reviewed.
+- Design approach for "redesign the whole site": proceed page-by-page in tested cycles on the existing brand/tokens (DESIGN.md), not a blind full reskin.
+
 ### Cycle 6 — Stripe subscription checkout (F4 / Phase 10) ✅ (verified up to payment)
 - **Bug fixed:** checkout returned 500 `No valid payment method types for this Checkout Session`. The session didn't specify `payment_method_types`; the live account had no automatic payment methods configured. Now explicitly requests `card` (`app/api/stripe/checkout/route.ts`).
 - **Verified end-to-end** (user authorized using live keys): `/pricing` → "Upgrade to STARTER" → redirect to a real `checkout.stripe.com` session (`cs_live_…`) showing "Subscribe to Starter — $9.99/month" with the card form and pre-filled email. **Stopped before payment** (no charge, no completed subscription). Video reviewed.
