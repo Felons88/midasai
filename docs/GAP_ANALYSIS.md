@@ -46,8 +46,9 @@ All 28 probed public marketing routes returned **200** (`/`, `/about`, `/agents`
 
 ### F3 — Listing detail returns HTTP 200 for not-found — **PARTIAL**
 - **Symptom:** `/listing/<missing-or-invalid-id>` renders the "404 Not Found" UI but the HTTP status is **200** (verified via `curl -i`).
-- **Root cause:** under investigation — `notFound()` is called correctly in `app/(marketing)/listing/[id]/page.tsx`, but the response status is not propagated as 404. Invalid (non-UUID) ids also produce a logged Postgres error (`Error fetching listing`).
-- **Priority:** P2 · **Impact:** SEO (soft-404s indexed as 200), incorrect status semantics · **Files:** `app/(marketing)/listing/[id]/page.tsx`, possibly a shared `not-found.tsx`/layout · **Complexity:** Medium (needs root-cause confirmation before fixing).
+- **Root cause (confirmed):** a root `app/loading.tsx` creates a root-level Suspense boundary, so dynamically-rendered routes **stream** — Next.js commits a `200` + loading shell before the page body runs. By the time `notFound()` is reached in `app/(marketing)/listing/[id]/page.tsx`, the status is already `200`, so the not-found UI renders under a 200. Invalid (non-UUID) ids additionally log a Postgres error (`Error fetching listing`).
+- **Suggested fix (own cycle):** determine existence before streaming — e.g. call `notFound()` from a `generateMetadata` for the listing route (runs pre-stream), de-duplicating the query with React `cache()`; and validate the id is a UUID before querying to avoid the logged error. Avoid removing the global `loading.tsx` (broad UX impact).
+- **Priority:** P2 · **Impact:** SEO (soft-404s indexed as 200), incorrect status semantics · **Files:** `app/(marketing)/listing/[id]/page.tsx`, `app/loading.tsx` (context) · **Complexity:** Medium.
 
 ### F4 — Monetization & external integrations env-gated — **PARTIAL (by design)**
 - Stripe (`STRIPE_SECRET_KEY`, price IDs, `STRIPE_WEBHOOK_SECRET`), Resend (`RESEND_API_KEY`), Gemini (`GEMINI_API_KEY`), OpenRouter (`OPENROUTER_API_KEY`), and GitHub OAuth (`GITHUB_CLIENT_ID/SECRET`) routes each guard on their env var and return errors when unset.
