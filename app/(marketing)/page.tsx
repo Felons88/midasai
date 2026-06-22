@@ -142,25 +142,27 @@ export default async function HomePage() {
             <p className="text-xl md:text-2xl text-text-secondary mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               The premier marketplace for Claude Skills, Cursor Rules, Windsurf Workflows, MCP Servers, AI Agents, and more.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+            <form action="/search" className="flex flex-col sm:flex-row gap-4 justify-center mb-12 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-tertiary" />
                 <input
                   type="search"
+                  name="query"
+                  aria-label="Search the marketplace"
                   placeholder="Search for skills, plugins, agents..."
                   className="w-full h-14 pl-12 pr-4 rounded-xl border bg-surface text-text-primary placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta transition-smooth"
                 />
               </div>
-              <Button size="lg" className="h-14 px-8 text-base">
+              <Button type="submit" size="lg" className="h-14 px-8 text-base cursor-pointer">
                 Search
               </Button>
-            </div>
+            </form>
             <div className="flex gap-3 flex-wrap justify-center animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
               <span className="text-sm text-text-tertiary">Popular:</span>
               {["Claude Skills", "MCP Servers", "AI Agents", "Workflows"].map((tag) => (
                 <Link
                   key={tag}
-                  href="/search"
+                  href={`/search?query=${encodeURIComponent(tag)}`}
                   className="text-sm text-cta hover:text-cta-light transition-colors font-medium cursor-pointer"
                 >
                   {tag}
