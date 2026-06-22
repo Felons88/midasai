@@ -41,7 +41,7 @@ export default function CreatorUploadPage() {
       icon: Upload,
       color: 'from-blue-500 to-purple-600',
       action: () => router.push('/creator/upload/manual'),
-      badge: 'Coming Soon'
+      badge: 'Available'
     }
   ]
 
