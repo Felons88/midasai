@@ -54,6 +54,9 @@ export async function POST(request: NextRequest) {
     // Create Checkout Session
     const params = new URLSearchParams({
       customer: stripeCustomerId!,
+      // Explicitly request card so the session does not depend on the account's
+      // automatic payment-method configuration (which may be unset on new accounts).
+      "payment_method_types[0]": "card",
       "line_items[0][price]": priceId,
       "line_items[0][quantity]": "1",
       mode: "subscription",
