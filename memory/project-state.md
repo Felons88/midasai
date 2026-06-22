@@ -44,6 +44,13 @@ MidasAI is a marketplace for AI tools including Claude Skills, Cursor Rules, Win
 **Phase**: Phase 1 — Database Alignment Complete
 **Production Readiness Score**: 15/100 (schema blocker removed)
 
+### Latest Update — 2026-06-22
+- Listing detail pages now restore public creator display through safe server-side creator/user lookups, avoiding the public `users` RLS policy that hides creator names from anonymous visitors.
+- Uploaded GitHub README content is rendered on listing detail pages as Overview, Installation, Usage, and Features sections with empty states for listings that do not include those sections.
+- Public and authenticated marketplace navigation now collapse into mobile menus; protected app pages use an off-canvas sidebar on phones instead of a permanent desktop sidebar margin.
+- Homepage, search, creator upload, and upload modal received mobile breakpoint/spacing fixes; global CSS now prevents accidental horizontal overflow.
+- Verification: `NODE_ENV=production npm run build` passes. Plain `npm run build` fails in this Cloud Agent shell only when `NODE_ENV` is set to a non-standard value. `npx tsc --noEmit` remains blocked by pre-existing Next 15 route-handler param typing and Supabase Edge Function/Deno import errors.
+
 **Completed Foundation:**
 - Next.js 15 project structure with TypeScript
 - Supabase integration (auth, client, server, middleware)
