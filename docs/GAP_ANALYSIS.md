@@ -85,4 +85,13 @@ All 28 probed public marketing routes returned **200** (`/`, `/about`, `/agents`
 ### F8 — `users` RLS exposure (operational) — **RESOLVED**
 - During Cycle 4 an over-permissive `Public can view all users` policy (SELECT, `qual=true`) was found on `public.users` and **dropped**; creator profiles now read public-safe columns (`id,name,avatar_url,created_at`) via the service client instead. Sensitive columns (`email`, `role`) are no longer exposed to anon. **Verified** (no email/role in anon-rendered HTML).
 
+### F9 — API key creation broken + bypassed enforcement — **BROKEN → FIXED**
+- **Symptom:** `/developer/keys/new` inserted into `api_keys` with a non-existent `hashed_key` column (the table uses `key_hash`), so creation failed; it also generated the key client-side (weak) and never hit the plan-limit guard.
+- **Fix:** the page now calls `POST /api/keys` (server-side SHA-256 hashing + `enforceLimit` plan gate + raw key returned once) and shows a limit-reached upgrade prompt. **Verified:** FREE user creates 1 key (DB `key_hash` is 64-char SHA-256) and the 2nd is blocked (`1/1 — upgrade to STARTER`).
+- **Priority:** P1 · **Files:** `app/(protected)/developer/keys/new/page.tsx`.
+
+### Billing (F4 / Phase 10) — **PARTIAL / BLOCKED**
+- Plan-limit **entitlement enforcement** exists server-side (`lib/subscription-guard.ts`) and is now actually used by the API-key flow (F9). Other guarded resources (`webhooks`, `mcp_servers`, `listings`, `applications`) share this guard.
+- **Stripe checkout/webhook NOT verified:** only LIVE keys were supplied; running checkout would create real customers/subscriptions. Also the `*_YEARLY_PRICE_ID`s currently point at monthly prices (verified `interval=month`), and `STRIPE_CONNECT_ACCOUNT_ID` is a `we_…` (webhook endpoint) not an `acct_…`. Need test-mode keys + corrected price/account ids to proceed.
+
 Areas still needing deeper per-feature verification (not yet exhaustively audited): notifications realtime delivery, reviews write path, collections, admin moderation actions, and edge-function deployment parity with the Next API routes.

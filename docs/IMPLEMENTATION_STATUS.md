@@ -13,6 +13,12 @@ Living status log for the autonomous execution cycles. Updated after each cycle.
 - Mapped routes (71 pages / 49 API), probed all public routes (all 200), inspected DB schema + row counts.
 - Authored `docs/GAP_ANALYSIS.md`, `docs/DESIGN.md`, this file.
 
+### Cycle 5 — API key creation via enforced server route (F9, Phase 10) ✅
+- **F9 (BROKEN→FIXED):** the `/developer/keys/new` page inserted directly into `api_keys` with a non-existent `hashed_key` column (creation failed), generated keys insecurely client-side, and bypassed plan-limit enforcement.
+- Refactored it to call `POST /api/keys`, which enforces the plan limit (`enforceLimit`), hashes the key server-side (SHA-256), and returns the raw key once. Added a limit-reached upgrade prompt.
+- **Verified end-to-end** as a FREE-tier user: 1st key created (DB row has 64-char `key_hash`, `midas_live_` prefix); 2nd attempt blocked with "Plan limit reached: 1/1 — upgrade to STARTER". No errors.
+- Note: the broader billing **checkout** flow is intentionally NOT exercised — only LIVE Stripe keys were provided, so running it would create real customers/subscriptions. Awaiting test-mode keys.
+
 ### Cycle 4 — Follow system + creator profile access + security (F6/F7) ✅
 - **F6 (BROKEN→FIXED):** the creator-profile Follow control was a server `<form method="DELETE">` posting form-encoded data to a JSON API — follow 500'd and unfollow silently no-op'd. Replaced with a client `components/creator/follow-button.tsx` using `fetch` (correct POST/DELETE + JSON), optimistic UI, and `router.refresh()` to sync the follower count.
 - **F7 (BROKEN→FIXED):** middleware `protectedPaths` used `startsWith('/creator')`, which also matched the public `/creators/[id]` pages (redirect to login). Switched to segment-boundary matching so only `/creator` and `/creator/*` are protected.
