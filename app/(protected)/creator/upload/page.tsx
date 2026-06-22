@@ -73,24 +73,24 @@ export default function CreatorUploadPage() {
       <div className="ambient-glow" />
       <div className="noise-overlay" />
       
-      <div className="container mx-auto px-4 py-12 relative">
+      <div className="container relative mx-auto px-4 py-8 sm:py-12">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16 animate-fade-in-up">
+          <div className="mb-10 text-center animate-fade-in-up sm:mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/20 to-blue-500/20 border border-white/[0.1] mb-6">
               <Sparkles className="h-4 w-4 text-amber-400" />
               <span className="text-sm text-white/80">AI-Powered Upload System</span>
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-4 text-text-primary">
+            <h1 className="mb-4 text-4xl font-bold text-text-primary sm:text-5xl md:text-6xl">
               Upload Your Creation
             </h1>
-            <p className="text-xl text-text-secondary max-w-2xl mx-auto">
+            <p className="mx-auto max-w-2xl text-base leading-8 text-text-secondary sm:text-xl">
               Share your AI skills, workflows, templates, and plugins with the world. 
               Our AI helps you create the perfect listing in minutes.
             </p>
           </div>
 
           {/* Upload Options */}
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
+          <div className="mb-12 grid gap-6 md:grid-cols-2 md:gap-8 lg:mb-16">
             {uploadOptions.map((option, index) => (
               <Card 
                 key={option.title}
@@ -99,7 +99,7 @@ export default function CreatorUploadPage() {
                 onClick={option.action}
               >
                 <CardHeader className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between gap-4">
                     <div className={`h-16 w-16 rounded-xl bg-gradient-to-br ${option.color} flex items-center justify-center group-hover:scale-105 transition-transform`}>
                       <option.icon className="h-8 w-8 text-white" />
                     </div>
@@ -147,7 +147,7 @@ export default function CreatorUploadPage() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {features.map((feature, index) => (
                 <div 
                   key={feature.title}
@@ -173,7 +173,7 @@ export default function CreatorUploadPage() {
             <h2 className="text-3xl font-bold text-text-primary mb-12">
               How It Works
             </h2>
-            <div className="grid md:grid-cols-4 gap-8">
+            <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
               {[
                 { step: 1, title: 'Connect GitHub', description: 'Link your GitHub account with OAuth' },
                 { step: 2, title: 'Select Repository', description: 'Choose which repository to upload' },

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { AppSidebar } from "./AppSidebar"
 import { TopBar } from "./TopBar"
 import { NotificationProvider } from "@/components/notifications/NotificationProvider"
@@ -22,6 +23,8 @@ export function AuthenticatedShell({
   userAvatar,
   userId,
 }: AuthenticatedShellProps) {
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+
   return (
     <NotificationProvider userId={userId || null}>
       <div className="min-h-screen bg-[#07070b]">
@@ -30,16 +33,28 @@ export function AuthenticatedShell({
           userEmail={userEmail}
           userName={userName}
           userAvatar={userAvatar}
+          mobileOpen={mobileSidebarOpen}
+          onMobileClose={() => setMobileSidebarOpen(false)}
         />
 
-        <div className="ml-[240px] min-h-screen flex flex-col transition-all duration-300">
+        {mobileSidebarOpen && (
+          <button
+            type="button"
+            aria-label="Close navigation menu"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
+        )}
+
+        <div className="min-h-screen flex flex-col transition-all duration-300 md:ml-[240px]">
           <TopBar
             userEmail={userEmail}
             userName={userName}
             userAvatar={userAvatar}
+            onMenuClick={() => setMobileSidebarOpen(true)}
           />
 
-          <main className="flex-1 p-6">
+          <main className="flex-1 overflow-x-hidden p-4 sm:p-5 md:p-6">
             {children}
           </main>
         </div>

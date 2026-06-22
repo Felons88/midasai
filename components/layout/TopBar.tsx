@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Search, MessageSquare, Plus, Command, User, CreditCard, ShieldCheck, Settings, Code, LogOut } from "lucide-react"
+import { Search, MessageSquare, Plus, Command, User, CreditCard, ShieldCheck, Settings, Code, LogOut, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -13,9 +13,10 @@ interface TopBarProps {
   userName?: string
   userAvatar?: string
   onSearchOpen?: () => void
+  onMenuClick?: () => void
 }
 
-export function TopBar({ userEmail, userName, userAvatar, onSearchOpen }: TopBarProps) {
+export function TopBar({ userEmail, userName, userAvatar, onSearchOpen, onMenuClick }: TopBarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -50,11 +51,20 @@ export function TopBar({ userEmail, userName, userAvatar, onSearchOpen }: TopBar
   ]
 
   return (
-    <header className="sticky top-0 z-30 h-14 border-b border-white/[0.06] bg-[#0a0a0f]/80 backdrop-blur-xl flex items-center justify-between px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-white/[0.06] bg-[#0a0a0f]/80 px-3 backdrop-blur-xl sm:px-4 md:px-6">
+      <button
+        type="button"
+        onClick={onMenuClick}
+        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.02] text-white/60 transition-all hover:border-white/[0.12] hover:bg-white/[0.04] hover:text-white md:hidden"
+        aria-label="Open navigation menu"
+      >
+        <Menu className="h-4 w-4" />
+      </button>
+
       {/* Search Trigger */}
       <button
         onClick={onSearchOpen}
-        className="flex items-center gap-3 h-9 px-4 rounded-lg border border-white/[0.08] bg-white/[0.02] text-white/40 hover:text-white/60 hover:border-white/[0.12] hover:bg-white/[0.04] transition-all text-sm w-full max-w-[320px]"
+        className="hidden h-9 w-full max-w-[320px] items-center gap-3 rounded-lg border border-white/[0.08] bg-white/[0.02] px-4 text-sm text-white/40 transition-all hover:border-white/[0.12] hover:bg-white/[0.04] hover:text-white/60 sm:flex"
       >
         <Search className="h-3.5 w-3.5" />
         <span className="flex-1 text-left">Search everything...</span>
@@ -64,7 +74,7 @@ export function TopBar({ userEmail, userName, userAvatar, onSearchOpen }: TopBar
       </button>
 
       {/* Right Actions */}
-      <div className="flex items-center gap-1">
+      <div className="ml-auto flex items-center gap-1">
         {/* Quick Create */}
         <Button
           variant="ghost"

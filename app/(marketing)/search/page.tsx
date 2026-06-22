@@ -100,21 +100,23 @@ export default async function SearchPage({
       <div className="ambient-glow" />
       <div className="noise-overlay" />
       
-      <div className="container mx-auto px-4 py-12 relative">
+      <div className="container relative mx-auto px-4 py-8 sm:py-12">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-bold mb-12 text-text-primary animate-fade-in-up">Search</h1>
+          <h1 className="mb-8 text-4xl font-bold text-text-primary animate-fade-in-up sm:mb-12 sm:text-5xl md:text-6xl">Search</h1>
           
           <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            <form className="relative">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-tertiary" />
-              <Input
-                type="search"
-                placeholder="Search for skills, plugins, agents..."
-                className="h-14 pl-12 text-lg"
-                defaultValue={resolvedParams?.query}
-                name="query"
-              />
-              <Button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 h-10">
+            <form className="flex flex-col gap-3 sm:relative sm:block">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-tertiary" />
+                <Input
+                  type="search"
+                  placeholder="Search for skills, plugins, agents..."
+                  className="h-14 pl-12 pr-4 text-base sm:pr-28 sm:text-lg"
+                  defaultValue={resolvedParams?.query}
+                  name="query"
+                />
+              </div>
+              <Button type="submit" className="h-11 sm:absolute sm:right-2 sm:top-1/2 sm:h-10 sm:-translate-y-1/2">
                 Search
               </Button>
             </form>
@@ -136,7 +138,7 @@ async function SearchResults({ resolvedParams }: { resolvedParams?: { query?: st
   return (
     <>
       <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-xl font-semibold text-text-primary">Filters</h2>
           <div className="flex items-center gap-2">
             <ArrowUpDown className="h-4 w-4 text-text-tertiary" />
@@ -173,7 +175,7 @@ async function SearchResults({ resolvedParams }: { resolvedParams?: { query?: st
         </div>
 
         {/* Price Range Filter */}
-        <div className="flex gap-3 items-center mb-4">
+        <div className="mb-4 flex flex-wrap items-center gap-3">
           <span className="text-sm text-text-tertiary">Price:</span>
           <Input
             type="number"
@@ -195,7 +197,7 @@ async function SearchResults({ resolvedParams }: { resolvedParams?: { query?: st
         </div>
 
         {/* Rating Filter */}
-        <div className="flex gap-3 items-center">
+        <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm text-text-tertiary">Min Rating:</span>
           <select
             name="minRating"
@@ -211,7 +213,7 @@ async function SearchResults({ resolvedParams }: { resolvedParams?: { query?: st
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+      <div className="grid grid-cols-1 gap-6 animate-fade-in-up md:grid-cols-2 lg:grid-cols-3 lg:gap-8" style={{ animationDelay: '0.3s' }}>
         {listings.map((listing: any, index: number) => (
           <Card key={listing.id} className="glass hover:shadow-glow transition-smooth group" style={{ animationDelay: `${index * 0.05}s` }}>
             <CardHeader className="space-y-4">

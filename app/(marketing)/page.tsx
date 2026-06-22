@@ -128,7 +128,7 @@ export default async function HomePage() {
       <div className="noise-overlay" />
       
       {/* Hero Section */}
-      <section className="relative py-32 md:py-48 overflow-hidden">
+      <section className="relative overflow-hidden py-20 sm:py-28 md:py-48">
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
         <div className="container mx-auto px-4 relative">
           <div className="max-w-6xl mx-auto text-center">
@@ -136,13 +136,13 @@ export default async function HomePage() {
               <Sparkles className="h-4 w-4 text-cta" />
               <span className="text-sm font-medium text-text-primary">The Premier AI Marketplace</span>
             </div>
-            <h1 className="text-6xl md:text-8xl font-bold mb-8 mt-8 bg-gradient-to-br from-text-primary via-text-primary to-text-secondary bg-clip-text text-transparent animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+            <h1 className="mb-6 mt-8 text-4xl font-bold bg-gradient-to-br from-text-primary via-text-primary to-text-secondary bg-clip-text text-transparent animate-fade-in-up sm:mb-8 sm:text-6xl md:text-8xl" style={{ animationDelay: '0.1s' }}>
               Discover AI Tools That Transform Your Workflow
             </h1>
-            <p className="text-xl md:text-2xl text-text-secondary mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <p className="mx-auto mb-8 max-w-3xl text-base leading-8 text-text-secondary animate-fade-in-up sm:mb-12 sm:text-xl md:text-2xl" style={{ animationDelay: '0.2s' }}>
               The premier marketplace for Claude Skills, Cursor Rules, Windsurf Workflows, MCP Servers, AI Agents, and more.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+            <div className="mx-auto mb-8 flex max-w-3xl flex-col justify-center gap-4 animate-fade-in-up sm:mb-12 sm:flex-row" style={{ animationDelay: '0.3s' }}>
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-tertiary" />
                 <input
@@ -172,11 +172,11 @@ export default async function HomePage() {
       </section>
 
       {/* Categories Section - Bento Grid */}
-      <section className="py-24 relative">
+      <section className="relative py-16 sm:py-24">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-bold mb-4 text-text-primary">Browse Categories</h2>
-            <p className="text-xl text-text-secondary max-w-2xl mx-auto">
+          <div className="mb-10 text-center sm:mb-16">
+            <h2 className="mb-4 text-3xl font-bold text-text-primary sm:text-5xl md:text-6xl">Browse Categories</h2>
+            <p className="mx-auto max-w-2xl text-base leading-8 text-text-secondary sm:text-xl">
               Explore our curated collection of AI tools and resources
             </p>
           </div>
@@ -219,15 +219,15 @@ export default async function HomePage() {
       </section>
 
       {/* Featured Listings Section */}
-      <section className="py-24 relative">
+      <section className="relative py-16 sm:py-24">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-bold mb-4 text-text-primary">Featured Listings</h2>
-            <p className="text-xl text-text-secondary max-w-2xl mx-auto">
+          <div className="mb-10 text-center sm:mb-16">
+            <h2 className="mb-4 text-3xl font-bold text-text-primary sm:text-5xl md:text-6xl">Featured Listings</h2>
+            <p className="mx-auto max-w-2xl text-base leading-8 text-text-secondary sm:text-xl">
               Hand-picked tools and resources by our team
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
             {listingsWithRatings.map((item: any, index: number) => (
               <Card key={item.id} className="glass hover:shadow-glow transition-smooth group" style={{ animationDelay: `${index * 0.1}s` }}>
                 <CardHeader className="space-y-4">
@@ -264,15 +264,15 @@ export default async function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 relative">
+      <section className="relative py-16 sm:py-24">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-bold mb-4 text-text-primary">Why Choose MidasAI</h2>
-            <p className="text-xl text-text-secondary max-w-2xl mx-auto">
+          <div className="mb-10 text-center sm:mb-16">
+            <h2 className="mb-4 text-3xl font-bold text-text-primary sm:text-5xl md:text-6xl">Why Choose MidasAI</h2>
+            <p className="mx-auto max-w-2xl text-base leading-8 text-text-secondary sm:text-xl">
               Built for creators, by creators
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
             {[
               { icon: Shield, title: "Verified Quality", description: "All listings are reviewed and verified by our team to ensure the highest quality standards" },
               { icon: Zap, title: "Instant Access", description: "Get immediate access to your purchased tools and resources with secure delivery" },
@@ -293,12 +293,12 @@ export default async function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-32 relative overflow-hidden">
+      <section className="relative overflow-hidden py-20 sm:py-32">
         <div className="absolute inset-0 bg-gradient-to-br from-surface to-background" />
         <div className="spotlight" style={{ left: '20%', top: '30%' }} />
         <div className="container mx-auto px-4 text-center relative">
-          <h2 className="text-5xl md:text-6xl font-bold mb-6 text-text-primary">Ready to Start Building?</h2>
-          <p className="text-xl md:text-2xl mb-12 text-text-secondary max-w-2xl mx-auto">
+          <h2 className="mb-6 text-3xl font-bold text-text-primary sm:text-5xl md:text-6xl">Ready to Start Building?</h2>
+          <p className="mx-auto mb-8 max-w-2xl text-base leading-8 text-text-secondary sm:mb-12 sm:text-xl md:text-2xl">
             Join thousands of creators and developers on MidasAI
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

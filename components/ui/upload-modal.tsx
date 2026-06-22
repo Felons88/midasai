@@ -215,11 +215,11 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden bg-[#0a0a0f] rounded-2xl border border-white/[0.08] shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm sm:p-4">
+      <div className="max-h-[92dvh] w-full max-w-4xl overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a0a0f] shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/[0.08]">
-          <h2 className="text-2xl font-bold text-white">Upload from GitHub</h2>
+        <div className="flex items-center justify-between gap-4 border-b border-white/[0.08] p-4 sm:p-6">
+          <h2 className="text-xl font-bold text-white sm:text-2xl">Upload from GitHub</h2>
           <Button
             variant="ghost"
             size="sm"
@@ -231,9 +231,9 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+        <div className="max-h-[calc(92dvh-88px)] overflow-y-auto p-4 sm:p-6">
           {step === 'github' && (
-            <div className="text-center py-12">
+              <div className="py-10 text-center sm:py-12">
               <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
                 <Github className="h-10 w-10 text-white" />
               </div>
@@ -246,7 +246,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                   : 'Connect your GitHub account to import your repositories and automatically generate upload details with AI.'
                 }
               </p>
-              <div className="flex items-center gap-4 justify-center">
+              <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
                 {isConnected ? (
                   <Button 
                     onClick={fetchRepositories}
@@ -295,7 +295,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                     onClick={() => scanRepository(repo)}
                   >
                     <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <h4 className="font-semibold text-white">{repo.name}</h4>
@@ -308,7 +308,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                           <p className="text-white/60 text-sm mb-3 line-clamp-2">
                             {repo.description || 'No description available'}
                           </p>
-                          <div className="flex items-center gap-4 text-xs text-white/40">
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-white/40 sm:gap-4">
                             <div className="flex items-center gap-1">
                               <Star className="h-3 w-3" />
                               {repo.stargazers_count}
@@ -386,7 +386,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="block text-sm font-medium text-white mb-2">Type</label>
                     <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
@@ -427,7 +427,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                 {selectedRepo && (
                   <Card className="border-white/[0.08] bg-white/[0.02]">
                     <CardContent className="p-4">
-                      <div className="flex items-center gap-3 mb-3">
+                      <div className="mb-3 flex items-center gap-3">
                         <div className={`h-10 w-10 rounded-lg ${getTypeColor(formData.type)} border flex items-center justify-center`}>
                           {getTypeIcon(formData.type)}
                         </div>
@@ -436,7 +436,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                           <p className="text-sm text-white/60">{selectedRepo.full_name}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4 text-xs text-white/40">
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-white/40 sm:gap-4">
                         <div className="flex items-center gap-1">
                           <Star className="h-3 w-3" />
                           {selectedRepo.stargazers_count}
@@ -455,7 +455,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                 )}
               </div>
 
-              <div className="flex items-center gap-4 mt-8">
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                 <Button
                   variant="outline"
                   onClick={() => setStep('select')}
