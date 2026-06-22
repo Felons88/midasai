@@ -34,7 +34,7 @@ export default function RegisterPage() {
       return
     }
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
+    const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -47,35 +47,18 @@ export default function RegisterPage() {
     if (signUpError) {
       setError(signUpError.message)
       setLoading(false)
-    } else {
-      // Create user profile in users table
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            email: data.user.email!,
-            name,
-          })
-
-        if (profileError) {
-          setError(profileError.message)
-          setLoading(false)
-        } else {
-          // Get redirect parameter from URL
-          const redirectTo = searchParams.get('redirect')
-          
-          // Priority 1: Use redirect parameter if exists
-          if (redirectTo) {
-            router.push(redirectTo)
-          } else {
-            // Priority 2: Go to homepage (marketplace-first for new users)
-            router.push('/')
-          }
-          router.refresh()
-        }
-      }
+      return
     }
+
+    // The `public.users` profile row is created automatically by the
+    // `handle_new_auth_user` database trigger (it reads `name` from the auth
+    // metadata set above). Inserting it again here caused a duplicate-key
+    // ("users_pkey") error for every new sign-up, so we no longer do it.
+    const redirectTo = searchParams.get('redirect')
+
+    // Priority 1: redirect parameter if present, otherwise the marketplace home.
+    router.push(redirectTo || '/')
+    router.refresh()
   }
 
   return (
