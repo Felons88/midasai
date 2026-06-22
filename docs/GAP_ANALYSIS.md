@@ -72,4 +72,17 @@ All 28 probed public marketing routes returned **200** (`/`, `/about`, `/agents`
 | F3 | Listing not-found HTTP status | PARTIAL | P2 | Med |
 | F5 | Marketplace seed data | DATA | P2 | Med |
 
-Areas still needing deeper per-feature verification (not yet exhaustively audited): notifications realtime delivery, reviews write path, follow system, collections, admin moderation actions, and edge-function deployment parity with the Next API routes.
+### F6 — Follow button non-functional — **BROKEN → FIXED**
+- **Symptom:** following a creator did nothing / errored. The control was a server-rendered `<form method="DELETE" action="/api/follows?…">` — HTML forms can't issue DELETE (falls back to GET), and POSTed form-encoded data hit an endpoint that does `request.json()`.
+- **Fix:** new client `components/creator/follow-button.tsx` calling `/api/follows` via `fetch` (POST/DELETE + JSON) with optimistic state and `router.refresh()` to update the follower count. **Verified** in-browser (0→1→0).
+- **Priority:** P1 · **Files:** `components/creator/follow-button.tsx` (new), `app/(marketing)/creators/[id]/page.tsx`.
+
+### F7 — Public creator profiles blocked by middleware prefix collision — **BROKEN → FIXED**
+- **Symptom:** `/creators/[id]` redirected to login for everyone — `protectedPaths` includes `/creator`, matched via `startsWith`, so the plural public route was captured.
+- **Fix:** segment-boundary matching (`pathname === path || pathname.startsWith(path + '/')`) in `lib/supabase/middleware.ts`. **Verified:** `/creators/[id]` → 200; `/creator/*` and `/dashboard` still 307.
+- **Priority:** P1 · **Files:** `lib/supabase/middleware.ts`.
+
+### F8 — `users` RLS exposure (operational) — **RESOLVED**
+- During Cycle 4 an over-permissive `Public can view all users` policy (SELECT, `qual=true`) was found on `public.users` and **dropped**; creator profiles now read public-safe columns (`id,name,avatar_url,created_at`) via the service client instead. Sensitive columns (`email`, `role`) are no longer exposed to anon. **Verified** (no email/role in anon-rendered HTML).
+
+Areas still needing deeper per-feature verification (not yet exhaustively audited): notifications realtime delivery, reviews write path, collections, admin moderation actions, and edge-function deployment parity with the Next API routes.
