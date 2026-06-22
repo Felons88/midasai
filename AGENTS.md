@@ -484,3 +484,21 @@ Every decision should optimize for:
 * Maintainability
 * Revenue
 * Long-term growth
+
+---
+
+## Cursor Cloud specific instructions
+
+### Stack & services
+* Single Next.js 15 (App Router) app, package name `midas-ai`. Package manager is **npm** (`package-lock.json`; `.npmrc` sets `legacy-peer-deps=true`). Node >= 20.
+* The backend is a **hosted Supabase project** `skillsfb` (ref `rqermggomchlipmuigan`), not a local stack — there is no `supabase/config.toml`. The schema/migrations are already applied to the hosted project, so you do not need to run a local DB.
+
+### Running, linting, building
+* Dev server: `npm run dev` (port 3000). Lint: `npm run lint`. Build: `npm run build`. There is **no automated test suite** configured (no `test` script, no Jest/Vitest/Playwright).
+* The app reads env vars from `.env.local` (gitignored). Required to boot: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (both are public, non-secret values). If `.env.local` is missing, recreate those two from the Supabase MCP for project `rqermggomchlipmuigan` (`get_project_url` + `get_publishable_keys`), plus `NEXT_PUBLIC_APP_URL=http://localhost:3000`.
+* `SUPABASE_SERVICE_ROLE_KEY` is only needed for privileged paths (`createServiceClient()` in `lib/supabase/server.ts`, `app/api/role/upgrade`, `app/api/github/callback`) and Stripe/Resend/Gemini/OpenRouter/GitHub-OAuth features are each independently gated by their own env vars. It is **not** retrievable via MCP — supply it via Secrets to exercise those routes. Core flows (marketplace browse, auth/login, dashboard) run without it.
+
+### Gotchas
+* `next.config.mjs` sets `typescript.ignoreBuildErrors: true` and `eslint.ignoreDuringBuilds: true`, so `next build` will NOT fail on TS or ESLint errors. Run `npm run lint` separately; the repo currently has pre-existing lint errors/warnings.
+* Email auto-confirm is enabled on the Supabase project, so newly created accounts can sign in immediately.
+* `app/auth/register/page.tsx` manually inserts into `public.users` after `auth.signUp()`, but a DB trigger already creates that row. New sign-ups therefore surface `duplicate key value violates unique constraint "users_pkey"` in the UI even though the auth user IS created. Use the login flow to verify auth end-to-end.
