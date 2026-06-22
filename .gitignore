@@ -33,6 +33,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Python caches (ui-ux-pro-max skill scripts)
+__pycache__/
+*.pyc
+
 # Prisma
 prisma/migrations
 

@@ -100,4 +100,15 @@ All 28 probed public marketing routes returned **200** (`/`, `/about`, `/agents`
   - **`STRIPE_CONNECT_ACCOUNT_ID`** is a `we_…` (webhook endpoint), not an `acct_…`.
   - Live keys are in use per explicit user authorization; **rotate after audit**.
 
+### F10 — Listing detail conversion page — **REBUILT (Phase 4)**
+- `/listing/[id]` rebuilt as a conversion page on real data: trust-signal hero, working Save/Share/Follow/Purchase action bar, `git clone` install + copy, README markdown docs, schema-backed version history + reviews, creator stats card, related content. Verified in-browser.
+- **Schema/creator-input follow-ups (next cycles, deliberately not faked):**
+  - Creator-defined **multi-platform install commands** (npm/npx/pip/docker/MCP config/Cursor/Claude setup) — needs a `listings.install` jsonb (or table) + creator UI.
+  - Creator-managed **FAQ** — needs a `listing_faqs` table + UI.
+  - **Compatibility matrix** + structured **version/release** authoring — needs columns/UI on top of existing `listing_versions`.
+  - Media **video/GIF** gallery + carousel/zoom — needs media schema beyond `images[]`.
+  - Reviews: **helpful votes**, **creator responses**, **verified-purchase** badges, sort/filter — needs review schema columns.
+  - Creator **social links** (website/GitHub/Discord/LinkedIn/X) and **bio** — `users` has none; needs profile columns.
+- **Data quality:** GitHub scan-repo stores a file-listing dump as `readme` instead of real README markdown → Documentation renders as plain text. Fix at ingestion (Agent 8).
+
 Areas still needing deeper per-feature verification (not yet exhaustively audited): notifications realtime delivery, reviews write path, collections, admin moderation actions, and edge-function deployment parity with the Next API routes.

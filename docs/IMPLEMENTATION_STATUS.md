@@ -13,6 +13,15 @@ Living status log for the autonomous execution cycles. Updated after each cycle.
 - Mapped routes (71 pages / 49 API), probed all public routes (all 200), inspected DB schema + row counts.
 - Authored `docs/GAP_ANALYSIS.md`, `docs/DESIGN.md`, this file.
 
+### Cycle 8 — Listing detail rebuilt as a conversion page (Phase 4) ✅
+- Rebuilt `/listing/[id]` for conversion on **real data**: enriched hero (type icon, title, creator link, trust signals: downloads, rating+reviews, views, followers, last updated, version), a working **action bar** (Save/bookmark via `/api/bookmarks`, Share via Web Share/clipboard, Follow creator, Purchase→`/api/stripe/checkout/listing` for paid / "Get it free"→GitHub for free), **Installation** (`git clone` + copy), **Documentation** (README via `react-markdown`+`remark-gfm`), schema-backed **Version History** + **Reviews** with proper empty states, a **Creator card** (real follower/product/download/rating stats + Follow + profile link), and **Related** (more-from-creator / similar).
+- Also added `payment_method_types=card` to the listing checkout route (same fix as the subscription route).
+- **Verified in browser** (logged in): hero + trust stats render; Installation `git clone` + Documentation render; **Save → Saved** (DB bookmark) and **Follow → Following** (count 0→1) both work; no errors. Video reviewed.
+- **Honest gaps (not faked):**
+  - Items needing **new schema + creator UIs** → future cycles: multi-platform install command definitions (npm/pip/docker/MCP/Cursor/Claude), creator-managed **FAQ**, **compatibility matrix**, media **video/GIF** gallery, review **helpful votes / creator responses / verified-purchase** badges, and creator **social links** (website/GitHub/Discord/LinkedIn/X). Rendered as empty states or omitted, not placeholders.
+  - **Data quality:** the demo listing's `readme` is a GitHub-scanner file dump, not real markdown, so Documentation shows a plain text block. The renderer is correct; the ingestion output needs to store real README markdown (Agent 8 / scan-repo).
+  - Hero follower stat and creator-card follower stat both read the same server value and reconcile on refresh (can momentarily differ during the optimistic follow).
+
 ### Cycle 7 — Homepage search (UI, ui-ux-pro-max) ✅
 - Ran the `ui-ux-pro-max` skill (`--design-system`): confirmed the **Marketplace/Directory** pattern (search-focused hero). Kept the established **dark-luxury gold** brand + DM Sans (the skill's auto palette/fonts were purple/serif and off-brand) and applied its professional-UI rules.
 - Made the homepage hero search **functional**: it was a dead input; now a GET form to `/search?query=…`, and the "Popular:" chips link to pre-filled queries.
