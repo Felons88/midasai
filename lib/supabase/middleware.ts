@@ -53,8 +53,11 @@ export async function updateSession(request: NextRequest) {
     '/developer',
   ]
 
-  const isProtected = protectedPaths.some(path => 
-    request.nextUrl.pathname.startsWith(path)
+  // Match on path segment boundaries so e.g. the protected `/creator` prefix
+  // does not also capture the public `/creators/[id]` marketing pages.
+  const { pathname } = request.nextUrl
+  const isProtected = protectedPaths.some(path =>
+    pathname === path || pathname.startsWith(path + '/')
   )
 
   if (!user && isProtected) {

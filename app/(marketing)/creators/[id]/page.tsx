@@ -1,9 +1,28 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { User, MapPin, Link as LinkIcon, Calendar, Star } from "lucide-react"
+import { User, Link as LinkIcon, Star } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { FollowButton } from "@/components/creator/follow-button"
+
+async function getFollowState(creatorId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { isAuthenticated: false, isFollowing: false }
+  }
+
+  const { data: follow } = await supabase
+    .from('follows')
+    .select('follower_id')
+    .eq('follower_id', user.id)
+    .eq('following_id', creatorId)
+    .maybeSingle()
+
+  return { isAuthenticated: true, isFollowing: !!follow }
+}
 
 async function getCreator(userId: string) {
   try {
@@ -119,6 +138,7 @@ export default async function CreatorProfilePage({
 
   const listings = await getCreatorListings(id)
   const stats = await getCreatorStats(id)
+  const followState = await getFollowState(id)
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -182,7 +202,11 @@ export default async function CreatorProfilePage({
 
                   {/* Actions */}
                   <div className="flex gap-3">
-                    <FollowButton creatorId={id} />
+                    <FollowButton
+                      creatorId={id}
+                      isAuthenticated={followState.isAuthenticated}
+                      initialIsFollowing={followState.isFollowing}
+                    />
                     {creator.website && (
                       <Button variant="outline" asChild>
                     <a href={creator.website} target="_blank" rel="noopener noreferrer">
@@ -246,38 +270,5 @@ export default async function CreatorProfilePage({
         </div>
       </div>
     </div>
-  )
-}
-
-async function FollowButton({ creatorId }: { creatorId: string }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    return (
-      <Button variant="outline" asChild>
-        <Link href="/auth/login">Follow</Link>
-      </Button>
-    )
-  }
-
-  // Check if already following
-  const { data: follow } = await supabase
-    .from('follows')
-    .select('*')
-    .eq('follower_id', user.id)
-    .eq('following_id', creatorId)
-    .single()
-
-  const isFollowing = !!follow
-
-  return (
-    <form action={isFollowing ? `/api/follows?followingId=${creatorId}` : '/api/follows'} method={isFollowing ? 'DELETE' : 'POST'}>
-      {isFollowing && <input type="hidden" name="followingId" value={creatorId} />}
-      {!isFollowing && <input type="hidden" name="followingId" value={creatorId} />}
-      <Button type="submit" variant={isFollowing ? 'outline' : 'default'}>
-        {isFollowing ? 'Following' : 'Follow'}
-      </Button>
-    </form>
   )
 }
