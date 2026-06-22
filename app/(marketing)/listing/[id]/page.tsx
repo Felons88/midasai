@@ -5,7 +5,14 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 async function getListing(id: string) {
+  // Skip the query (and a needless Postgres type error) for ids that can't be a UUID.
+  if (!UUID_RE.test(id)) {
+    return null
+  }
+
   try {
     const supabase = await createClient()
     const { data: listing, error } = await supabase

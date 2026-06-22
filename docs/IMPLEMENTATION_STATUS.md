@@ -13,6 +13,10 @@ Living status log for the autonomous execution cycles. Updated after each cycle.
 - Mapped routes (71 pages / 49 API), probed all public routes (all 200), inspected DB schema + row counts.
 - Authored `docs/GAP_ANALYSIS.md`, `docs/DESIGN.md`, this file.
 
+### Cycle 3 — Listing not-found hardening (F3, partial) ✅/⚠️
+- Added a UUID-format guard in the listing route so malformed ids stop hitting Postgres (removes `Error fetching listing` log noise) while still rendering the not-found UI. **Verified** via `curl` + dev log.
+- Attempted to fix the not-found **HTTP status** (returns 200 instead of 404) via `generateMetadata`+`notFound()`; it did **not** change the dev status (root `loading.tsx` streams a 200 first), so that part was reverted. F3 status-code remains OPEN — see `GAP_ANALYSIS.md`.
+
 ### Cycle 2 — Manual listing upload (F2) ✅
 - Implemented `/creator/upload/manual` form wired to the existing `POST /api/listings/create`.
 - Enabled the previously "Coming Soon" Manual Upload action on `/creator/upload`.
