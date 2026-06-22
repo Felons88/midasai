@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { createBrowserSupabaseClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Key, ArrowLeft, Copy, Check, AlertTriangle } from "lucide-react"
 import Link from "next/link"
@@ -14,40 +13,44 @@ export default function NewApiKeyPage() {
   const [name, setName] = useState("")
   const [permissions, setPermissions] = useState<string[]>(["read"])
   const [rateLimit, setRateLimit] = useState(1000)
+  const [error, setError] = useState("")
+  const [limitReached, setLimitReached] = useState(false)
   const router = useRouter()
-  const supabase = createBrowserSupabaseClient()
 
   const handleCreateKey = async () => {
     if (!name.trim()) return
 
     setLoading(true)
+    setError("")
+    setLimitReached(false)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("Not authenticated")
-
-      // Generate a secure API key
-      const rawKey = `midas_${Buffer.from(Date.now().toString()).toString('base64')}_${Buffer.from(Math.random().toString()).toString('base64').substring(0, 32)}`
-      
-      // Hash the key for storage (using a simple hash for now - in production use bcrypt)
-      const hashedKey = Buffer.from(rawKey).toString('base64')
-      const keyPrefix = rawKey.substring(0, 8)
-
-      const { error } = await supabase.from('api_keys').insert({
-        user_id: user.id,
-        name: name.trim(),
-        hashed_key: hashedKey,
-        key_prefix: keyPrefix,
-        permissions: permissions,
-        rate_limit: rateLimit,
-        status: 'ACTIVE',
+      // Go through the server route so plan limits are enforced and the key is
+      // generated + hashed (SHA-256) server-side and returned exactly once.
+      const res = await fetch("/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), permissions, rateLimit }),
       })
+      const data = await res.json()
 
-      if (error) throw error
+      if (!res.ok) {
+        if (data?.error === "limit_exceeded") {
+          setLimitReached(true)
+          setError(
+            data.message ||
+              `You've reached your plan limit (${data.currentCount}/${data.limit} API keys).`
+          )
+        } else {
+          setError(data?.error || "Failed to create API key")
+        }
+        setLoading(false)
+        return
+      }
 
-      setApiKey(rawKey)
-    } catch (error) {
-      console.error('Error creating API key:', error)
-      alert('Failed to create API key')
+      setApiKey(data.key?.raw ?? null)
+    } catch (err) {
+      console.error("Error creating API key:", err)
+      setError("Failed to create API key")
     } finally {
       setLoading(false)
     }
@@ -175,6 +178,18 @@ export default function NewApiKeyPage() {
           />
           <p className="text-xs text-white/40 mt-1">Maximum requests per hour for this key</p>
         </div>
+
+        {/* Error / limit message */}
+        {error && (
+          <div className={`p-4 rounded-lg border text-sm ${limitReached ? 'border-amber-500/30 bg-amber-500/[0.05] text-amber-400' : 'border-red-500/30 bg-red-500/[0.05] text-red-400'}`}>
+            <p>{error}</p>
+            {limitReached && (
+              <Link href="/pricing" className="inline-block mt-2 underline hover:no-underline">
+                View upgrade options
+              </Link>
+            )}
+          </div>
+        )}
 
         {/* Create Button */}
         <Button
