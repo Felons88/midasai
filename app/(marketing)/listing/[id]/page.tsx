@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
   Download, Star, ArrowLeft, Eye, Clock, Code2, Scale, Tag, Package,
-  Sparkles, Server, Bot, LayoutTemplate, Plug, BookOpen, History, MessageSquare, User,
+  Sparkles, Server, Bot, LayoutTemplate, Plug, BookOpen, History, MessageSquare, User, BadgeCheck,
 } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -65,10 +65,23 @@ async function getReviews(listingId: string) {
   const svc = createServiceClient()
   const { data } = await svc
     .from("reviews")
-    .select("id, rating, comment, created_at, users(name, avatar_url)")
+    .select("id, user_id, rating, comment, created_at, users(name, avatar_url)")
     .eq("listing_id", listingId)
     .order("created_at", { ascending: false })
-  return data || []
+  const reviews = data || []
+  if (reviews.length === 0) return reviews
+
+  // Mark verified reviews from real purchase/download records (no schema needed).
+  const [{ data: txs }, { data: dls }] = await Promise.all([
+    svc.from("transactions").select("user_id").eq("listing_id", listingId).eq("status", "COMPLETED"),
+    svc.from("downloads").select("user_id").eq("listing_id", listingId),
+  ])
+  const purchasers = new Set((txs || []).map((t: any) => t.user_id))
+  const downloaders = new Set((dls || []).map((d: any) => d.user_id))
+  return reviews.map((r: any) => ({
+    ...r,
+    verified: purchasers.has(r.user_id) ? "purchase" : downloaders.has(r.user_id) ? "download" : null,
+  }))
 }
 
 async function getVersions(listingId: string) {
@@ -318,6 +331,11 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                           <div className="flex items-center gap-3 mb-2">
                             <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-text-primary text-sm font-medium">{r.users?.name?.charAt(0) || "?"}</div>
                             <span className="font-medium text-text-primary">{r.users?.name || "Anonymous"}</span>
+                            {r.verified && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                                <BadgeCheck className="h-3 w-3" />Verified {r.verified === "purchase" ? "Purchase" : "Download"}
+                              </span>
+                            )}
                             <div className="flex items-center gap-0.5">
                               {[...Array(5)].map((_, i) => (
                                 <Star key={i} className={`h-3.5 w-3.5 ${i < r.rating ? "fill-cta text-cta" : "text-text-tertiary"}`} />
