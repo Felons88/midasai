@@ -13,6 +13,13 @@ Living status log for the autonomous execution cycles. Updated after each cycle.
 - Mapped routes (71 pages / 49 API), probed all public routes (all 200), inspected DB schema + row counts.
 - Authored `docs/GAP_ANALYSIS.md`, `docs/DESIGN.md`, this file.
 
+### Cycle 13 — Dashboard real-data / de-faked (Phase 13) ✅
+- The dashboard was already dense/operational, so this cycle fixed **fake & broken data** rather than layout:
+  - Real **followers** count (was hardcoded `0`).
+  - Fixed the **Marketplace Spotlight** query (it selected non-existent `rating_count`/`category` columns → errored → stuck on skeleton placeholders forever); now uses `review_count`, filtered to `ACTIVE`.
+  - Replaced the **`Math.random()` analytics chart** with **real daily download counts** (last 30 days) and removed the **fabricated per-card sparklines** — no fake analytics.
+- **Verified in browser**: all sections render; Marketplace Spotlight shows real listings (not skeletons); analytics chart reflects real (currently zero) activity; no broken/empty containers.
+
 ### Cycle 11 — Creator-economy profile (Phase 5) ✅
 - Migration `20260623000000_creator_profile_fields.sql`: added `users` bio/website/github_username/twitter_username/linkedin_url/discord_url + a self-update RLS policy (none existed, so profile edits were blocked). Applied to the linked project.
 - Rebuilt `/creators/[id]`: bio + social links (website/GitHub/X/LinkedIn/Discord), public stats (products/followers/following/downloads/rating), owner-only metrics strip (revenue from `transactions.net_amount`/downloads/products/reviews), public **activity feed** (`activity_feed`), portfolio grid, and an owner-only inline **profile editor** (updates via the new RLS policy).
