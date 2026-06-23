@@ -1,127 +1,69 @@
-import { Search, ArrowUpDown } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Star, SearchX } from "lucide-react"
+import Link from "next/link"
+import { Suspense } from "react"
 import { LoadingGrid } from "@/components/ui/loading"
 import { createClient } from "@/lib/supabase/server"
-import { Suspense } from "react"
+import { SearchControls } from "./search-controls"
 
-async function getCategories() {
+const VALID_TYPES = new Set(["SKILL", "WORKFLOW", "TEMPLATE", "PLUGIN", "MCP", "AGENT"])
+
+type Params = {
+  query?: string; type?: string; sort?: string
+  minPrice?: string; maxPrice?: string; minRating?: string; tag?: string
+}
+
+async function getListings(p?: Params) {
   try {
     const supabase = await createClient()
-    const { data: categories, error } = await supabase
-      .from('categories')
-      .select('*')
-    
+    let query = supabase.from("listings").select("*").eq("status", "ACTIVE")
+
+    if (p?.query) query = query.or(`title.ilike.%${p.query}%,description.ilike.%${p.query}%`)
+    if (p?.type && VALID_TYPES.has(p.type)) query = query.eq("type", p.type)
+    if (p?.tag) query = query.contains("tags", [p.tag])
+    if (p?.minPrice) query = query.gte("price", parseFloat(p.minPrice))
+    if (p?.maxPrice) query = query.lte("price", parseFloat(p.maxPrice))
+    if (p?.minRating) query = query.gte("average_rating", parseFloat(p.minRating))
+
+    switch (p?.sort) {
+      case "price-low": query = query.order("price", { ascending: true }); break
+      case "price-high": query = query.order("price", { ascending: false }); break
+      case "newest": query = query.order("created_at", { ascending: false }); break
+      case "updated": query = query.order("updated_at", { ascending: false }); break
+      case "rating": query = query.order("average_rating", { ascending: false }); break
+      case "reviews": query = query.order("review_count", { ascending: false }); break
+      default: query = query.order("downloads", { ascending: false }) // downloads + trending
+    }
+
+    const { data, error } = await query
     if (error) {
-      console.error('Error fetching categories:', error)
+      console.error("Error fetching listings:", error)
       return []
     }
-    
-    return categories || []
-  } catch (error) {
-    console.error('Error in getCategories:', error)
+    return data || []
+  } catch (e) {
+    console.error("Error in getListings:", e)
     return []
   }
 }
 
-async function getListings(searchParams?: { query?: string; type?: string; sort?: string; minPrice?: string; maxPrice?: string; minRating?: string }) {
-  try {
-    const supabase = await createClient()
-    
-    let query = supabase
-      .from('listings')
-      .select('*')
-      .eq('status', 'ACTIVE')
-    
-    if (searchParams?.query) {
-      query = query.or(`title.ilike.%${searchParams.query}%,description.ilike.%${searchParams.query}%`)
-    }
-    
-    if (searchParams?.type) {
-      query = query.eq('type', searchParams.type)
-    }
-    
-    // Price range filter
-    if (searchParams?.minPrice) {
-      query = query.gte('price', parseFloat(searchParams.minPrice))
-    }
-    if (searchParams?.maxPrice) {
-      query = query.lte('price', parseFloat(searchParams.maxPrice))
-    }
-    
-    // Rating filter
-    if (searchParams?.minRating) {
-      query = query.gte('average_rating', parseFloat(searchParams.minRating))
-    }
-    
-    // Sort by different criteria
-    if (searchParams?.sort === 'downloads') {
-      query = query.order('downloads', { ascending: false })
-    } else if (searchParams?.sort === 'price-low') {
-      query = query.order('price', { ascending: true })
-    } else if (searchParams?.sort === 'price-high') {
-      query = query.order('price', { ascending: false })
-    } else if (searchParams?.sort === 'newest') {
-      query = query.order('created_at', { ascending: false })
-    } else if (searchParams?.sort === 'rating') {
-      query = query.order('average_rating', { ascending: false })
-    } else if (searchParams?.sort === 'reviews') {
-      query = query.order('review_count', { ascending: false })
-    } else {
-      query = query.order('downloads', { ascending: false })
-    }
-    
-    const { data: listings, error } = await query
-    
-    if (error) {
-      console.error('Error fetching listings:', error)
-      return []
-    }
-    
-    return listings || []
-  } catch (error) {
-    console.error('Error in getListings:', error)
-    return []
-  }
-}
-
-export default async function SearchPage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ query?: string; type?: string; sort?: string; minPrice?: string; maxPrice?: string; minRating?: string }>
-}) {
-  const resolvedParams = searchParams ? await searchParams : undefined
-  const categories = await getCategories()
-  const listings = await getListings(resolvedParams)
-  
+export default async function SearchPage({ searchParams }: { searchParams?: Promise<Params> }) {
+  const resolved = searchParams ? await searchParams : undefined
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <div className="ambient-glow" />
       <div className="noise-overlay" />
-      
       <div className="container mx-auto px-4 py-12 relative">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-bold mb-12 text-text-primary animate-fade-in-up">Search</h1>
-          
-          <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            <form className="relative">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-tertiary" />
-              <Input
-                type="search"
-                placeholder="Search for skills, plugins, agents..."
-                className="h-14 pl-12 text-lg"
-                defaultValue={resolvedParams?.query}
-                name="query"
-              />
-              <Button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 h-10">
-                Search
-              </Button>
-            </form>
+          <h1 className="text-4xl md:text-5xl font-bold mb-8 text-text-primary">Explore the Marketplace</h1>
+
+          <div className="mb-10">
+            <SearchControls />
           </div>
 
-          <Suspense fallback={<LoadingGrid count={6} />}>
-            <SearchResults resolvedParams={resolvedParams} />
+          <Suspense key={JSON.stringify(resolved)} fallback={<LoadingGrid count={6} />}>
+            <SearchResults resolved={resolved} />
           </Suspense>
         </div>
       </div>
@@ -129,126 +71,58 @@ export default async function SearchPage({
   )
 }
 
-async function SearchResults({ resolvedParams }: { resolvedParams?: { query?: string; type?: string; sort?: string; minPrice?: string; maxPrice?: string; minRating?: string } }) {
-  const categories = await getCategories()
-  const listings = await getListings(resolvedParams)
+async function SearchResults({ resolved }: { resolved?: Params }) {
+  const listings = await getListings(resolved)
+
+  if (listings.length === 0) {
+    return (
+      <div className="text-center py-24">
+        <SearchX className="h-12 w-12 text-text-tertiary mx-auto mb-4" />
+        <p className="text-xl text-text-secondary mb-2">No listings match your filters</p>
+        <p className="text-text-tertiary">Try a different search term, type, or price range.</p>
+      </div>
+    )
+  }
 
   return (
     <>
-      <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-text-primary">Filters</h2>
-          <div className="flex items-center gap-2">
-            <ArrowUpDown className="h-4 w-4 text-text-tertiary" />
-            <select
-              name="sort"
-              defaultValue={resolvedParams?.sort || 'downloads'}
-              className="bg-surface border border-white/10 rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-cta"
-            >
-              <option value="downloads">Most Popular</option>
-              <option value="newest">Newest</option>
-              <option value="rating">Highest Rated</option>
-              <option value="reviews">Most Reviews</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-            </select>
-          </div>
-        </div>
-        
-        {/* Type Filters */}
-        <div className="flex gap-3 flex-wrap mb-4">
-          <Button variant={!resolvedParams?.type ? 'default' : 'outline'} className="transition-smooth" asChild>
-            <a href="/search">All Types</a>
-          </Button>
-          {categories.map((category: any) => (
-            <Button 
-              key={category.id} 
-              variant={resolvedParams?.type === category.name ? 'default' : 'outline'}
-              className="transition-smooth"
-              asChild
-            >
-              <a href={`/search?type=${category.name}&sort=${resolvedParams?.sort || 'downloads'}&minPrice=${resolvedParams?.minPrice || ''}&maxPrice=${resolvedParams?.maxPrice || ''}&minRating=${resolvedParams?.minRating || ''}`}>{category.name}</a>
-            </Button>
-          ))}
-        </div>
-
-        {/* Price Range Filter */}
-        <div className="flex gap-3 items-center mb-4">
-          <span className="text-sm text-text-tertiary">Price:</span>
-          <Input
-            type="number"
-            placeholder="Min"
-            name="minPrice"
-            defaultValue={resolvedParams?.minPrice}
-            className="w-24 h-9"
-            min="0"
-          />
-          <span className="text-text-tertiary">-</span>
-          <Input
-            type="number"
-            placeholder="Max"
-            name="maxPrice"
-            defaultValue={resolvedParams?.maxPrice}
-            className="w-24 h-9"
-            min="0"
-          />
-        </div>
-
-        {/* Rating Filter */}
-        <div className="flex gap-3 items-center">
-          <span className="text-sm text-text-tertiary">Min Rating:</span>
-          <select
-            name="minRating"
-            defaultValue={resolvedParams?.minRating || ''}
-            className="bg-surface border border-white/10 rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-cta"
-          >
-            <option value="">Any</option>
-            <option value="4">4+ Stars</option>
-            <option value="3">3+ Stars</option>
-            <option value="2">2+ Stars</option>
-            <option value="1">1+ Stars</option>
-          </select>
-        </div>
+      <div className="mb-4 text-sm text-text-tertiary">
+        {listings.length} {listings.length === 1 ? "result" : "results"}
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-        {listings.map((listing: any, index: number) => (
-          <Card key={listing.id} className="glass hover:shadow-glow transition-smooth group" style={{ animationDelay: `${index * 0.05}s` }}>
-            <CardHeader className="space-y-4">
-              <div className="aspect-video bg-surface rounded-xl flex items-center justify-center overflow-hidden">
-                {listing.images && listing.images.length > 0 ? (
-                  <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-smooth" />
-                ) : (
-                  <span className="text-text-tertiary text-sm">Preview</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {listings.map((l: any) => (
+          <Card key={l.id} className="glass hover:shadow-glow transition-smooth group flex flex-col">
+            <CardContent className="p-5 flex flex-col flex-1">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold uppercase tracking-wide text-cta bg-cta/10 px-2 py-0.5 rounded">{l.type}</span>
+                {l.average_rating > 0 && (
+                  <span className="flex items-center gap-1 text-sm text-text-secondary">
+                    <Star className="h-3.5 w-3.5 fill-cta text-cta" />{Number(l.average_rating).toFixed(1)}
+                    <span className="text-text-tertiary">({l.review_count})</span>
+                  </span>
                 )}
               </div>
-              <CardTitle className="text-2xl text-text-primary">{listing.title}</CardTitle>
-              <CardDescription className="text-base text-text-secondary">{listing.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <span className="text-3xl font-bold text-text-primary">${listing.price}</span>
-                <Button className="group-hover:shadow-glow transition-smooth" asChild>
-                  <a href={`/listing/${listing.id}`}>View Details</a>
+              <Link href={`/listing/${l.id}`} className="block">
+                <h3 className="text-lg font-semibold text-text-primary mb-1 line-clamp-1 group-hover:text-cta transition-colors">{l.title}</h3>
+              </Link>
+              <p className="text-sm text-text-secondary line-clamp-2 mb-4 flex-1">{l.description}</p>
+              {Array.isArray(l.tags) && l.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {l.tags.slice(0, 3).map((t: string) => (
+                    <Link key={t} href={`/search?tag=${encodeURIComponent(t)}`} className="text-xs bg-white/[0.06] text-text-secondary px-2 py-0.5 rounded hover:text-text-primary transition-colors">#{t}</Link>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center justify-between mt-auto">
+                <span className="text-xl font-bold text-text-primary">{l.price > 0 ? `$${l.price}` : "Free"}</span>
+                <Button size="sm" className="group-hover:shadow-glow transition-smooth" asChild>
+                  <Link href={`/listing/${l.id}`}>View</Link>
                 </Button>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
-      
-      {listings.length === 0 && (
-        <div className="text-center py-24 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-          <p className="text-xl text-text-secondary mb-4">No listings found matching your criteria.</p>
-          <p className="text-text-tertiary">Try adjusting your search terms or filters</p>
-        </div>
-      )}
-      
-      {listings.length > 0 && (
-        <div className="mt-8 text-center text-text-tertiary animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-          Found {listings.length} {listings.length === 1 ? 'listing' : 'listings'}
-        </div>
-      )}
     </>
   )
 }
