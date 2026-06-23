@@ -36,7 +36,7 @@ async function getDashboardData(userId: string) {
     supabase.from('transactions').select('amount').eq('creator_id', userId).eq('status', 'COMPLETED').gte('created_at', thirtyDaysAgo),
     supabase.from('subscriptions').select('tier, status, current_period_start, current_period_end, stripe_price_id').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('activity_feed').select('*').eq('is_public', true).order('created_at', { ascending: false }).limit(10),
-    supabase.from('listings').select('id, title, price, downloads, average_rating, review_count, created_at').order('downloads', { ascending: false }).limit(6),
+    supabase.from('listings').select('id, title, price, downloads, average_rating, review_count, created_at').eq('status', 'ACTIVE').order('downloads', { ascending: false }).limit(6),
     supabase.from('notifications').select('id, title, message, type, priority, read_at, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(8),
     supabase.from('api_keys').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'ACTIVE'),
     supabase.from('webhooks').select('id', { count: 'exact', head: true }).eq('user_id', userId),
