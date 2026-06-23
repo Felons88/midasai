@@ -208,7 +208,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 {/* Trust signals */}
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-6">
                   <Stat icon={Download} label="downloads" value={(listing.downloads || 0).toLocaleString()} />
-                  <Stat icon={Star} label={`(${reviewCount} reviews)`} value={avgRating.toFixed(1)} />
+                  <Stat icon={Star} label={`(${reviewCount} ${reviewCount === 1 ? "review" : "reviews"})`} value={avgRating.toFixed(1)} />
                   <Stat icon={Eye} label="views" value={(listing.views || 0).toLocaleString()} />
                   <Stat icon={User} label="followers" value={stats.followerCount.toLocaleString()} />
                   <Stat icon={Clock} label="updated" value={new Date(listing.updated_at).toLocaleDateString()} />

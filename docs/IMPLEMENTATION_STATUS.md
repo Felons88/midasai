@@ -13,6 +13,12 @@ Living status log for the autonomous execution cycles. Updated after each cycle.
 - Mapped routes (71 pages / 49 API), probed all public routes (all 200), inspected DB schema + row counts.
 - Authored `docs/GAP_ANALYSIS.md`, `docs/DESIGN.md`, this file.
 
+### Cycle 9 — Reviews write path fixed + UI (social proof) ✅
+- **Broken→Fixed:** `POST /api/reviews` inserted non-existent `title`/`content` columns (table only has `comment`) so reviews never saved; aggregate rating update ran as the reviewer but `listings` UPDATE is creator-only under RLS, so ratings never changed. Now inserts `comment`, updates the aggregate via the **service client**, and allows **free listings** to be reviewed without a purchase (paid still gated). `reviewSchema` relaxed (`title` optional, `content` ≥10).
+- Added a **Write-a-review** form (interactive star rating + text) on the listing page wired to the API with refresh-on-success and a duplicate-review guard.
+- **Verified end-to-end + DB:** submitted a 5★ review on the free "Midasai" listing → appears in the list, heading "Reviews (1)", hero rating → 5.0; DB shows `reviews` row + `listings.average_rating=5.00, review_count=1`. Video reviewed.
+- **Known minor:** the creator-card "Avg Rating" (a secondary, creator-wide aggregate) can lag until a full reload after a soft `router.refresh()`; the listing's own hero rating updates immediately. Review votes / creator responses / verified-purchase badges still pending schema (F10).
+
 ### Cycle 8 — Listing detail rebuilt as a conversion page (Phase 4) ✅
 - Rebuilt `/listing/[id]` for conversion on **real data**: enriched hero (type icon, title, creator link, trust signals: downloads, rating+reviews, views, followers, last updated, version), a working **action bar** (Save/bookmark via `/api/bookmarks`, Share via Web Share/clipboard, Follow creator, Purchase→`/api/stripe/checkout/listing` for paid / "Get it free"→GitHub for free), **Installation** (`git clone` + copy), **Documentation** (README via `react-markdown`+`remark-gfm`), schema-backed **Version History** + **Reviews** with proper empty states, a **Creator card** (real follower/product/download/rating stats + Follow + profile link), and **Related** (more-from-creator / similar).
 - Also added `payment_method_types=card` to the listing checkout route (same fix as the subscription route).
