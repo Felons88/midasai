@@ -48,8 +48,11 @@ async function getListings(p?: Params) {
   }
 }
 
-export default async function SearchPage({ searchParams }: { searchParams?: Promise<Params> }) {
-  const resolved = searchParams ? await searchParams : undefined
+// NOTE: intentionally NOT async / no top-level `await searchParams`. Awaiting here
+// would suspend the whole route segment on every filter change and show the
+// full-page route loader. Instead the shell renders immediately and only the
+// results stream inside the nested Suspense for an instant-feeling experience.
+export default function SearchPage({ searchParams }: { searchParams?: Promise<Params> }) {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <div className="ambient-glow" />
@@ -62,8 +65,8 @@ export default async function SearchPage({ searchParams }: { searchParams?: Prom
             <SearchControls />
           </div>
 
-          <Suspense key={JSON.stringify(resolved)} fallback={<LoadingGrid count={6} />}>
-            <SearchResults resolved={resolved} />
+          <Suspense fallback={<LoadingGrid count={6} />}>
+            <SearchResults searchParamsPromise={searchParams} />
           </Suspense>
         </div>
       </div>
@@ -71,7 +74,8 @@ export default async function SearchPage({ searchParams }: { searchParams?: Prom
   )
 }
 
-async function SearchResults({ resolved }: { resolved?: Params }) {
+async function SearchResults({ searchParamsPromise }: { searchParamsPromise?: Promise<Params> }) {
+  const resolved = searchParamsPromise ? await searchParamsPromise : undefined
   const listings = await getListings(resolved)
 
   if (listings.length === 0) {
