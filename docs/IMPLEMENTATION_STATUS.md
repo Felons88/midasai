@@ -13,6 +13,14 @@ Living status log for the autonomous execution cycles. Updated after each cycle.
 - Mapped routes (71 pages / 49 API), probed all public routes (all 200), inspected DB schema + row counts.
 - Authored `docs/GAP_ANALYSIS.md`, `docs/DESIGN.md`, this file.
 
+### Cycle 11 — Creator-economy profile (Phase 5) ✅
+- Migration `20260623000000_creator_profile_fields.sql`: added `users` bio/website/github_username/twitter_username/linkedin_url/discord_url + a self-update RLS policy (none existed, so profile edits were blocked). Applied to the linked project.
+- Rebuilt `/creators/[id]`: bio + social links (website/GitHub/X/LinkedIn/Discord), public stats (products/followers/following/downloads/rating), owner-only metrics strip (revenue from `transactions.net_amount`/downloads/products/reviews), public **activity feed** (`activity_feed`), portfolio grid, and an owner-only inline **profile editor** (updates via the new RLS policy).
+- **Verified in browser** as the owner: owner metrics + Edit button shown (no Follow on own profile); edited bio/website/GitHub → saved → bio text + Website/GitHub social buttons rendered (end-to-end persistence). Screenshot captured (the cycle's screen recording failed to save).
+
+### Cycle 12 — Schema-enabled listing features — ⏸ BLOCKED (Supabase MCP needs re-auth)
+- Review responses/verified-purchase badges, creator FAQ, and multi-platform install-command definitions all require new columns/tables (DDL). DDL is applied via the Supabase MCP `apply_migration`, which is currently in `needsAuth`. No DB password is available and the service-role key can't run DDL via PostgREST, so this cycle can't proceed until the MCP is re-authenticated in Cursor.
+
 ### Cycle 10 — Marketplace-grade Search & Filters (Phase 7) ✅
 - **Broken→Fixed:** the old search page's sort/price/rating controls were outside any form (non-functional), and the type filter sent category names (e.g. "Claude Skills") instead of the `listings.type` enum (`SKILL`…), so it matched **zero** results.
 - Rebuilt as an **instant client-side** experience (`MarketplaceSearch`): free-text (title/description/tags), enum **type pills**, **sort** (most-downloaded/trending/recently-updated/newest/rating/reviews/price), **price range**, **min rating**, and clickable **tag** filtering — all in-memory over a server-provided active-listings dataset, with the URL kept shareable via `history.replaceState`.
