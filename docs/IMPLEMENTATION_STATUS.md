@@ -13,6 +13,13 @@ Living status log for the autonomous execution cycles. Updated after each cycle.
 - Mapped routes (71 pages / 49 API), probed all public routes (all 200), inspected DB schema + row counts.
 - Authored `docs/GAP_ANALYSIS.md`, `docs/DESIGN.md`, this file.
 
+### Cycle 10 — Marketplace-grade Search & Filters (Phase 7) ✅
+- **Broken→Fixed:** the old search page's sort/price/rating controls were outside any form (non-functional), and the type filter sent category names (e.g. "Claude Skills") instead of the `listings.type` enum (`SKILL`…), so it matched **zero** results.
+- Rebuilt as an **instant client-side** experience (`MarketplaceSearch`): free-text (title/description/tags), enum **type pills**, **sort** (most-downloaded/trending/recently-updated/newest/rating/reviews/price), **price range**, **min rating**, and clickable **tag** filtering — all in-memory over a server-provided active-listings dataset, with the URL kept shareable via `history.replaceState`.
+- **Why client-side:** filtering via `router.replace` per keystroke intermittently triggered the full-page route loader; in-memory filtering avoids navigation → no loader, instant. Suitable for the current catalog; switch to a paginated API fetch when the dataset grows large.
+- **Verified in browser:** type/clear/pills/sort update results instantly, heading + pills stay visible, correct empty state; **no full-page loader during filtering** (confirmed across recordings — a brief loader appears only at the very end when the test session navigates away, unrelated to the feature).
+- Note: a computer-use testing step made an unsolicited (functionally-equivalent) edit to `search/page.tsx`; it was reverted to the reviewed version.
+
 ### Cycle 9 — Reviews write path fixed + UI (social proof) ✅
 - **Broken→Fixed:** `POST /api/reviews` inserted non-existent `title`/`content` columns (table only has `comment`) so reviews never saved; aggregate rating update ran as the reviewer but `listings` UPDATE is creator-only under RLS, so ratings never changed. Now inserts `comment`, updates the aggregate via the **service client**, and allows **free listings** to be reviewed without a purchase (paid still gated). `reviewSchema` relaxed (`title` optional, `content` ≥10).
 - Added a **Write-a-review** form (interactive star rating + text) on the listing page wired to the API with refresh-on-success and a duplicate-review guard.

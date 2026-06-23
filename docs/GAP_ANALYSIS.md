@@ -111,4 +111,7 @@ All 28 probed public marketing routes returned **200** (`/`, `/about`, `/agents`
   - Creator **social links** (website/GitHub/Discord/LinkedIn/X) and **bio** — `users` has none; needs profile columns.
 - **Data quality:** GitHub scan-repo stores a file-listing dump as `readme` instead of real README markdown → Documentation renders as plain text. Fix at ingestion (Agent 8).
 
-Areas still needing deeper per-feature verification (not yet exhaustively audited): notifications realtime delivery, reviews write path, collections, admin moderation actions, and edge-function deployment parity with the Next API routes.
+### F11 — Search & filters non-functional — **FIXED (Phase 7)**
+- Sort/price/rating controls were outside any form (did nothing); type filter used category names vs the `type` enum (0 results). Rebuilt as instant client-side filtering (text/type/sort/price/rating/tag) over a server dataset, URL synced via `history.replaceState`. Verified loader-free. Scale note: move to a paginated API when the catalog grows.
+
+Areas still needing deeper per-feature verification (not yet exhaustively audited): notifications realtime delivery, collections, admin moderation actions, and edge-function deployment parity with the Next API routes.
