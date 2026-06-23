@@ -88,12 +88,11 @@ export const reviewSchema = z.object({
   rating: z.number()
     .min(1, 'Rating must be at least 1')
     .max(5, 'Rating must be at most 5'),
-  title: z.string()
-    .min(5, 'Title must be at least 5 characters')
-    .max(100, 'Title must be less than 100 characters'),
+  // `title` is optional and not persisted (the reviews table only stores `comment`).
+  title: z.string().max(100, 'Title must be less than 100 characters').optional(),
   content: z.string()
-    .min(20, 'Review must be at least 20 characters')
-    .max(1000, 'Review must be less than 1000 characters'),
+    .min(10, 'Review must be at least 10 characters')
+    .max(2000, 'Review must be less than 2000 characters'),
 })
 
 // GitHub schemas

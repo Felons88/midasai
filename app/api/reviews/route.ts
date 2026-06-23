@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateBody, reviewSchema } from '@/lib/validation/schemas'
 
 // POST /api/reviews - Create a review
@@ -15,42 +15,53 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = await validateBody(reviewSchema, body)
     
-    const { listing_id, rating, title, content } = validatedData
+    const { listing_id, rating, content } = validatedData
 
-    // Check if user has purchased the listing
-    const { data: purchase, error: purchaseError } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('listing_id', listing_id)
-      .eq('status', 'COMPLETED')
-      .single()
+    // Free listings can be reviewed by anyone; paid listings require a completed purchase.
+    const { data: listing } = await supabase
+      .from('listings')
+      .select('price')
+      .eq('id', listing_id)
+      .maybeSingle()
 
-    if (purchaseError || !purchase) {
-      return NextResponse.json({ error: 'You must purchase this listing before reviewing it' }, { status: 403 })
+    if (!listing) {
+      return NextResponse.json({ error: 'Listing not found' }, { status: 404 })
+    }
+
+    if (Number(listing.price) > 0) {
+      const { data: purchase } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('listing_id', listing_id)
+        .eq('status', 'COMPLETED')
+        .maybeSingle()
+
+      if (!purchase) {
+        return NextResponse.json({ error: 'You must purchase this listing before reviewing it' }, { status: 403 })
+      }
     }
 
     // Check if user has already reviewed this listing
     const { data: existingReview } = await supabase
       .from('reviews')
-      .select('*')
+      .select('id')
       .eq('user_id', user.id)
       .eq('listing_id', listing_id)
-      .single()
+      .maybeSingle()
 
     if (existingReview) {
       return NextResponse.json({ error: 'You have already reviewed this listing' }, { status: 400 })
     }
 
-    // Create the review
+    // Create the review (the table stores the review text in `comment`).
     const { data: review, error: reviewError } = await supabase
       .from('reviews')
       .insert({
         user_id: user.id,
         listing_id,
         rating,
-        title,
-        content,
+        comment: content,
       })
       .select(`
         *,
@@ -115,23 +126,23 @@ export async function GET(request: NextRequest) {
 }
 
 async function updateListingRating(listingId: string): Promise<void> {
-  const supabase = await createClient()
-  
-  // Get all reviews for the listing
+  // Use the service client: the reviewer is not the listing owner, and the
+  // listings UPDATE policy only allows the creator, so a user-context update
+  // of the aggregate rating would be silently blocked by RLS.
+  const supabase = createServiceClient()
+
   const { data: reviews } = await supabase
     .from('reviews')
     .select('rating')
     .eq('listing_id', listingId)
-  
+
   if (!reviews || reviews.length === 0) {
     return
   }
-  
-  // Calculate average rating
+
   const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0)
   const averageRating = totalRating / reviews.length
-  
-  // Update the listing
+
   await supabase
     .from('listings')
     .update({

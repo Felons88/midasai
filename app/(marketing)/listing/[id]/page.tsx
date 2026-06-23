@@ -12,6 +12,7 @@ import remarkGfm from "remark-gfm"
 import { createClient, createServiceClient } from "@/lib/supabase/server"
 import { InstallBlock } from "./install-block"
 import { ListingActions } from "./listing-actions"
+import { ReviewForm } from "./review-form"
 import { FollowButton } from "@/components/creator/follow-button"
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -94,12 +95,13 @@ async function getRelated(listing: any) {
 async function getViewerState(listingId: string, creatorId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { isAuthenticated: false, bookmarked: false, following: false }
-  const [{ data: bm }, { data: fl }] = await Promise.all([
+  if (!user) return { isAuthenticated: false, bookmarked: false, following: false, hasReviewed: false }
+  const [{ data: bm }, { data: fl }, { data: rv }] = await Promise.all([
     supabase.from("bookmarks").select("id").eq("user_id", user.id).eq("listing_id", listingId).maybeSingle(),
     supabase.from("follows").select("follower_id").eq("follower_id", user.id).eq("following_id", creatorId).maybeSingle(),
+    supabase.from("reviews").select("id").eq("user_id", user.id).eq("listing_id", listingId).maybeSingle(),
   ])
-  return { isAuthenticated: true, bookmarked: !!bm, following: !!fl }
+  return { isAuthenticated: true, bookmarked: !!bm, following: !!fl, hasReviewed: !!rv }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -302,7 +304,12 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
 
               {/* Reviews */}
               <section>
-                <h2 className="text-2xl font-bold text-text-primary mb-4 flex items-center gap-2"><MessageSquare className="h-5 w-5 text-cta" />Reviews ({reviewCount})</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2"><MessageSquare className="h-5 w-5 text-cta" />Reviews ({reviewCount})</h2>
+                </div>
+                <div className="mb-4">
+                  <ReviewForm listingId={listing.id} isAuthenticated={viewer.isAuthenticated} hasReviewed={viewer.hasReviewed} />
+                </div>
                 {reviewCount ? (
                   <div className="space-y-4">
                     {reviews.map((r: any) => (
