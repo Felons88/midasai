@@ -24,6 +24,8 @@ async function getDashboardData(userId: string) {
     { count: webhookCount },
     { count: mcpCount },
     { count: apiLogCount },
+    { count: followerCount },
+    { data: dailyDownloadRows },
   ] = await Promise.all([
     supabase.from('users').select('name, role, avatar_url').eq('id', userId).single(),
     supabase.from('downloads').select('id', { count: 'exact', head: true }).eq('user_id', userId),
@@ -34,12 +36,14 @@ async function getDashboardData(userId: string) {
     supabase.from('transactions').select('amount').eq('creator_id', userId).eq('status', 'COMPLETED').gte('created_at', thirtyDaysAgo),
     supabase.from('subscriptions').select('tier, status, current_period_start, current_period_end, stripe_price_id').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('activity_feed').select('*').eq('is_public', true).order('created_at', { ascending: false }).limit(10),
-    supabase.from('listings').select('id, title, price, downloads, average_rating, rating_count, category, created_at').order('downloads', { ascending: false }).limit(6),
+    supabase.from('listings').select('id, title, price, downloads, average_rating, review_count, created_at').order('downloads', { ascending: false }).limit(6),
     supabase.from('notifications').select('id, title, message, type, priority, read_at, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(8),
     supabase.from('api_keys').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'ACTIVE'),
     supabase.from('webhooks').select('id', { count: 'exact', head: true }).eq('user_id', userId),
     supabase.from('mcp_servers').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'ACTIVE'),
     supabase.from('api_logs').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('created_at', thirtyDaysAgo),
+    supabase.from('follows').select('following_id', { count: 'exact', head: true }).eq('following_id', userId),
+    supabase.from('downloads').select('created_at').eq('user_id', userId).gte('created_at', thirtyDaysAgo),
   ])
 
   const revenue = transactions?.reduce((s: number, t: any) => s + (t.amount || 0), 0) || 0
@@ -47,6 +51,15 @@ async function getDashboardData(userId: string) {
   const tier = (sub?.tier || 'FREE') as string
   const planLimits = getPlanLimits(tier)
   const unreadCount = notifications?.filter((n: any) => !n.read_at).length || 0
+
+  // Real daily download counts for the last 30 days (no fabricated chart data).
+  const dayMs = 24 * 60 * 60 * 1000
+  const startMs = new Date(thirtyDaysAgo).getTime()
+  const analyticsDaily = Array.from({ length: 30 }, () => 0)
+  for (const r of (dailyDownloadRows || []) as any[]) {
+    const idx = Math.floor((new Date(r.created_at).getTime() - startMs) / dayMs)
+    if (idx >= 0 && idx < 30) analyticsDaily[idx]++
+  }
 
   return {
     userName: (userData as any)?.name || '',
@@ -67,9 +80,10 @@ async function getDashboardData(userId: string) {
       revenue,
       revenueLast30,
       views: apiLogCount || 0,
-      followers: 0,
+      followers: followerCount || 0,
       conversion: totalListings && totalDownloads ? Math.round(((totalDownloads || 0) / Math.max(totalListings || 1, 1)) * 10) / 10 : 0,
     },
+    analyticsDaily,
     usage: {
       apiRequests: apiLogCount || 0,
       apiRequestLimit: planLimits.apiRateLimit * 720,

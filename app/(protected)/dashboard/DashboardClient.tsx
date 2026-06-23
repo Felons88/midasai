@@ -33,6 +33,7 @@ interface DashboardData {
   marketplaceListings: any[]
   notifications: any[]
   unreadCount: number
+  analyticsDaily: number[]
 }
 
 function timeAgo(dateStr: string): string {
@@ -72,21 +73,8 @@ function UsageBar({ used, limit, label, icon: Icon, color = "amber" }: {
   )
 }
 
-function Sparkline({ positive = true }: { positive?: boolean }) {
-  const h = positive
-    ? [2, 4, 3, 5, 4, 6, 5, 7, 6, 8]
-    : [8, 6, 7, 5, 6, 4, 5, 3, 4, 2]
-  const max = Math.max(...h)
-  const pts = h.map((v, i) => `${(i / (h.length - 1)) * 56},${12 - (v / max) * 10}`).join(" ")
-  return (
-    <svg width="56" height="14" viewBox="0 0 56 14" fill="none" className="opacity-70">
-      <polyline points={pts} stroke={positive ? "#f59e0b" : "#ef4444"} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
 export default function DashboardClient({ data }: { data: DashboardData }) {
-  const { userName, userRole, tier, planName, stats, usage, billing, recentActivity, marketplaceListings, notifications, unreadCount } = data
+  const { userName, userRole, tier, planName, stats, usage, billing, recentActivity, marketplaceListings, notifications, unreadCount, analyticsDaily } = data
   const isCreator = ["CREATOR", "ADMIN", "OWNER"].includes(userRole)
   const firstName = userName?.split(" ")[0] || "there"
   const hour = new Date().getHours()
@@ -176,7 +164,6 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
               className="group p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.1] transition-all cursor-default">
               <div className="flex items-center justify-between mb-2">
                 <Icon className={`h-3.5 w-3.5 ${card.color}`} />
-                <Sparkline positive={card.positive} />
               </div>
               <p className="text-[15px] font-bold text-white leading-none mb-0.5">{card.value}</p>
               <p className="text-[10px] text-white/40 leading-tight truncate">{card.label}</p>
@@ -299,14 +286,22 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
                 </div>
               ))}
             </div>
-            {/* Chart placeholder — bar chart style */}
+            {/* Real daily downloads (last 30 days) */}
             <div className="h-[90px] flex items-end gap-1">
-              {Array.from({ length: 30 }, (_, i) => {
-                const h = Math.max(4, Math.round(Math.random() * 80 + 10))
-                return (
-                  <div key={i} className="flex-1 rounded-sm bg-amber-500/20 hover:bg-amber-500/40 transition-colors" style={{ height: `${h}%` }} />
-                )
-              })}
+              {(() => {
+                const max = Math.max(1, ...analyticsDaily)
+                return analyticsDaily.map((v, i) => {
+                  const h = v === 0 ? 2 : Math.max(6, Math.round((v / max) * 100))
+                  return (
+                    <div
+                      key={i}
+                      title={`${v} download${v === 1 ? "" : "s"}`}
+                      className="flex-1 rounded-sm bg-amber-500/20 hover:bg-amber-500/40 transition-colors"
+                      style={{ height: `${h}%` }}
+                    />
+                  )
+                })
+              })()}
             </div>
             <div className="flex items-center justify-between mt-2">
               <span className="text-[10px] text-white/20">{new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
