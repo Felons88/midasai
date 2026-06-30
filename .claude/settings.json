@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "playwright-skill@playwright-skill": true,
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true
+  }
+}

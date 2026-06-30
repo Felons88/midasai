@@ -1,0 +1,226 @@
+datasource db {
+  provider = "postgresql"
+  // url = env("DATABASE_URL") // Removed as per Prisma v7.8.0+ guidelines
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Phase 1 - Foundation
+// Data models for the marketplace
+
+// Represents a user who can create products, follow creators, etc.
+model CreatorProfile {
+  id               String   @id @default(cuid())
+  username         String   @unique // Public-facing username
+  email            String   @unique
+  bio              String?
+  avatarUrl        String?
+  bannerUrl        String?
+  websiteUrl       String?
+  githubUrl        String?
+  discordUrl       String?
+  twitterUrl       String?
+  linkedinUrl      String?
+  supportUrl       String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  products         Product[]
+  followedBy       CreatorProfile[] @relation("CreatorFollowers") // Creators who follow this creator
+  following        CreatorProfile[] @relation("CreatorFollowers") // Creators this creator follows
+  notifications    CreatorNotification[]
+  socialLinks      CreatorSocialLink[] // ADDED: Opposite relation for CreatorSocialLink
+  // RLS considerations: A creator should only be able to update their own profile.
+  // Data access will be scoped based on the authenticated user's ID.
+}
+
+// Represents a product listing on the marketplace
+model Product {
+  id                String       @id @default(cuid())
+  creatorId         String
+  creator           CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  title             String
+  shortDescription  String
+  fullDescription   String? // Documentation content
+  logoUrl           String?
+  price             Float? // 0 for free products
+  isFree            Boolean      @default(false)
+  isVerified        Boolean      @default(false) // Verified by marketplace admin
+  downloads         Int          @default(0)
+  averageRating     Float?       @default(0)
+  reviewCount       Int          @default(0)
+  lastUpdatedAt     DateTime?
+  versionHistory    ProductVersion[]
+  reviews           ProductReview[]
+  downloadsData     ProductDownload[] // For analytics
+  categories        ProductCategory[]
+  tags              ProductTag[]
+  faqs              ProductFaq[]
+  commands          ProductCommand[]
+  changelogs        ProductChangelog[]
+  wishlistedBy      Wishlist[]
+  // RLS considerations: Products are publicly viewable. Creators can update their own products. Admins can manage all.
+}
+
+// Represents different versions of a product
+model ProductVersion {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  version   String   @unique // e.g., "1.0.0"
+  notes     String?  // Release notes for this version
+  createdAt DateTime @default(now())
+  // RLS considerations: Creators can update their own product versions.
+}
+
+// Represents a review for a product
+model ProductReview {
+  id             String   @id @default(cuid())
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId         String   // Assuming user authentication system links to a user ID
+  productId_user String // Composite key for unique review per product per user
+  starRating     Int      // 1-5 stars
+  reviewText     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  votes          ProductReviewVote[]
+  isVerifiedPurchase Boolean @default(false)
+  creatorResponse String?
+  // RLS considerations: Users can review products they've downloaded/purchased. Creators can respond to reviews.
+  @@unique([productId, productId_user]) // Ensure one review per user per product
+}
+
+// Represents votes on whether a review was helpful
+model ProductReviewVote {
+  id            String @id @default(cuid())
+  reviewId      String
+  review        ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId        String // User who voted
+  productId_user String // Composite key for unique vote per review per user
+  vote          Boolean // true for helpful, false for not helpful
+  createdAt     DateTime @default(now())
+  // RLS considerations: Users can vote on reviews.
+  @@unique([reviewId, productId_user]) // Ensure one vote per user per review
+}
+
+// Tracks product downloads for analytics and ownership
+model ProductDownload {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String   // User who downloaded
+  productId_user String // Composite key for unique download per product per user
+  downloadedAt DateTime @default(now())
+  versionId String? // Optional: specific version downloaded
+  // RLS considerations: Tracks user downloads for verification and analytics.
+  @@unique([productId, productId_user]) // Ensure one download record per user per product
+}
+
+// Defines product categories (e.g., "AI Tools", "Utilities", "Templates")
+model ProductCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  products  Product[]
+  // RLS considerations: Categories are generally public.
+}
+
+// Defines tags for products (e.g., "python", "nextjs", "supabase")
+model ProductTag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  products  Product[]
+  // RLS considerations: Tags are generally public.
+}
+
+// Frequently Asked Questions for a product
+model ProductFaq {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  question  String
+  answer    String
+  createdAt DateTime @default(now())
+  // RLS considerations: Creators can manage FAQs for their products.
+}
+
+// Installation commands for a product
+model ProductCommand {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  command     String   // The actual command string
+  description String?  // Description of the command
+  language    String?  // e.g., "bash", "python", "docker" for syntax highlighting
+  createdAt   DateTime @default(now())
+  // RLS considerations: Creators can manage commands for their products.
+}
+
+// Changelog entries for a product
+model ProductChangelog {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  version   String   // Version this changelog entry applies to
+  change    String   // Description of the change
+  createdAt DateTime @default(now())
+  // RLS considerations: Creators can manage changelogs for their products.
+}
+
+// Represents items added to a user's wishlist
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String   // User who added to wishlist
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  addedAt   DateTime @default(now())
+  // RLS considerations: Users can only manage their own wishlists.
+  @@unique([userId, productId]) // Ensure a product is only added once to a wishlist
+}
+
+// Notifications for creators regarding their followers and product activity
+model CreatorNotification {
+  id        String   @id @default(cuid())
+  creatorId String
+  creator   CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  message   String
+  type      String   // e.g., "NewFollower", "NewReview", "Sale", "Update"
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  // RLS considerations: Notifications are specific to a creator.
+}
+
+// Represents social links for a creator
+model CreatorSocialLink {
+  id        String @id @default(cuid())
+  creatorId String
+  creator   CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  platform  String // e.g., "website", "github", "discord", "x", "linkedin"
+  url       String
+  // RLS considerations: Creators can manage their own social links.
+  @@unique([creatorId, platform])
+}
+
+// Placeholder for potential future product media (images, videos, etc.)
+// This will be expanded in Phase 3 (Creator Upload Experience)
+// For now, assuming URLs are stored directly on Product or will be linked via a separate table.
+// Example:
+// model ProductMedia {
+//   id        String   @id @default(cuid())
+//   productId String
+//   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+//   type      String   // "image", "video", "gif"
+//   url       String
+//   altText   String?
+//   order     Int      // For gallery order
+//   createdAt DateTime @default(now())
+// }
+
+// Placeholder for potential future product analytics
+// Will be implemented in Phase 10
+// model ProductAnalytics { ... }
+
+// Placeholder for potential future recommendation engine data
+// Will be implemented in Phase 8
+// model Recommendation { ... }
