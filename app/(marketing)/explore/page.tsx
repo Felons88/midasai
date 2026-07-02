@@ -51,7 +51,7 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
           <div className="flex items-center gap-2.5 mb-5 animate-fade-in-up">
             <Compass className="h-5 w-5 text-cta shrink-0" />
             <h1 className="text-2xl font-bold text-text-primary">Explore</h1>
-            <span className="text-text-tertiary text-sm hidden sm:block">— AI skills, agents, MCP servers &amp; more</span>
+            <span className="text-text-tertiary text-sm hidden sm:block">— AI skills, agents, workflows &amp; templates</span>
           </div>
 
           <Suspense fallback={<ExploreSkeleton />}>
@@ -118,7 +118,7 @@ async function ExploreContent({ params }: { params?: { q?: string; category?: st
 
     const sections = await buildDiscoverySections(supabase, userId, selectedCategory)
     const selectedCategories = selectedCategory ? selectedCategory.split(",") : []
-    const trendingSearches = ["Claude Memory", "OpenClaw", "Browser Automation", "AI Agents", "MCP Servers", "Cursor Rules"]
+    const trendingSearches = ["Claude Memory", "OpenClaw", "Browser Automation", "AI Agents", "Workflow Templates", "Cursor Rules"]
 
     return (
       <ExploreContentClient

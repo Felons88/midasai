@@ -31,7 +31,6 @@ async function getCategoriesWithCounts() {
     const typeMap: Record<string, string> = {
       'claude-skills': 'SKILL',
       'cursor-rules': 'PLUGIN',
-      'mcp-servers': 'MCP',
       'ai-agents': 'AGENT',
       'prompt-packs': 'PROMPT',
       'windsurf-workflows': 'WORKFLOW',
@@ -44,7 +43,6 @@ async function getCategoriesWithCounts() {
     const slugToRoute: Record<string, string> = {
       'claude-skills': '/explore?type=SKILL',
       'cursor-rules': '/plugins',
-      'mcp-servers': '/mcp',
       'ai-agents': '/agents',
       'prompt-packs': '/prompts',
       'windsurf-workflows': '/workflows',
@@ -56,11 +54,13 @@ async function getCategoriesWithCounts() {
       'documentation': '/templates',
     }
     
-    return (categories || []).map((cat: any) => ({
-      ...cat,
-      count: typeCounts[typeMap[cat.slug] || ''] || 0,
-      href: slugToRoute[cat.slug] || `/categories/${cat.slug}`,
-    }))
+    return (categories || [])
+      .filter((cat: any) => cat.slug !== 'mcp-servers')
+      .map((cat: any) => ({
+        ...cat,
+        count: typeCounts[typeMap[cat.slug] || ''] || 0,
+        href: slugToRoute[cat.slug] || `/search?category=${encodeURIComponent(cat.slug)}`,
+      }))
   } catch (error) {
     console.error('Error in getCategoriesWithCounts:', error)
     return []

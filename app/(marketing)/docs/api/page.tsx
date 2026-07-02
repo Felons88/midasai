@@ -21,7 +21,7 @@ import {
 
 export const metadata: Metadata = {
   title: "API Documentation - MidasAI",
-  description: "Complete API documentation for the MidasAI platform including REST APIs, webhooks, OAuth, and MCP integration",
+  description: "Complete API documentation for the MidasAI platform including REST APIs, webhooks, OAuth, and marketplace integrations.",
 }
 
 const apiSections = [
@@ -58,7 +58,7 @@ const apiSections = [
       { title: "API Keys", href: "/docs/api/keys", description: "Create and manage API keys" },
       { title: "Webhooks", href: "/docs/api/webhooks", description: "Configure real-time event notifications" },
       { title: "OAuth Apps", href: "/docs/api/oauth", description: "Build OAuth applications" },
-      { title: "MCP Platform", href: "/docs/api/mcp", description: "Model Context Protocol integration" },
+      { title: "Integrations", href: "/docs/api/integrations", description: "Connect MidasAI with your stack" },
     ]
   },
   {
@@ -97,7 +97,7 @@ export default function ApiDocumentationPage() {
             </div>
             <h1 className="text-5xl font-bold text-white mb-4">API Documentation</h1>
             <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
-              Everything you need to integrate with the MidasAI platform. From simple API calls to complex OAuth flows and MCP integrations.
+              Everything you need to integrate with the MidasAI platform. From simple API calls to complex OAuth flows and marketplace integrations.
             </p>
             <div className="flex items-center gap-4 justify-center">
               <Button size="lg" className="bg-blue-500 hover:bg-blue-600">

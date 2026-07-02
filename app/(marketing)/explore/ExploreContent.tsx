@@ -61,7 +61,7 @@ const EXPLORE_CATEGORY_ORDER = [
   "ai-agents", "coding", "productivity", "automation", "research",
   "marketing", "security", "web-scraping", "databases", "devops",
   "image-generation", "video-creation", "voice", "education", "finance",
-  "design", "writing", "browser-automation", "api", "mcp", "cloud",
+  "design", "writing", "browser-automation", "api", "cloud",
 ]
 
 const SECTION_SORT_MAP: Record<string, string> = {

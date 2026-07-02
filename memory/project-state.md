@@ -2,8 +2,8 @@
 
 > **Last updated:** 2026-07-02  
 > **Build status:** ✅ Passes (`npm run build`)  
-> **Production readiness:** ~96/100  
-> **Active cycle:** 16 — Enterprise Workflow + Explore V2  
+> **Production readiness:** ~97/100  
+> **Active cycle:** 17 — Landing Page Redesign + Launch Readiness  
 > **Supabase project:** `rqermggomchlipmuigan`
 
 ---
@@ -349,6 +349,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 | 14 | Discovery & Polish | ✅ Done |
 | 15 | Engagement & Hardening | ✅ Done |
 | 16 | Enterprise Workflow + Explore V2 | ✅ Done |
+| 17 | Landing Page Redesign + Launch Readiness | ✅ Done |
 
 ### Cycle 16 Deliverables
 - GitHub OAuth + Gemini repo scan for upload modal
@@ -364,6 +365,15 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - Architect Workshop with AI expansion pipeline
 - ExpandOverlay v2: 3-column animated UI with neural canvas, hex score, holographic cards
 
+### Cycle 17 Deliverables
+- Premium homepage redesign with animated hero, spotlight search, floating cards, live stats
+- 20-category grid, feature cards, marketplace carousels, architect section, workflow section, creator section
+- Real-time homepage data fetch from Supabase with caching
+- Mobile-responsive navbar with hamburger menu and simplified launch links
+- Removal of all MCP references from public marketing pages
+- `/creators` index page for browsing verified creators
+- Build passes clean
+
 ---
 
 ## 8. Design System Summary
@@ -371,8 +381,8 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 **Theme:** Dark luxury technology marketplace  
 **Background:** `#09090B` | **Card:** `#1C1917` | **CTA/Accent:** `#CA8A04` (gold)  
 **Fonts:** Poppins (headings) + DM Sans (body)  
-**Components:** Glass cards, gold gradient CTAs, Radix primitives, `lucide-react` icons  
-**Canonical reference:** `design.md`
+**Components:** Glass cards, gold gradient CTAs, Radix primitives, `lucide-react` icons, animated particle canvas, floating cards, bento grids  
+**Canonical reference:** `design.md` + `design-system/MASTER.md`
 
 ---
 
@@ -393,6 +403,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 
 ## 10. What's Working
 
+- ✅ Premium landing page with animated hero, spotlight search, live stats, category grid, and marketplace carousels
 - ✅ Full marketplace browse, search, filter, sort
 - ✅ Listing creation (manual + GitHub import + AI scan)
 - ✅ Stripe checkout for paid listings
@@ -400,7 +411,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Review system with verified badges + creator responses
 - ✅ Collections, bookmarks, follows, downloads
 - ✅ Admin panel with moderation, user management, analytics
-- ✅ Developer portal (API keys, webhooks, MCP, OAuth)
+- ✅ Developer portal (API keys, webhooks, OAuth)
 - ✅ Architect AI project generator
 - ✅ Workshop with AI expansion pipeline
 - ✅ Workflow analysis runs live with streaming progress + current file animation
@@ -410,6 +421,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Activity feed
 - ✅ 14+ Playwright E2E tests passing
 - ✅ Build passes clean
+- ✅ Public navigation updated with mobile menu and simplified launch links
 
 ---
 
@@ -420,6 +432,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - Email templates need production SMTP verification
 - PostHog/GA/Clarity analytics not yet wired to production
 - Architect generation runs in the browser tab; page reloads interrupt the job (next iteration: server-side worker + Supabase Realtime)
+- Seeded homepage assets need real data as creators publish
 
 ---
 

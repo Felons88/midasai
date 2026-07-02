@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Zap, Book, Shield, Globe, Package, Code, ChevronRight } from "lucide-react"
+import { Zap, Book, Shield, Globe, Code, ChevronRight } from "lucide-react"
 import { DocsShell } from "@/components/docs/DocsShell"
 import { DocsCodeBlock } from "@/components/docs/DocsCodeBlock"
 import { DocsSection } from "@/components/docs/DocsSection"
@@ -55,7 +55,6 @@ export default function ApiDocsPage() {
           { href: "/api-docs/authentication", icon: Shield, title: "Authentication", desc: "API keys and permissions" },
           { href: "/api-docs/reference", icon: Book, title: "API reference", desc: "All v1 endpoints" },
           { href: "/api-docs/webhooks", icon: Globe, title: "Webhooks", desc: "Real-time event delivery" },
-          { href: "/api-docs/mcp", icon: Package, title: "MCP", desc: "Model Context Protocol" },
           { href: "/api-docs/sdks", icon: Code, title: "SDKs", desc: "curl, fetch, and OpenAPI" },
         ].map((card) => (
           <Link

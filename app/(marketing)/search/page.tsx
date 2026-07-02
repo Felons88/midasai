@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
   title: "Search AI Tools | MidasAI",
-  description: "Search skills, agents, MCP servers, workflows and automations for Claude, Cursor, Windsurf and more.",
+  description: "Search skills, agents, workflows, templates, and automations for Claude, Cursor, Windsurf and more.",
 }
 
 export const revalidate = 30
@@ -74,7 +74,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             <h1 className="text-2xl font-bold text-text-primary">
               {resolvedParams?.q ? "Search Results" : "Search Skills"}
             </h1>
-            <span className="text-text-tertiary text-sm hidden sm:block">— find AI skills, agents, MCP servers, and more</span>
+            <span className="text-text-tertiary text-sm hidden sm:block">— find AI skills, agents, workflows, and templates</span>
           </div>
 
           <Suspense fallback={<LoadingGrid count={8} />}>
