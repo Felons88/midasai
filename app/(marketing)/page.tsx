@@ -23,10 +23,7 @@ async function getHomePageData() {
       countResult,
       creatorsResult,
       trendingResult,
-      newestResult,
       featuredResult,
-      ratedResult,
-      updatedResult,
     ] = await Promise.all([
       supabase
         .from("listings")
@@ -49,10 +46,7 @@ async function getHomePageData() {
         .order("total_revenue", { ascending: false, nullsFirst: false })
         .limit(8),
       supabase.from("listings").select("id, title, downloads, average_rating, review_count, images, type, price, creator:users!listings_creator_id_fkey(name, avatar_url, creator_profile:creators!creators_user_id_fkey(verified))").eq("status", "ACTIVE").order("downloads", { ascending: false, nullsFirst: false }).limit(12),
-      supabase.from("listings").select("id, title, downloads, average_rating, review_count, images, type, price, creator:users!listings_creator_id_fkey(name, avatar_url, creator_profile:creators!creators_user_id_fkey(verified))").eq("status", "ACTIVE").order("created_at", { ascending: false }).limit(12),
       supabase.from("listings").select("id, title, downloads, average_rating, review_count, images, type, price, creator:users!listings_creator_id_fkey(name, avatar_url, creator_profile:creators!creators_user_id_fkey(verified))").eq("status", "ACTIVE").eq("featured", true).order("quality_score", { ascending: false, nullsFirst: false }).limit(12),
-      supabase.from("listings").select("id, title, downloads, average_rating, review_count, images, type, price, creator:users!listings_creator_id_fkey(name, avatar_url, creator_profile:creators!creators_user_id_fkey(verified))").eq("status", "ACTIVE").gte("review_count", 1).order("average_rating", { ascending: false, nullsFirst: false }).limit(12),
-      supabase.from("listings").select("id, title, downloads, average_rating, review_count, images, type, price, creator:users!listings_creator_id_fkey(name, avatar_url, creator_profile:creators!creators_user_id_fkey(verified))").eq("status", "ACTIVE").order("updated_at", { ascending: false, nullsFirst: false }).limit(12),
     ])
 
     const listings = listingsResult.data ?? []
@@ -99,10 +93,7 @@ async function getHomePageData() {
       creators,
       listings: normalizeListings(listings),
       trending: normalizeListings(trendingResult.data ?? []),
-      newest: normalizeListings(newestResult.data ?? []),
       featured: normalizeListings(featuredResult.data ?? []),
-      highestRated: normalizeListings(ratedResult.data ?? []),
-      recentlyUpdated: normalizeListings(updatedResult.data ?? []),
     }
   } catch (error) {
     console.error("Homepage data error:", error)
@@ -115,10 +106,7 @@ async function getHomePageData() {
       creators: [],
       listings: [],
       trending: [],
-      newest: [],
       featured: [],
-      highestRated: [],
-      recentlyUpdated: [],
     }
   }
 }
@@ -163,10 +151,7 @@ export default async function HomePage() {
     categoryCounts,
     creators,
     trending,
-    newest,
     featured,
-    highestRated,
-    recentlyUpdated,
   } = await getHomePageData()
 
   return (
@@ -184,10 +169,7 @@ export default async function HomePage() {
       <FeaturesSection />
 
       <ListingCarousel title="Trending Skills" subtitle="Most installed assets this week" listings={trending} />
-      <ListingCarousel title="Editor's Picks" subtitle="Hand-selected by the MidasAI team" listings={featured} />
-      <ListingCarousel title="New Arrivals" subtitle="Freshly published assets" listings={newest} />
-      <ListingCarousel title="Highest Rated" subtitle="Top-rated by the community" listings={highestRated} />
-      <ListingCarousel title="Recently Updated" subtitle="Improved by their creators" listings={recentlyUpdated} />
+      <ListingCarousel title="Fresh & Featured" subtitle="Editor's picks, new arrivals, and highest-rated assets" listings={featured} />
 
       <ArchitectSection />
       <WorkflowSection />

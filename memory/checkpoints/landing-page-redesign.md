@@ -76,6 +76,14 @@
 
 None.
 
+### Spacing / overlap follow-up
+- Reduced hero height from `90vh` to `75vh` and tightened margins/padding.
+- Repositioned floating activity cards to the outer edges and hid them below `xl` to avoid overlapping hero text.
+- Reduced section padding from `py-24` to `py-16 md:py-20` across all homepage sections.
+- Consolidated 5 listing carousels into 2 (Trending + Fresh & Featured) to cut repetition.
+- Trimmed category list from 20 to 12 and reduced card/grid padding.
+- Reduced carousel and feature grid gaps.
+
 ## Next Tasks
 
 - Add Playwright E2E smoke tests for new homepage sections.

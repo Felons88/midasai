@@ -18,7 +18,7 @@ export function FeatureCard({ feature, index = 0, className }: { feature: Featur
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-2xl border border-white/10 bg-surface/40 backdrop-blur-sm p-6",
+        "group relative overflow-hidden rounded-xl border border-white/10 bg-surface/40 backdrop-blur-sm p-5",
         "hover:border-white/20 hover:-translate-y-1 hover:shadow-xl transition-all duration-300",
         className
       )}

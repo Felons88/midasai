@@ -73,7 +73,7 @@ const FEATURES: FeatureItem[] = [
 
 export function FeaturesSection() {
   return (
-    <section className="py-24 relative">
+    <section className="py-16 md:py-20 relative">
       <div className="container mx-auto px-4">
         <div className="max-w-7xl mx-auto">
           <SectionHeader
@@ -82,7 +82,7 @@ export function FeaturesSection() {
             description="From code-assistant skills to complete project blueprints, find the exact building blocks your team needs."
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {FEATURES.map((feature, index) => (
               <FeatureCard key={feature.title} feature={feature} index={index} />
             ))}

@@ -9,7 +9,7 @@ export function CreatorsSection({ creators }: { creators: CreatorItem[] }) {
   if (creators.length === 0) return null
 
   return (
-    <section className="py-24 relative">
+    <section className="py-16 md:py-20 relative">
       <div className="container mx-auto px-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-end justify-between mb-10">

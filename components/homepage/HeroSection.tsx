@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Sparkles, ArrowRight, Play, Bot, Workflow, FileCode, Zap, Layers } from "lucide-react"
+import { Sparkles, ArrowRight, Play, Bot, Workflow, FileCode, Layers } from "lucide-react"
 import { HeroSearchBox } from "./HeroSearchBox"
 import { HeroBackground } from "./HeroBackground"
 import { FloatingCard } from "./FloatingCard"
@@ -17,13 +17,13 @@ const HERO_TRENDING = [
 
 export function HeroSection({ totalListings }: { totalListings: number }) {
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-20 pb-16">
+    <section className="relative min-h-[75vh] flex items-center justify-center overflow-hidden pt-16 pb-12 lg:pt-20 lg:pb-16">
       <HeroBackground />
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-5xl mx-auto text-center">
           {/* Announcement badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/80 border border-white/10 mb-8 animate-fade-in-up backdrop-blur-xl">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/80 border border-white/10 mb-6 animate-fade-in-up backdrop-blur-xl">
             <span className="w-2 h-2 rounded-full bg-cta animate-pulse" />
             <span className="text-sm font-medium text-text-secondary">
               {totalListings.toLocaleString()}+ AI assets ready to install
@@ -32,7 +32,7 @@ export function HeroSection({ totalListings }: { totalListings: number }) {
           </div>
 
           {/* Headline */}
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-text-primary mb-6 leading-[1.05] tracking-tight animate-fade-in-up text-balance">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-text-primary mb-4 leading-[1.05] tracking-tight animate-fade-in-up text-balance">
             The marketplace for{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cta via-cta-light to-amber-200">
               AI development
@@ -40,12 +40,12 @@ export function HeroSection({ totalListings }: { totalListings: number }) {
           </h1>
 
           {/* Subheadline */}
-          <p className="text-lg sm:text-xl md:text-2xl text-text-secondary mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in-up text-balance" style={{ animationDelay: "0.05s" }}>
+          <p className="text-base sm:text-lg md:text-xl text-text-secondary mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in-up text-balance" style={{ animationDelay: "0.05s" }}>
             Discover, install, and sell Claude Skills, Cursor Rules, AI Agents, Workflow Templates, Prompt Packs, and Architect Blueprints.
           </p>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
             <Link
               href="/auth/register"
               className="group relative inline-flex items-center gap-2 h-14 px-8 rounded-xl bg-gradient-to-r from-cta to-cta-light text-primary-foreground font-semibold text-base hover:shadow-glow transition-all duration-300 hover:-translate-y-0.5"
@@ -82,48 +82,40 @@ export function HeroSection({ totalListings }: { totalListings: number }) {
           </div>
         </div>
 
-        {/* Floating cards */}
-        <div className="hidden lg:block">
-          <FloatingCard
-            icon={Bot}
-            title="AI Agent Installed"
-            subtitle="Code review agent by @aismith"
-            variant="gold"
-            className="top-[10%] left-[8%]"
-            delay={0}
-          />
-          <FloatingCard
-            icon={Workflow}
-            title="Workflow Template"
-            subtitle="DevOps pipeline for Vercel"
-            variant="blue"
-            className="top-[25%] right-[6%]"
-            delay={1.2}
-          />
-          <FloatingCard
-            icon={FileCode}
-            title="Cursor Rule Downloaded"
-            subtitle="React architecture rules"
-            variant="purple"
-            className="bottom-[18%] left-[5%]"
-            delay={0.6}
-          />
-          <FloatingCard
-            icon={Layers}
-            title="Prompt Pack Added"
-            subtitle="Sales outreach prompts"
-            variant="gold"
-            className="bottom-[22%] right-[8%]"
-            delay={1.8}
-          />
-          <FloatingCard
-            icon={Zap}
-            title="Skill Starred"
-            subtitle="Supabase schema helper"
-            variant="blue"
-            className="top-[55%] left-[2%]"
-            delay={2.4}
-          />
+        {/* Floating cards — positioned at outer edges, hidden when they would overlap content */}
+        <div className="hidden xl:block pointer-events-none">
+          <div className="absolute inset-y-0 left-0 w-56 flex flex-col justify-center gap-6 pl-6">
+            <FloatingCard
+              icon={Bot}
+              title="AI Agent Installed"
+              subtitle="Code review agent by @aismith"
+              variant="gold"
+              delay={0}
+            />
+            <FloatingCard
+              icon={FileCode}
+              title="Cursor Rule Downloaded"
+              subtitle="React architecture rules"
+              variant="purple"
+              delay={0.6}
+            />
+          </div>
+          <div className="absolute inset-y-0 right-0 w-56 flex flex-col justify-center gap-6 pr-6">
+            <FloatingCard
+              icon={Workflow}
+              title="Workflow Template"
+              subtitle="DevOps pipeline for Vercel"
+              variant="blue"
+              delay={1.2}
+            />
+            <FloatingCard
+              icon={Layers}
+              title="Prompt Pack Added"
+              subtitle="Sales outreach prompts"
+              variant="gold"
+              delay={1.8}
+            />
+          </div>
         </div>
       </div>
     </section>

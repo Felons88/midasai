@@ -22,7 +22,7 @@ export function CategoryCard({ category, index = 0 }: { category: CategoryItem; 
     <Link
       href={`/search?category=${encodeURIComponent(category.slug)}`}
       className={cn(
-        "group relative overflow-hidden rounded-2xl border border-white/10 bg-surface/60 backdrop-blur-sm p-5",
+        "group relative overflow-hidden rounded-xl border border-white/10 bg-surface/60 backdrop-blur-sm p-4",
         "hover:border-white/20 hover:-translate-y-1 hover:shadow-xl transition-all duration-300",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta"
       )}

@@ -61,7 +61,7 @@ const TOOLS = [
 
 export function WorkflowSection() {
   return (
-    <section className="py-24 relative">
+    <section className="py-16 md:py-20 relative">
       <div className="container mx-auto px-4">
         <div className="max-w-7xl mx-auto">
           <SectionHeader

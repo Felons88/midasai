@@ -28,7 +28,7 @@ export function ListingCarousel({
   }
 
   return (
-    <section className={cn("py-12 relative", className)}>
+    <section className={cn("py-10 relative", className)}>
       <div className="container mx-auto px-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-end justify-between mb-6">
@@ -56,7 +56,7 @@ export function ListingCarousel({
 
           <div
             ref={scrollRef}
-            className="flex gap-5 overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4 snap-x snap-mandatory"
+            className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4 snap-x snap-mandatory"
           >
             {listings.map((listing, index) => (
               <div
