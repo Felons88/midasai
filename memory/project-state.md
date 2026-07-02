@@ -54,6 +54,7 @@ midasai/
 │   │   ├── listing/[id]/        # Listing detail pages
 │   │   ├── creators/[id]/       # Public creator profiles
 │   │   ├── categories/          # Category browser
+│   │   ├── category/[slug]/     # Category detail pages
 │   │   ├── pricing/             # Subscription plans
 │   │   ├── about/, faq/, contact/, docs/, blog/
 │   │   └── skills/, plugins/, mcp/, agents/, prompts/, workflows/, templates/
@@ -71,7 +72,7 @@ midasai/
 │   │   │   ├── dashboard/, users/, listings/, moderation/
 │   │   │   ├── transactions/, payouts/, analytics/
 │   │   │   ├── communications/, subscriptions/, settings/
-│   │   │   ├── files/, tools/
+│   │   │   ├── files/, tools/, categorization/
 │   │   │   └── users/[id]/
 │   │   ├── account/             # User account pages
 │   │   │   ├── profile/, settings/, security/, billing/, api-keys/
@@ -137,7 +138,7 @@ midasai/
 │   └── database.ts              # Auto-generated Supabase types
 │
 ├── supabase/
-│   └── migrations/              # 25 SQL migrations (applied)
+│   └── migrations/              # 26 SQL migrations (pending categorization migration)
 │
 ├── tests/                       # Playwright E2E tests
 ├── middleware.ts                 # Auth + route protection
@@ -263,6 +264,13 @@ midasai/
 | `/api/admin/settings` | Platform settings |
 | `/api/admin/scrape/skillsmp` | Content scraping |
 | `/api/admin/ingest/clawhub` | Content ingestion |
+| `/api/admin/categorize` | Bulk queue categorization |
+| `/api/admin/categorize/:id` | Categorize single listing |
+| `/api/admin/categorize/worker` | Run categorization batch |
+| `/api/admin/categorization-status` | Categorization job status |
+| `/api/admin/categorization/uncategorized` | Uncategorized listings |
+| `/api/admin/categorization/low-confidence` | Low-confidence queue |
+| `/api/admin/categorization/jobs` | Recent categorization jobs |
 
 ### Developer Platform (`/api/developers/`, `/api/v1/`)
 | Route | Purpose |
@@ -390,7 +398,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 
 | File | Purpose |
 |------|---------|
-| `.env` / `.env.local` | Environment variables (Supabase, Stripe, Gemini, Resend, GitHub) |
+| `.env` / `.env.local` | Environment variables (Supabase, Stripe, Gemini, OpenRouter, Resend, GitHub) |
 | `middleware.ts` | Route protection + auth |
 | `tailwind.config.ts` | Design tokens + custom animations |
 | `app/globals.css` | Global styles + 30+ keyframe animations |
@@ -405,6 +413,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 
 - ✅ Premium landing page with animated hero, spotlight search, live stats, category grid, and marketplace carousels
 - ✅ Hero layout stability: no duplicate placeholders, no clipped dropdowns, no floating-card overlap, responsive navbar
+- ✅ AI categorization engine: multi-category assignments, confidence scoring, auto-tagging, background worker, admin panel, category pages
 - ✅ Full marketplace browse, search, filter, sort
 - ✅ Listing creation (manual + GitHub import + AI scan)
 - ✅ Stripe checkout for paid listings

@@ -120,6 +120,56 @@ app/
 
 ---
 
+## AI Categorization Engine
+
+The platform includes an AI-powered categorization engine that analyzes every marketplace listing and assigns relevant categories, tags, and topics.
+
+### How it works
+
+1. **Content extraction**: Reads the listing title, description, README, tags, topics, file names, folder structure, dependencies, and AI assistant hints.
+2. **AI analysis**: Sends a structured prompt to Gemini (with OpenRouter/Cloudflare fallback) along with the official category list.
+3. **Category assignment**: Returns 1–8 categories with confidence scores, reasons, and primary/secondary flags.
+4. **Auto-tagging**: Generates searchable lowercase tags and topics.
+5. **Database update**: Writes categories to `listing_categories`, tags to `tags`/`listing_tags`, and updates the listing's `search_vector`.
+
+### Tables
+
+- `listing_categories` — many-to-many relationship with confidence, reason, and AI/manual flags.
+- `categorization_jobs` — background queue with retry, error tracking, and resume support.
+- `listing_category_analysis` — snapshot of AI-generated tags/topics.
+
+### API routes
+
+- `POST /api/admin/categorize` — bulk queue listings.
+- `POST /api/admin/categorize/:id` — categorize a single listing.
+- `POST /api/admin/categorize/worker` — run a batch of pending jobs (admin auth or `x-admin-key`).
+- `GET /api/admin/categorization-status` — job status.
+- `GET /api/admin/categorization/uncategorized` — uncategorized listings.
+- `GET /api/admin/categorization/low-confidence` — low-confidence assignments.
+
+### Background worker
+
+Run the worker locally:
+
+```bash
+node scripts/run-categorization-worker.mjs
+```
+
+Required env:
+
+- `NEXT_PUBLIC_APP_URL`
+- `ADMIN_SECRET_KEY`
+
+### Admin UI
+
+Visit `/admin/categorization` (obfuscated admin route) to view status, queue bulk jobs, run the worker, review uncategorized listings, and fix low-confidence categories.
+
+### Category pages
+
+Public category pages are generated at `/category/:slug` with sort tabs for Featured, Newest, Highest Rated, Most Installed, and Recently Updated.
+
+---
+
 ## Features Implemented
 
 ### ✅ Phase 5: Security & Audit (Completed)

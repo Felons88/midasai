@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -389,6 +389,123 @@ export type Database = {
           },
         ]
       }
+      architect_background_jobs: {
+        Row: {
+          completed_at: string | null
+          completed_files: Json | null
+          created_at: string
+          current_file: string | null
+          current_step: string | null
+          error: string | null
+          failed_files: Json | null
+          file_queue: Json | null
+          id: string
+          job_id: string
+          payload: Json
+          progress: number
+          result: Json | null
+          session_id: string | null
+          started_at: string | null
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_files?: Json | null
+          created_at?: string
+          current_file?: string | null
+          current_step?: string | null
+          error?: string | null
+          failed_files?: Json | null
+          file_queue?: Json | null
+          id?: string
+          job_id: string
+          payload: Json
+          progress?: number
+          result?: Json | null
+          session_id?: string | null
+          started_at?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_files?: Json | null
+          created_at?: string
+          current_file?: string | null
+          current_step?: string | null
+          error?: string | null
+          failed_files?: Json | null
+          file_queue?: Json | null
+          id?: string
+          job_id?: string
+          payload?: Json
+          progress?: number
+          result?: Json | null
+          session_id?: string | null
+          started_at?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      architect_sessions: {
+        Row: {
+          completed_at: string | null
+          confidence: number
+          created_at: string
+          file_count: number
+          generated_files: Json | null
+          id: string
+          ip_address: string | null
+          messages: Json
+          phase: string
+          session_name: string | null
+          summary: Json | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          confidence?: number
+          created_at?: string
+          file_count?: number
+          generated_files?: Json | null
+          id?: string
+          ip_address?: string | null
+          messages?: Json
+          phase?: string
+          session_name?: string | null
+          summary?: Json | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          confidence?: number
+          created_at?: string
+          file_count?: number
+          generated_files?: Json | null
+          id?: string
+          ip_address?: string | null
+          messages?: Json
+          phase?: string
+          session_name?: string | null
+          summary?: Json | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       assets: {
         Row: {
           alt_text: string | null
@@ -568,28 +685,54 @@ export type Database = {
         Row: {
           created_at: string | null
           description: string | null
+          display_group: string | null
           icon: string | null
           id: string
+          is_active: boolean | null
+          is_featured: boolean | null
           name: string
+          parent_id: string | null
           slug: string
+          sort_order: number | null
+          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           description?: string | null
+          display_group?: string | null
           icon?: string | null
           id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
           name: string
+          parent_id?: string | null
           slug: string
+          sort_order?: number | null
+          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           description?: string | null
+          display_group?: string | null
           icon?: string | null
           id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
           name?: string
+          parent_id?: string | null
           slug?: string
+          sort_order?: number | null
+          updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       collection_items: {
         Row: {
@@ -779,6 +922,62 @@ export type Database = {
             columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      categorization_jobs: {
+        Row: {
+          attempt_count: number | null
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          input_hash: string | null
+          listing_id: string
+          max_attempts: number | null
+          priority: number | null
+          result: unknown | null
+          started_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          attempt_count?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          input_hash?: string | null
+          listing_id: string
+          max_attempts?: number | null
+          priority?: number | null
+          result?: unknown | null
+          started_at?: string | null
+          status: string
+          updated_at?: string | null
+        }
+        Update: {
+          attempt_count?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          input_hash?: string | null
+          listing_id?: string
+          max_attempts?: number | null
+          priority?: number | null
+          result?: unknown | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categorization_jobs_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
             referencedColumns: ["id"]
           },
         ]
@@ -1311,6 +1510,104 @@ export type Database = {
           },
         ]
       }
+      listing_categories: {
+        Row: {
+          category_id: string
+          confidence: number | null
+          created_at: string | null
+          id: string
+          is_ai_generated: boolean | null
+          is_primary: boolean | null
+          listing_id: string
+          manual_override: boolean | null
+          model_version: string | null
+          reason: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category_id: string
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          is_primary?: boolean | null
+          listing_id: string
+          manual_override?: boolean | null
+          model_version?: string | null
+          reason?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          is_primary?: boolean | null
+          listing_id?: string
+          manual_override?: boolean | null
+          model_version?: string | null
+          reason?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_categories_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_category_analysis: {
+        Row: {
+          analyzed_content: unknown | null
+          created_at: string | null
+          generated_tags: string[] | null
+          generated_topics: string[] | null
+          id: string
+          listing_id: string
+          model_version: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          analyzed_content?: unknown | null
+          created_at?: string | null
+          generated_tags?: string[] | null
+          generated_topics?: string[] | null
+          id?: string
+          listing_id: string
+          model_version?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          analyzed_content?: unknown | null
+          created_at?: string | null
+          generated_tags?: string[] | null
+          generated_topics?: string[] | null
+          id?: string
+          listing_id?: string
+          model_version?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_category_analysis_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_tags: {
         Row: {
           listing_id: string
@@ -1409,6 +1706,7 @@ export type Database = {
           seo_title: string | null
           short_description: string | null
           slug: string | null
+          source_url: string | null
           status: Database["public"]["Enums"]["listing_status_enum"] | null
           tags: string[] | null
           title: string
@@ -1440,6 +1738,7 @@ export type Database = {
           seo_title?: string | null
           short_description?: string | null
           slug?: string | null
+          source_url?: string | null
           status?: Database["public"]["Enums"]["listing_status_enum"] | null
           tags?: string[] | null
           title: string
@@ -1471,6 +1770,7 @@ export type Database = {
           seo_title?: string | null
           short_description?: string | null
           slug?: string | null
+          source_url?: string | null
           status?: Database["public"]["Enums"]["listing_status_enum"] | null
           tags?: string[] | null
           title?: string
@@ -2853,6 +3153,7 @@ export type Database = {
           created_at: string | null
           discord_url: string | null
           email: string
+          github_url: string | null
           github_username: string | null
           id: string
           linkedin_url: string | null
@@ -2861,6 +3162,7 @@ export type Database = {
           twitter_username: string | null
           updated_at: string | null
           website: string | null
+          website_url: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -2868,6 +3170,7 @@ export type Database = {
           created_at?: string | null
           discord_url?: string | null
           email: string
+          github_url?: string | null
           github_username?: string | null
           id?: string
           linkedin_url?: string | null
@@ -2876,6 +3179,7 @@ export type Database = {
           twitter_username?: string | null
           updated_at?: string | null
           website?: string | null
+          website_url?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -2883,6 +3187,7 @@ export type Database = {
           created_at?: string | null
           discord_url?: string | null
           email?: string
+          github_url?: string | null
           github_username?: string | null
           id?: string
           linkedin_url?: string | null
@@ -2891,6 +3196,7 @@ export type Database = {
           twitter_username?: string | null
           updated_at?: string | null
           website?: string | null
+          website_url?: string | null
         }
         Relationships: []
       }
@@ -3062,6 +3368,186 @@ export type Database = {
           },
         ]
       }
+      workflow_conversation_memory: {
+        Row: {
+          context_snapshot: Json | null
+          conversation_history: Json | null
+          created_at: string
+          expansion_id: string
+          file_change_purposes: Json | null
+          id: string
+          last_round: number | null
+          total_interactions: number | null
+          updated_at: string
+        }
+        Insert: {
+          context_snapshot?: Json | null
+          conversation_history?: Json | null
+          created_at?: string
+          expansion_id: string
+          file_change_purposes?: Json | null
+          id?: string
+          last_round?: number | null
+          total_interactions?: number | null
+          updated_at?: string
+        }
+        Update: {
+          context_snapshot?: Json | null
+          conversation_history?: Json | null
+          created_at?: string
+          expansion_id?: string
+          file_change_purposes?: Json | null
+          id?: string
+          last_round?: number | null
+          total_interactions?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_conversation_memory_expansion_id_fkey"
+            columns: ["expansion_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_expansions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_expansion_steps: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error: string | null
+          expansion_id: string
+          id: string
+          output: Json | null
+          started_at: string | null
+          status: string
+          step_name: string
+          step_order: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          expansion_id: string
+          id?: string
+          output?: Json | null
+          started_at?: string | null
+          status?: string
+          step_name: string
+          step_order?: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          expansion_id?: string
+          id?: string
+          output?: Json | null
+          started_at?: string | null
+          status?: string
+          step_name?: string
+          step_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_expansion_steps_expansion_id_fkey"
+            columns: ["expansion_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_expansions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_expansions: {
+        Row: {
+          archived_at: string | null
+          completed_at: string | null
+          created_at: string
+          current_file: string | null
+          deleted_at: string | null
+          description: string | null
+          error_message: string | null
+          expansion_config: Json | null
+          file_count: number | null
+          generated_files: Json | null
+          github_commit_sha: string | null
+          github_push_status: string | null
+          github_repo_url: string | null
+          id: string
+          latest_memory_id: string | null
+          pipeline_progress: number | null
+          pipeline_stage: string | null
+          session_id: string | null
+          source_artifacts: Json | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["workflow_expansion_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_file?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          error_message?: string | null
+          expansion_config?: Json | null
+          file_count?: number | null
+          generated_files?: Json | null
+          github_commit_sha?: string | null
+          github_push_status?: string | null
+          github_repo_url?: string | null
+          id?: string
+          latest_memory_id?: string | null
+          pipeline_progress?: number | null
+          pipeline_stage?: string | null
+          session_id?: string | null
+          source_artifacts?: Json | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["workflow_expansion_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          archived_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_file?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          error_message?: string | null
+          expansion_config?: Json | null
+          file_count?: number | null
+          generated_files?: Json | null
+          github_commit_sha?: string | null
+          github_push_status?: string | null
+          github_repo_url?: string | null
+          id?: string
+          latest_memory_id?: string | null
+          pipeline_progress?: number | null
+          pipeline_stage?: string | null
+          session_id?: string | null
+          source_artifacts?: Json | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["workflow_expansion_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_expansions_latest_memory_id_fkey"
+            columns: ["latest_memory_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_conversation_memory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -3091,6 +3577,9 @@ export type Database = {
         }
         Returns: undefined
       }
+      daitch_mokotoff: { Args: { "": string }; Returns: string[] }
+      dmetaphone: { Args: { "": string }; Returns: string }
+      dmetaphone_alt: { Args: { "": string }; Returns: string }
       get_listing_type_enum_values: {
         Args: never
         Returns: {
@@ -3137,10 +3626,110 @@ export type Database = {
           views: number
         }[]
       }
+      get_category_counts: {
+        Args: never
+        Returns: {
+          count: number
+          slug: string
+        }[]
+      }
+      get_categorization_status: {
+        Args: never
+        Returns: {
+          completed: number
+          failed: number
+          pending: number
+          processing: number
+          total: number
+        }[]
+      }
+      get_listings_by_category: {
+        Args: {
+          p_category_slug: string
+          p_limit?: number
+          p_offset?: number
+          p_sort?: string
+          p_status?: string
+        }
+        Returns: {
+          average_rating: number
+          confidence: number
+          created_at: string
+          creator: Json
+          description: string
+          downloads: number
+          featured: boolean
+          id: string
+          images: string[]
+          is_primary: boolean
+          price: number
+          review_count: number
+          short_description: string
+          seo_title: string
+          tags: string[]
+          title: string
+          type: string
+          updated_at: string
+          views: number
+        }[]
+      }
+      get_low_confidence_categories: {
+        Args: { p_limit?: number; p_threshold?: number }
+        Returns: {
+          category_name: string
+          category_slug: string
+          confidence: number
+          listing_id: string
+          reason: string
+          title: string
+        }[]
+      }
+      get_uncategorized_listings: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          category_count: number
+          created_at: string
+          id: string
+          status: string
+          title: string
+          type: string
+        }[]
+      }
+      search_listings_by_category: {
+        Args: {
+          p_category_slug: string
+          p_limit?: number
+          p_query: string
+          p_status?: string
+        }
+        Returns: {
+          average_rating: number
+          created_at: string
+          creator: Json
+          downloads: number
+          featured: boolean
+          id: string
+          images: string[]
+          price: number
+          rank: number
+          review_count: number
+          short_description: string
+          seo_title: string
+          tags: string[]
+          title: string
+          type: string
+          updated_at: string
+          views: number
+        }[]
+      }
       mark_all_notifications_read: {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
+      soundex: { Args: { "": string }; Returns: string }
+      text_soundex: { Args: { "": string }; Returns: string }
     }
     Enums: {
       api_key_status_enum: "ACTIVE" | "REVOKED" | "EXPIRED"
@@ -3224,6 +3813,18 @@ export type Database = {
         | "AGENT_CREATED"
         | "AGENT_UPDATED"
       webhook_status_enum: "ACTIVE" | "PAUSED" | "ERROR"
+      workflow_expansion_status:
+        | "DRAFT"
+        | "IMPORTED"
+        | "INITIALIZING"
+        | "RUNNING"
+        | "PROCESSING_AI"
+        | "GENERATING_FILES"
+        | "COMPLETED"
+        | "FAILED"
+        | "ARCHIVED"
+        | "ANALYZING"
+        | "ANALYZED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3439,6 +4040,19 @@ export const Constants = {
         "AGENT_UPDATED",
       ],
       webhook_status_enum: ["ACTIVE", "PAUSED", "ERROR"],
+      workflow_expansion_status: [
+        "DRAFT",
+        "IMPORTED",
+        "INITIALIZING",
+        "RUNNING",
+        "PROCESSING_AI",
+        "GENERATING_FILES",
+        "COMPLETED",
+        "FAILED",
+        "ARCHIVED",
+        "ANALYZING",
+        "ANALYZED",
+      ],
     },
   },
 } as const

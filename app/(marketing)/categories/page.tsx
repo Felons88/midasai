@@ -5,61 +5,31 @@ import { createPublicClient } from "@/lib/supabase/server"
 async function getCategoriesWithCounts() {
   try {
     const supabase = createPublicClient()
-    
+
     const { data: categories, error } = await supabase
       .from('categories')
       .select('*')
-      .order('name', { ascending: true })
-    
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+
     if (error) {
       console.error('Error fetching categories:', error)
       return []
     }
-    
-    // Get counts per type
-    const { data: listings } = await supabase
-      .from('listings')
-      .select('type')
-      .eq('status', 'ACTIVE')
-    
-    const typeCounts: Record<string, number> = {}
-    listings?.forEach((l: any) => {
-      typeCounts[l.type] = (typeCounts[l.type] || 0) + 1
+
+    const { data: counts } = await supabase.rpc('get_category_counts')
+
+    const countMap = new Map<string, number>()
+    counts?.forEach((row: any) => {
+      countMap.set(row.slug, Number(row.count ?? 0))
     })
-    
-    // Map categories to their listing type counts
-    const typeMap: Record<string, string> = {
-      'claude-skills': 'SKILL',
-      'cursor-rules': 'PLUGIN',
-      'ai-agents': 'AGENT',
-      'prompt-packs': 'PROMPT',
-      'windsurf-workflows': 'WORKFLOW',
-      'templates': 'TEMPLATE',
-      'automations': 'AUTOMATION',
-      'developer-tools': 'DEVELOPER_TOOL',
-      'plugins': 'PLUGIN',
-    }
-    
-    const slugToRoute: Record<string, string> = {
-      'claude-skills': '/explore?type=SKILL',
-      'cursor-rules': '/plugins',
-      'ai-agents': '/agents',
-      'prompt-packs': '/prompts',
-      'windsurf-workflows': '/workflows',
-      'templates': '/templates',
-      'automations': '/workflows',
-      'developer-tools': '/explore?type=SKILL',
-      'github-copilot': '/plugins',
-      'plugins': '/plugins',
-      'documentation': '/templates',
-    }
-    
+
     return (categories || [])
       .filter((cat: any) => cat.slug !== 'mcp-servers')
       .map((cat: any) => ({
         ...cat,
-        count: typeCounts[typeMap[cat.slug] || ''] || 0,
-        href: slugToRoute[cat.slug] || `/search?category=${encodeURIComponent(cat.slug)}`,
+        count: countMap.get(cat.slug) || 0,
+        href: `/category/${cat.slug}`,
       }))
   } catch (error) {
     console.error('Error in getCategoriesWithCounts:', error)

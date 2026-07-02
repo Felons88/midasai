@@ -3,6 +3,7 @@ import { checkBillingLimit, getBillingContext } from "@/lib/billing/entitlements
 import { logActivity } from "@/lib/activity/feed"
 import { seedInstallCommands } from "@/lib/creator/seed-install-commands"
 import { syncListingTags } from "@/lib/listings/tags"
+import { queueCategorization } from "@/lib/categorization/service"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
@@ -114,6 +115,13 @@ export async function POST(request: Request) {
       supportedPlatforms: payload.scanResult.supported_platforms,
       installationSteps,
       githubUrl: payload.github_url ?? undefined,
+    })
+  }
+
+  // Queue AI categorization as a background job
+  if (listing?.id) {
+    await queueCategorization(service, listing.id, 10).catch((err) => {
+      console.error("Failed to queue categorization for listing:", listing.id, err)
     })
   }
 

@@ -12,6 +12,7 @@ import {
   Megaphone,
   Settings,
   Wrench,
+  Tags,
 } from "lucide-react"
 
 export type AdminNavItem = {
@@ -33,6 +34,7 @@ export function getAdminNavItems(prefix: string, badges?: Partial<Record<string,
     { href: `${prefix}/payouts`, label: "Payouts", icon: Wallet, badge: badges?.payouts },
     { href: `${prefix}/files`, label: "Files", icon: FolderOpen },
     { href: `${prefix}/tools`, label: "Tools", icon: Wrench },
+    { href: `${prefix}/categorization`, label: "Categorization", icon: Tags },
     { href: `${prefix}/communications`, label: "Communications", icon: Megaphone },
     { href: `${prefix}/settings`, label: "Settings", icon: Settings },
   ]
