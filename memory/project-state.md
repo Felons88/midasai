@@ -1,6 +1,6 @@
 # MidasAI — Project State
 
-> **Last updated:** 2026-07-01  
+> **Last updated:** 2026-07-02  
 > **Build status:** ✅ Passes (`npm run build`)  
 > **Production readiness:** ~96/100  
 > **Active cycle:** 16 — Enterprise Workflow + Explore V2  
@@ -403,6 +403,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Developer portal (API keys, webhooks, MCP, OAuth)
 - ✅ Architect AI project generator
 - ✅ Workshop with AI expansion pipeline
+- ✅ Workflow analysis runs live with streaming progress + current file animation
 - ✅ Platform announcements + notifications
 - ✅ SEO (sitemap, robots, OpenGraph, structured data)
 - ✅ Messaging system

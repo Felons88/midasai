@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import {
   Plus, Sparkles, Loader2, Search,
-  Filter, LayoutGrid, Clock, Hammer
+  Filter, LayoutGrid, Clock, Hammer, Check
 } from "lucide-react"
 import { WorkflowCard, type WorkflowExpansion, type WorkflowStatus } from "@/components/architect/WorkflowCard"
 import { WorkflowTimeline } from "@/components/architect/WorkflowTimeline"
@@ -187,68 +187,94 @@ export function WorkshopClient() {
     const wf = workflows.find((w) => w.id === id)
     if (!wf) return
 
-    // If IMPORTED, trigger background analysis first
-    if (wf.status === "IMPORTED") {
+    // If IMPORTED or ANALYZING, run the streaming analysis
+    if (wf.status === "IMPORTED" || wf.status === "ANALYZING") {
+      setExpandingId(id)
       try {
         const res = await fetch(`/api/workflows/${id}/analyze`, { method: "POST" })
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
           console.error("Failed to start analysis:", data.error)
           setErrorMessage(data.error || "Failed to start AI analysis")
+          setExpandingId(null)
           return
         }
-        // Start the analysis with immediate polling for user feedback
-        setExpandingId(id)
-        startPolling(id)
+        if (!res.body) {
+          setErrorMessage("No response body from analysis")
+          setExpandingId(null)
+          return
+        }
+
+        const reader = res.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ""
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split("\n")
+          buffer = lines.pop() || ""
+
+          for (const line of lines) {
+            if (!line.trim()) continue
+            try {
+              const event = JSON.parse(line)
+              if (event.type === "stage") {
+                setWorkflows(prev => prev.map(w =>
+                  w.id === id ? {
+                    ...w,
+                    status: "ANALYZING",
+                    pipeline_stage: event.stage,
+                    pipeline_progress: event.progress,
+                    current_file: event.file,
+                  } : w
+                ))
+              } else if (event.type === "complete") {
+                setWorkflows(prev => prev.map(w =>
+                  w.id === id ? {
+                    ...w,
+                    status: "ANALYZED",
+                    pipeline_stage: "analysis_complete",
+                    pipeline_progress: 100,
+                    current_file: null,
+                    file_count: event.file_count || w.file_count,
+                    expansion_config: {
+                      ...(w.expansion_config || {}),
+                      analysis_summary: event.analysis_summary,
+                      initial_score: event.initial_score,
+                      tech_stack_detected: event.tech_stack_detected,
+                    },
+                  } : w
+                ))
+              } else if (event.type === "error") {
+                setErrorMessage(event.error || "Analysis failed")
+                setWorkflows(prev => prev.map(w =>
+                  w.id === id ? { ...w, status: "FAILED" } : w
+                ))
+              }
+            } catch (e) {
+              console.error("Failed to parse stream line:", line, e)
+            }
+          }
+        }
+
+        // Open overlay after analysis completes
+        setExpandingId(null)
+        setSelectedId(id)
+        fetchDetail(id)
       } catch (e) {
         console.error("Failed to start analysis:", e)
         setErrorMessage("Network error starting AI analysis")
+        setExpandingId(null)
       }
       return
     }
 
-    // If ANALYZING, block — show nothing (card shows ETA)
-    if (wf.status === "ANALYZING") return
-
     // If ANALYZED or other expandable states, open overlay
     setExpandingId(id)
-    // Fetch workflow details to populate inspector
     fetchDetail(id)
     return
-  }
-
-  // Add polling mechanism to track analysis completion
-  const startPolling = (id: string) => {
-    const pollInterval = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/workflows/${id}/analyze`)
-        if (res.ok) {
-          const data = await res.json()
-          // Update workflow status
-          setWorkflows(prev => prev.map(wf =>
-            wf.id === id ? {
-              ...wf,
-              pipeline_stage: data.stage || data.pipeline_stage || wf.pipeline_stage,
-              pipeline_progress: data.progress || data.pipeline_progress || wf.pipeline_progress,
-              status: data.status || wf.status
-            } : wf
-          ))
-
-          if (data.status === "ANALYZED" || data.status === "PROCESSING_AI") {
-            clearInterval(pollInterval)
-            setExpandingId(null)
-            setSelectedId(id)
-          }
-        } else {
-          clearInterval(pollInterval)
-          setExpandingId(null)
-        }
-      } catch (e) {
-        console.error("Polling error:", e)
-        clearInterval(pollInterval)
-        setExpandingId(null)
-      }
-    }, 3000)
   }
 
   const handleExpandComplete = () => {

@@ -12,6 +12,7 @@ export type WorkflowStatus =
   | "IMPORTED"
   | "ANALYZING"
   | "ANALYZED"
+  | "READY"
   | "INITIALIZING"
   | "RUNNING"
   | "PROCESSING_AI"
@@ -27,9 +28,12 @@ export interface WorkflowExpansion {
   status: WorkflowStatus
   pipeline_stage: string | null
   pipeline_progress: number
+  current_file: string | null
   file_count: number
   github_repo_url: string | null
   error_message: string | null
+  generated_files?: Record<string, string> | null
+  output?: Record<string, unknown> | null
   created_at: string
   updated_at: string
   started_at: string | null
@@ -75,6 +79,14 @@ const STATUS_CONFIG: Record<
     animation: "wf-ai-processing",
   },
   ANALYZED: {
+    label: "Ready",
+    icon: Rocket,
+    color: "text-emerald-400",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/40",
+    animation: "wf-completed",
+  },
+  READY: {
     label: "Ready",
     icon: Rocket,
     color: "text-emerald-400",
@@ -359,7 +371,7 @@ export function WorkflowCard({
         )}
 
         {/* Progress bar for active states */}
-        {isActive && pipelineProgress !== null && pipelineProgress > 0 && (
+        {isActive && typeof pipelineProgress === "number" && pipelineProgress > 0 && (
           <div className="mt-3">
             <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
               <div
@@ -392,21 +404,39 @@ export function WorkflowCard({
           </div>
         )}
 
-        {/* Analyzing state — show real progress */}
+        {/* Analyzing state — show real progress and current file */}
         {workflow.status === "ANALYZING" && (
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-cyan-500/5 border border-cyan-500/15">
-              <div className="flex items-center gap-2">
-                <ScanSearch className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-                <span className="text-[10px] font-semibold text-cyan-300">Analyzing project files...</span>
+              <div className="flex items-center gap-2 min-w-0">
+                <ScanSearch className="w-3.5 h-3.5 text-cyan-400 animate-pulse flex-shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-[10px] font-semibold text-cyan-300 block truncate">
+                    {workflow.current_file
+                      ? `${workflow.pipeline_stage?.replace(/_/g, " ") || "Scanning"}: ${workflow.current_file}`
+                      : "Analyzing project files..."}
+                  </span>
+                  {workflow.current_file && (
+                    <span className="text-[9px] text-cyan-400/70 block truncate">{workflow.current_file}</span>
+                  )}
+                </div>
               </div>
-              {pipelineProgress !== undefined && (
-                <div className="flex items-center gap-1.5">
+              {pipelineProgress !== undefined && pipelineProgress !== null && (
+                <div className="flex items-center gap-1.5 flex-shrink-0">
                   <span className="text-[10px] font-mono text-cyan-400/80 tabular-nums">{pipelineProgress}%</span>
                 </div>
               )}
             </div>
-            <p className="text-[9px] text-zinc-600 text-center">Progress updated from backend</p>
+            <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-300 wf-progress-wave"
+                style={{
+                  width: `${pipelineProgress || 0}%`,
+                  background: "linear-gradient(90deg, #06b6d4, #22d3ee)",
+                }}
+              />
+            </div>
+            <p className="text-[9px] text-zinc-600 text-center">Live scan progress</p>
           </div>
         )}
 
