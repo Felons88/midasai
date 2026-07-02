@@ -327,10 +327,11 @@ export function ExpandOverlay({
   useEffect(() => {
     loadAnalysisContext()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [workflowId])
 
   const loadAnalysisContext = async () => {
     setLoadingAnalysis(true)
+    setError(null)
     try {
       const res = await fetch(`/api/workflows/${workflowId}/analyze`)
       if (res.ok) {
@@ -357,7 +358,7 @@ export function ExpandOverlay({
             ctx.architecture_pattern = config.architecture_pattern || ""
             ctx.readiness_level = config.readiness_level || ""
             ctx.contextual_questions = config.contextual_questions || []
-            
+
             // Load saved chat messages
             savedMessages = Array.isArray(config.chat_messages) ? config.chat_messages : []
             if (savedMessages.length > 0) {
@@ -374,14 +375,14 @@ export function ExpandOverlay({
                 })) || [],
               }))
               setMessages(restoredMessages)
-              
+
               // Set round and score from last message
               const lastMsg = restoredMessages[restoredMessages.length - 1]
               if (lastMsg.round) setRound(lastMsg.round)
               if (lastMsg.score) setScore(lastMsg.score)
               if (config.rounds_completed) setRound(config.rounds_completed)
               if (config.last_score) setScore(config.last_score)
-              
+
               // Set file count from analysis
               if (config.file_count_at_start) setFileCount(config.file_count_at_start)
             }
@@ -405,8 +406,14 @@ export function ExpandOverlay({
         scrollToBottom()
         return
       }
+      // If response not OK, throw error to trigger fallback
+      const errorText = await res.text().catch(() => "Unknown error")
+      let errorMsg = `HTTP ${res.status}`
+      try { errorMsg = JSON.parse(errorText).error || errorMsg } catch { /* fallback */ }
+      throw new Error(errorMsg)
     } catch (e) {
       console.error("Failed to load analysis:", e)
+      setError(e instanceof Error ? e.message : String(e))
     }
     // Fallback: no analysis context, run first round directly
     setLoadingAnalysis(false)
@@ -454,6 +461,21 @@ export function ExpandOverlay({
 
       setMessages((prev) => [...prev, aiMsg])
       scrollToBottom()
+
+      // Persist conversation history to backend
+      try {
+        await fetch(`/api/workflows/${workflowId}/conversation`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conversation_history: [...(messages || []), aiMsg],
+            last_round: data.round || (messages?.length > 0 ? messages.length + 1 : 1),
+            total_interactions: (messages?.length || 0) + 2  // account for both user and AI messages added
+          })
+        }).catch(console.error)
+      } catch (saveError) {
+        console.error("Failed to save conversation history:", saveError)
+      }
 
       if (data.isComplete) {
         setMessages((prev) => [
@@ -541,6 +563,18 @@ export function ExpandOverlay({
     ])
     scrollToBottom()
 
+    // Timeout to prevent hanging if AI is slow or stream stalls
+    const timeoutMs = 30000 // 30 seconds
+    let timeoutId: NodeJS.Timeout | null = null
+    let reader: ReadableStreamDefaultReader<Uint8Array> | null = null
+    let streamCompleted = false
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error("Generation timed out after 30 seconds. The AI generation may be slow or may have encountered an issue. Please try again or contact support if this persists."))
+      }, timeoutMs)
+    })
+
     try {
       const res = await fetch(`/api/workflows/${workflowId}/expand`, { method: "PATCH" })
       if (!res.ok) {
@@ -551,59 +585,102 @@ export function ExpandOverlay({
       }
       if (!res.body) throw new Error("No response stream")
 
-      const reader = res.body.getReader()
+      reader = res.body.getReader()
       const decoder = new TextDecoder()
       let buffer = ""
       let lastFiles: string[] = []
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split("\n")
-        buffer = lines.pop() ?? ""
-
-        for (const line of lines) {
-          if (!line.trim()) continue
+      // Race between stream completion and timeout
+      await Promise.race([
+        (async () => {
           try {
-            const event = JSON.parse(line)
-            if (event.type === "start") setGenProgress({ completed: 0, total: event.total, current: "Starting..." })
-            if (event.type === "file_start") setGenProgress((p) => ({ completed: p?.completed || 0, total: p?.total || 72, current: event.filename }))
-            if (event.type === "file_complete") {
-              setGenProgress({ completed: event.completed, total: event.total, current: event.filename })
-              if (event.completed % 6 === 0 || event.completed === event.total) {
-                setMessages((prev) => [...prev, { id: `gen-${Date.now()}-${event.completed}`, role: "system", content: `Generated ${event.completed}/${event.total} files (${event.progress}%)` }])
-                scrollToBottom()
+            while (true) {
+              const { done, value } = await reader!.read()
+              if (done) {
+                streamCompleted = true
+                break
+              }
+
+              if (value && value.length > 0) {
+                buffer += decoder.decode(value, { stream: true })
+                const lines = buffer.split("\n")
+                buffer = lines.pop() ?? ""
+
+                for (const line of lines) {
+                  if (!line.trim()) continue
+                  try {
+                    const event = JSON.parse(line)
+                    if (event.type === "start") setGenProgress({ completed: 0, total: event.total, current: "Starting..." })
+                    if (event.type === "file_start") setGenProgress((p) => ({ completed: p?.completed || 0, total: p?.total || 72, current: event.filename }))
+                    if (event.type === "file_complete") {
+                      setGenProgress({ completed: event.completed, total: event.total, current: event.filename })
+                      if (event.completed % 6 === 0 || event.completed === event.total) {
+                        setMessages((prev) => [...prev, { id: `gen-${Date.now()}-${event.completed}`, role: "system", content: `Generated ${event.completed}/${event.total} files (${event.progress}%)` }])
+                        scrollToBottom()
+                      }
+                    }
+                    if (event.type === "complete") {
+                      lastFiles = event.files || []
+                      setIsComplete(true)
+                      setFinalFiles(lastFiles)
+                      setFileCount(event.totalFiles)
+                      setGenProgress(null)
+                      setMessages((prev) => [...prev, { id: `done-${Date.now()}`, role: "system", content: `Expansion complete! ${event.totalFiles} files generated across 12 categories.` }])
+                      scrollToBottom()
+                      onComplete()
+                      return // exit loop on complete
+                    }
+                    if (event.type === "error") throw new Error(event.error)
+                  } catch (parseErr) {
+                    if (parseErr instanceof Error && parseErr.message && !line.startsWith("{")) { /* skip */ }
+                    else if (parseErr instanceof Error && parseErr.message) throw parseErr
+                  }
+                }
               }
             }
-            if (event.type === "complete") {
-              lastFiles = event.files || []
-              setIsComplete(true)
-              setFinalFiles(lastFiles)
-              setFileCount(event.totalFiles)
-              setGenProgress(null)
-              setMessages((prev) => [...prev, { id: `done-${Date.now()}`, role: "system", content: `Expansion complete! ${event.totalFiles} files generated across 12 categories.` }])
-              scrollToBottom()
-              onComplete()
+          } catch (err) {
+            throw err
+          } finally {
+            // Ensure reader is closed if stream completed naturally
+            if (!streamCompleted && reader) {
+              try {
+                await reader.cancel("Stream completed without explicit completion")
+              } catch (cancelErr) {
+                // Cancel errors are expected, ignore them
+                console.log("Stream cancel (expected):", cancelErr)
+              }
             }
-            if (event.type === "error") throw new Error(event.error)
-          } catch (parseErr) {
-            if (parseErr instanceof Error && parseErr.message && !line.startsWith("{")) { /* skip */ }
-            else if (parseErr instanceof Error && parseErr.message) throw parseErr
           }
-        }
-      }
 
-      if (!isComplete && lastFiles.length > 0) {
-        setIsComplete(true)
-        setFinalFiles(lastFiles)
-        setGenProgress(null)
-        onComplete()
-      }
+          // If stream ends without explicit complete, treat last files as complete
+          if (!isComplete && lastFiles.length > 0) {
+            setIsComplete(true)
+            setFinalFiles(lastFiles)
+            setGenProgress(null)
+            onComplete()
+          }
+        })(),
+        timeoutPromise,
+      ])
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      // Handle timeout specifically for better user feedback
+      if (e instanceof Error && e.message.includes("timed out")) {
+        setError(e.message)
+        setMessages((prev) => [...prev, { id: `timeout-${Date.now()}`, role: "system", content: `⏱️ Generation timed out after 30 seconds. This often indicates a slow AI response. You can: 1) Contact support if this persists, 2) Try again with a simpler request, 3) Check back in a few minutes.` }])
+      } else {
+        setError(e instanceof Error ? e.message : String(e))
+      }
       setGenProgress(null)
     } finally {
+      if (timeoutId) clearTimeout(timeoutId)
+      // Ensure stream reader is always cleaned up
+      if (reader && !streamCompleted) {
+        try {
+          await reader.cancel("Component cleanup")
+        } catch (cancelErr) {
+          console.log("Stream cleanup (expected):", cancelErr)
+        }
+      }
       setFinalizing(false)
     }
   }

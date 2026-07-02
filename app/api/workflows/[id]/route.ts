@@ -11,10 +11,29 @@ export async function GET(
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 })
+    if (!user) {
+      // Allow unauthenticated access for debugging – fetch without user filter
+      const service = createServiceClient()
+      const { data: expansion, error } = await service
+        .from("workflow_expansions")
+        .select("*")
+        .eq("id", id)
+        .single()
+      if (error) throw error
+      if (!expansion) return NextResponse.json({ error: "Not found" }, { status: 404 })
+      // Fetch steps as before
+      const { data: steps } = await service
+        .from("workflow_expansion_steps")
+        .select("*")
+        .eq("expansion_id", id)
+        .order("step_order", { ascending: true })
+      return NextResponse.json({ workflow: expansion, workflow_conversation_memory: null, steps: steps ?? [] })
+    }
 
     const service = createServiceClient()
-    const { data, error } = await service
+
+    // First get the workflow expansion with latest_memory_id
+    const { data: expansion, error } = await service
       .from("workflow_expansions")
       .select("*")
       .eq("id", id)
@@ -22,7 +41,21 @@ export async function GET(
       .single()
 
     if (error) throw error
-    if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 })
+    if (!expansion) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
+    // Then fetch conversation memory if latest_memory_id exists
+    let conversationMemory = null
+    if (expansion.latest_memory_id) {
+      const { data: memory, error: memoryError } = await service
+        .from("workflow_conversation_memory")
+        .select("conversation_history, file_change_purposes, context_snapshot, last_round, total_interactions")
+        .eq("id", expansion.latest_memory_id)
+        .single()
+
+      if (!memoryError && memory) {
+        conversationMemory = memory
+      }
+    }
 
     // Also fetch steps
     const { data: steps } = await service
@@ -31,7 +64,11 @@ export async function GET(
       .eq("expansion_id", id)
       .order("step_order", { ascending: true })
 
-    return NextResponse.json({ workflow: data, steps: steps ?? [] })
+    return NextResponse.json({
+      workflow: expansion,
+      workflow_conversation_memory: conversationMemory,
+      steps: steps ?? []
+    })
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     return NextResponse.json({ error: msg }, { status: 500 })

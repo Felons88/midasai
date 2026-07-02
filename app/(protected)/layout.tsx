@@ -5,6 +5,8 @@ import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell"
 import { shouldShowAdsForUser } from "@/lib/ads/server"
 import { isDefaultAdminPath } from "@/lib/admin-route"
 
+export const dynamic = "force-dynamic"
+
 async function getUserData(userId: string) {
   try {
     const supabase = await createClient()

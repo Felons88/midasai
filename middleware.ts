@@ -98,7 +98,7 @@ export async function middleware(request: NextRequest) {
     const secretHeader = request.headers.get("x-admin-secret")
 
     if (secret !== adminSecretRoute && secretHeader !== adminSecretRoute) {
-      return NextResponse.redirect(new URL("/404", request.url))
+      return NextResponse.json({ status: "Forbidden", error: "Admin access requires secret" }, { status: 403 })
     }
   }
 

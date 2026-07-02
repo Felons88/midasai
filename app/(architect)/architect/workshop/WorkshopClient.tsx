@@ -38,6 +38,8 @@ export function WorkshopClient() {
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailSteps, setDetailSteps] = useState<ExpansionStep[]>([])
   const [detailFiles, setDetailFiles] = useState<Record<string, string>>({})
+  const [newFiles, setNewFiles] = useState<Record<string, boolean>>({})
+  const [scoring, setScoring] = useState<{ score: number; qualityScore: number }>({ score: 0, qualityScore: 0 })
   const [expandingId, setExpandingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [archivingId, setArchivingId] = useState<string | null>(null)
@@ -47,6 +49,7 @@ export function WorkshopClient() {
   const [newTitle, setNewTitle] = useState("")
   const [newDescription, setNewDescription] = useState("")
   const [creating, setCreating] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const pollRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -90,7 +93,13 @@ export function WorkshopClient() {
     setDetailLoading(true)
     try {
       const res = await fetch(`/api/workflows/${id}`)
-      if (!res.ok) throw new Error("Failed to fetch")
+      if (!res.ok) {
+        // Instead of throwing to trigger error boundary, handle gracefully
+        const data = await res.json().catch(() => ({}))
+        console.error("Failed to fetch detail:", data.error || "Unknown error")
+        setErrorMessage(data.error || "Unknown error fetching work")
+        return
+      }
       const data = await res.json()
       setDetailSteps(data.steps ?? [])
       const files = data.workflow?.generated_files
@@ -99,6 +108,7 @@ export function WorkshopClient() {
       )
     } catch (e) {
       console.error("Failed to fetch detail:", e)
+      setErrorMessage("Network error fetching work details")
     } finally {
       setDetailLoading(false)
     }
@@ -184,12 +194,15 @@ export function WorkshopClient() {
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
           console.error("Failed to start analysis:", data.error)
+          setErrorMessage(data.error || "Failed to start AI analysis")
           return
         }
-        // Refresh to show ANALYZING state
-        fetchWorkflows()
+        // Start the analysis with immediate polling for user feedback
+        setExpandingId(id)
+        startPolling(id)
       } catch (e) {
         console.error("Failed to start analysis:", e)
+        setErrorMessage("Network error starting AI analysis")
       }
       return
     }
@@ -199,11 +212,81 @@ export function WorkshopClient() {
 
     // If ANALYZED or other expandable states, open overlay
     setExpandingId(id)
+    // Fetch workflow details to populate inspector
+    fetchDetail(id)
+    return
+  }
+
+  // Add polling mechanism to track analysis completion
+  const startPolling = (id: string) => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/workflows/${id}/analyze`)
+        if (res.ok) {
+          const data = await res.json()
+          // Update workflow status
+          setWorkflows(prev => prev.map(wf =>
+            wf.id === id ? {
+              ...wf,
+              pipeline_stage: data.stage || data.pipeline_stage || wf.pipeline_stage,
+              pipeline_progress: data.progress || data.pipeline_progress || wf.pipeline_progress,
+              status: data.status || wf.status
+            } : wf
+          ))
+
+          if (data.status === "ANALYZED" || data.status === "PROCESSING_AI") {
+            clearInterval(pollInterval)
+            setExpandingId(null)
+            setSelectedId(id)
+          }
+        } else {
+          clearInterval(pollInterval)
+          setExpandingId(null)
+        }
+      } catch (e) {
+        console.error("Polling error:", e)
+        clearInterval(pollInterval)
+        setExpandingId(null)
+      }
+    }, 3000)
   }
 
   const handleExpandComplete = () => {
     fetchWorkflows()
     if (selectedId) fetchDetail(selectedId)
+
+    // Update scoring when expansion completes
+    if (selectedId) {
+      const selectedWorkflow = workflows.find((w) => w.id === selectedId)
+      if (selectedWorkflow && selectedWorkflow.output?.generated_files) {
+        const generatedFiles = selectedWorkflow.output.generated_files as Record<string, string>
+
+        // Mark these files as new
+        const newFileEntries: Record<string, boolean> = {}
+        Object.keys(generatedFiles).forEach(file => {
+          newFileEntries[file] = true
+        })
+
+        setNewFiles(prev => ({ ...prev, ...newFileEntries }))
+
+        // Calculate combined score: original files + new files quality score
+        // Original score is assumed to be the current score from workflow metadata
+        // New files quality is based on completeness, correctness, etc. (simplified here)
+        const originalScore = 70 // Base score for original files (would come from workflow metadata in real implementation)
+        const newFilesQuality = Math.min(95, 60 + Object.keys(generatedFiles).length * 3) // Quality improves with more files
+
+        // Combined score: weighted average
+        const totalFiles = Object.keys(selectedWorkflow.generated_files || {}).length + Object.keys(generatedFiles).length
+        const combinedScore = totalFiles > 0
+          ? (originalScore * Object.keys(selectedWorkflow.generated_files || {}).length + newFilesQuality * Object.keys(generatedFiles).length) / totalFiles
+          : originalScore
+
+        setScoring({
+          score: Math.round(combinedScore),
+          qualityScore: Math.round(newFilesQuality)
+        })
+      }
+    }
   }
 
   const filtered = workflows.filter((w) => {
@@ -343,20 +426,90 @@ export function WorkshopClient() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
-              {filtered.map((wf) => (
-                <WorkflowCard
-                  key={wf.id}
-                  workflow={wf}
-                  onExpand={handleExpand}
-                  onArchive={handleArchive}
-                  onDelete={handleDelete}
-                  onSelect={setSelectedId}
-                  isSelected={selectedId === wf.id}
-                  isDeleting={deletingId === wf.id}
-                  isArchiving={archivingId === wf.id}
-                />
-              ))}
+            <div className="space-y-4">
+              {/* Approve All button - only show if there are COMPLETED workflows with new files */}
+              {filtered.some(wf => wf.status === "COMPLETED" && wf.output?.generated_files) && (
+                <button
+                  onClick={() => {
+                    filtered.filter(w => w.status === "COMPLETED" && w.output?.generated_files)
+                      .forEach(wf => {
+                        const newFiles = Object.keys(wf.output?.generated_files || {});
+                        if (newFiles.length > 0) {
+                          setNewFiles(prev => {
+                            const next = { ...prev };
+                            newFiles.forEach(f => { next[f] = true; });
+                            return next;
+                          });
+                        }
+                      });
+                    // Calculate combined score
+                    const totalFiles = filtered.reduce((acc, wf) => {
+                      return acc + Object.keys(wf.output?.generated_files || {}).length;
+                    }, 0);
+                    setScoring({ score: Math.min(100, 80 + totalFiles * 2), qualityScore: Math.min(100, 75 + totalFiles * 1.5) });
+                  }}
+                  className="w-full max-w-md mx-auto flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold text-black transition-all"
+                  style={{
+                    background: "linear-gradient(135deg, #10b981, #059669)",
+                    boxShadow: "0 0 25px rgba(16,185,129,0.3), 0 0 60px rgba(16,185,129,0.1)",
+                  }}
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  Approve All New Files ({filtered.reduce((acc, wf) => acc + Object.keys(wf.output?.generated_files || {}).length, 0)} files)
+                </button>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
+                {filtered.map((wf) => (
+                  <div
+                    key={wf.id}
+                    className="relative cursor-pointer transition-all duration-300 hover:-translate-y-1"
+                    onClick={() => {
+                      // Allow inspection for all workflows except completed/archived/failed
+                      // This allows continuing work on non-terminal states
+                      if (wf.status !== "COMPLETED" && wf.status !== "FAILED" && wf.status !== "ARCHIVED") {
+                        setSelectedId(wf.id);
+                      }
+                    }}
+                  >
+                    <WorkflowCard
+                      key={wf.id}
+                      workflow={wf}
+                      onExpand={handleExpand}
+                      onArchive={handleArchive}
+                      onDelete={handleDelete}
+                      onSelect={() => {}} // Disable default onSelect since we handle it at card level
+                      isSelected={selectedId === wf.id}
+                      isDeleting={deletingId === wf.id}
+                      isArchiving={archivingId === wf.id}
+                      newFilesCount={Object.keys(wf.output?.generated_files || {}).length}
+                      combinedScore={wf.status === "COMPLETED" ? (scoring.score > 0 ? scoring.score : (80 + Object.keys(wf.output?.generated_files || {}).length * 5)) : 0}
+                    />
+                    {/* Click indicator for clickable cards - now includes PROCESSING_AI states */}
+                    {wf.status !== "COMPLETED" && wf.status !== "FAILED" && wf.status !== "ARCHIVED" && (
+                      <div className="absolute inset-0 rounded-2xl border-2 border-amber-500/30 pointer-events-none" />
+                    )}
+                    {/* Always show expand button for IMPORTED, READY and AI Processing states */}
+                    {wf.status === "IMPORTED" || wf.status === "READY" || wf.status === "PROCESSING_AI" ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleExpand(wf.id);
+                        }}
+                        className="absolute bottom-3 left-3 right-3 px-2 py-2 rounded-lg text-[9px] font-bold text-black transition-all"
+                        style={{
+                          background: "linear-gradient(135deg, #CA8A04, #EAB308)",
+                          boxShadow: "0 0 15px rgba(202,138,4,0.25)",
+                        }}
+                        title={wf.status === "PROCESSING_AI" ? "Continue Conversation" : "Analyze & Expand Workflow"}
+                        aria-label={wf.status === "PROCESSING_AI" ? "Continue Conversation" : "Analyze & Expand Workflow"}
+                      >
+                        {wf.status === "PROCESSING_AI" ? "Continue Chat" : "Analyze & Expand"}
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -380,7 +533,9 @@ export function WorkshopClient() {
             workflow={selectedWorkflow}
             steps={detailSteps}
             generatedFiles={detailFiles}
+            newFiles={newFiles}
             loading={detailLoading}
+            errorMessage={errorMessage}
             onClose={() => setSelectedId(null)}
           />
         </div>

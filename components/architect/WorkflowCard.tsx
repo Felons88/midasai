@@ -149,6 +149,9 @@ interface WorkflowCardProps {
   isSelected: boolean
   isDeleting: boolean
   isArchiving: boolean
+  // New props for file tracking and scoring
+  newFilesCount?: number
+  combinedScore?: number
 }
 
 export function WorkflowCard({
@@ -160,6 +163,8 @@ export function WorkflowCard({
   isSelected,
   isDeleting,
   isArchiving,
+  newFilesCount = 0,
+  combinedScore = 0,
 }: WorkflowCardProps) {
   const [showMenu, setShowMenu] = useState(false)
   const config = STATUS_CONFIG[workflow.status]
@@ -308,8 +313,50 @@ export function WorkflowCard({
                 {workflow.file_count} files
               </span>
             )}
+            {/* New files indicator */}
+            {newFilesCount > 0 && (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-green-500/15 text-green-400 border border-green-500/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                +{newFilesCount} new
+              </span>
+            )}
+            {/* Quality score for completed workflows */}
+            {combinedScore > 0 && workflow.status === "COMPLETED" && (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                <Check className="w-2.5 h-2.5" />
+                {combinedScore}%
+              </span>
+            )}
           </div>
         </div>
+
+        {/* New files indicator - shown for completed workflows with new files */}
+        {newFilesCount > 0 && (
+          <div className="mt-4 px-4 py-3 bg-green-500/10 border border-green-500/20 rounded-xl transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-green-500/20 flex items-center justify-center">
+                  <FileText className="w-3.5 h-3.5 text-green-400" />
+                </div>
+                <span className="text-xs font-semibold text-green-300">New Files Added</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono text-green-400 bg-green-500/30 px-2 py-1 rounded-full">
+                  +{newFilesCount} files
+                </span>
+                {combinedScore > 0 && (
+                  <span className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    <Check className="w-3 h-3" />
+                    Quality: {combinedScore}%
+                  </span>
+                )}
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400">
+              This expansion added {newFilesCount} new file{newFilesCount !== 1 ? 's' : ''} to your project, improving intelligence quality and expanding coverage.
+            </p>
+          </div>
+        )}
 
         {/* Progress bar for active states */}
         {isActive && pipelineProgress !== null && pipelineProgress > 0 && (

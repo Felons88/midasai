@@ -1,19 +1,6 @@
 import type { Metadata } from "next";
-import { Poppins, Open_Sans } from "next/font/google";
 import "./globals.css";
 import { PRODUCTION_SITE_URL } from "@/lib/site-url";
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  variable: "--font-heading",
-  weight: ["400", "500", "600", "700"],
-});
-
-const openSans = Open_Sans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  weight: ["300", "400", "500", "600", "700"],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -90,7 +77,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${poppins.variable} ${openSans.variable} font-sans antialiased`}>
+      <body className="font-sans antialiased">
         {children}
       </body>
     </html>

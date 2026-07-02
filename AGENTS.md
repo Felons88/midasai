@@ -554,3 +554,219 @@ Every decision should optimize for:
 * Maintainability
 * Revenue
 * Long-term growth
+
+---
+
+## CEO Agent (Sole Purpose)
+
+The CEO Agent exists solely to tell other agents what to do. It does not perform implementation work; its only responsibility is to issue clear, prioritized directives to the agent council based on strategic goals, checkpoints, and project-state.
+
+### Responsibilities
+- Read `memory/project-state.md` and latest checkpoints.
+- Determine the next high‑priority objective for the agent council.
+- Issue a directive in the format: `[CEO DIRECTIVE] <priority> – <description>`.
+- Ensure directives are communicated via the agreed‑upon channel (e.g., updating `AGENTS.md` directives section or posting to a designated Slack/Teams webhook).
+- Monitor compliance and escalate if agents deviate without justification.
+- Do not write code, modify schemas, or create UI components.
+
+---
+
+## Agency-Agents Integration - Enhanced MidasAI Agent Council
+
+Based on the integration with the **msitarzewski/agency-agents** framework and preserving the existing MidasAI agent structure, here's the complete enhanced council:
+
+### **Incorporated: Foundation + Agency-Enhanced Council**
+
+#### **AGENT 0 – PROJECT MANAGER / ORCHESTRATOR / CEO**
+**Enhanced Role:** Strategic Commander + CEO Agent
+* Owns cycle plans, commands agency-agents, coordinates all 27 agents
+* **Agency Integration:** Direct access to `code-agent`, `data-agent`, `integration-agent` for specialized tasks
+* **CEO Function:** All strategic directives flow through this agent
+* **Span:** Projects, sprints, agent coordination, strategic priorities
+
+#### **Agents 1-12: MidasAI Core Functions + Agency-Enhanced**
+
+**AGENT 1 – FRONTEND / UI / UX WITH AGENCY SUPPORT**
+* Core MidasAI responsibilities unchanged
+* **Agency Integration:** `code-agent` for component generation, `research-agent` for UX research, `decision-agent` for UI decisions
+* **Agency-Enhanced:** Can immediately generate React/Vue components via `code-agent`
+
+**AGENT 2 – DATABASE & BACKEND WITH AGENCY SUPPORT**
+* Core MidasAgent responsibilities unchanged  
+* **Agency Integration:** `data-agent` for Supabase/DML operations, `integration-agent` for external APIs
+* **Agency-Enhanced:** Can instantly design PostgreSQL schemas, migrations, RLS policies via `data-agent`
+
+**AGENT 3 – SEARCH & SEO WITH AGENCY SUPPORT**
+* Core MidasAI responsibilities unchanged
+* **Agency Integration:** `research-agent` for competitive analysis, `decision-agent` for search strategy
+* **Agency-Enhanced:** Can immediately run Monte Carlo simulations for search optimization
+
+**AGENT 4 – MCP & AI SYSTEMS WITH AGENCY SUPPORT**
+* Core MidasAI responsibilities unchanged
+* **Agency Integration:** All agency-agents for AI system coordination
+* **Agency-Enhanced:** Can instantly research AI ecosystems via `research-agent`
+
+**AGENT 5 – EDGE FUNCTIONS WITH AGENCY SUPPORT**
+* Core MidasAI responsibilities unchanged
+* **Agency Integration:** `integration-agent` for webhooks/API calls, `code-agent` for function generation
+* **Agency-Enhanced:** Can immediately implement complex edge functions
+
+**AGENT 6 – USER & CREATOR SYSTEMS WITH AGENCY SUPPORT**
+* Core MidasAI responsibilities unchanged
+* **Agency Integration:** `data-agent` for user flows, `decision-agent` for feature prioritization
+* **Agency-Enhanced:** Can instantly analyze user experience via decision matrices
+
+**AGENT 7 – QA & PRODUCTION HARDENING WITH AGENCY SUPPORT**
+* Core MidasAI responsibilities unchanged
+* **Agency Integration:** `code-agent` for test generation, `research-agent` for best practices
+* **Agency-Enhanced:** Can immediately write comprehensive Playwright suites
+
+**AGENT 8 – MARKETPLACE DATA FRAMEWORK WITH AGENCY SUPPORT**
+* Core MidasAI responsibilities unchanged
+* **Agency Integration:** `research-agent` for data source analysis, `data-agent` for validation
+* **Agency-Enhanced:** Can instantly research and integrate data pipelines
+
+**AGENT 9 – MONETIZATION WITH AGENCY SUPPORT**
+* Core MidasAI responsibilities unchanged
+* **Agency Integration:** `decision-agent` for pricing strategies, `data-agent` for revenue analysis
+* **Agency-Enhanced:** Can instantly run Monte Carlo simulations for revenue projections
+
+**AGENT 10 – ANALYTICS & GROWTH WITH AGENCY SUPPORT**
+* Core MidasAI responsibilities unchanged
+* **Agency Integration:** `data-agent` for analytics pipelines, `research-agent` for market research
+* **Agency-Enhanced:** Can instantly run competitive analyses
+
+**AGENT 11 – MEDIA SYSTEM WITH AGENCY SUPPORT**
+* Core MidasAI responsibilities unchanged
+* **Agency Integration:** `code-agent` for asset pipelines, `data-agent` for CDN configurations
+* **Agency-Enhanced:** Can instantly generate media processing workflows
+
+**AGENT 12 – SECURITY WITH AGENCY SUPPORT**
+* Core MidasAI responsibilities unchanged
+* **Agency Integration:** `security-reviewer` capabilities, `research-agent` for vulnerability research, `code-agent` for secure code generation
+* **Agency-Enhanced:** Can immediately generate security-hardened code
+
+**AGENT 13 – DOCUMENTATION WITH AGENCY SUPPORT**
+* Core MidasAI responsibilities unchanged
+* **Agency Integration:** `research-agent` for technical documentation, `code-agent` for API docs
+* **Agency-Enhanced:** Can instantly generate comprehensive technical documentation
+
+---
+
+## Agency-Agents Skill Reference
+
+Each agent now has direct access to specialized sub-agents:
+
+### Code Generation & Implementation
+- **`code-agent`**: Automated component generation, Next.js APIs, TypeScript utilities, Supabase integrations
+- **Usage**: `[CEO DIRECTIVE] high – Use code-agent to generate detailed implementation for payment flow`
+
+### Research & Analysis  
+- **`research-agent`**: Academic paper analysis, documentation review, competitive intelligence, technical research
+- **Usage**: `[CEO DIRECTIVE] medium – Use research-agent to analyze current CI/CD best practices for deployment`
+
+### Strategic Decision Making
+- **`decision-agent`**: SWOT analysis, Monte Carlo simulations, cost-benefit analysis, scenario planning
+- **Usage**: `[CEO DIRECTIVE] high – Use decision-agent to run Monte Carlo simulation for marketplace load predictions`
+
+### Data Pipeline & Database Operations
+- **`data-agent`**: Schema design, migration management, PostgreSQL optimization, data validation
+- **Usage**: `[CEO DIRECTIVE] medium – Use data-agent to design unified listings database schema`
+
+### System Integration & Connectivity
+- **`integration-agent`**: OAuth2 flows, webhook implementations, API integrations, external service connections
+- **Usage**: `[CEO DIRECTIVE] high – Use integration-agent to implement Stripe webhook processing with type-safe authentication`
+
+### Agency Execution & Coordination
+- **`agency-executor`**: Multi-agent workflow management, execution monitoring, result aggregation
+- **Usage**: `[CEO DIRECTIVE] low – Use agency-executor to run simultaneous quality tests across critical user flows`
+
+---
+
+## Agency-Enhanced Workflow
+
+### **Execution Pipeline**
+
+**Phase 1: Strategic Planning (CEO + AGENT 0)**
+```
+CEO (AGENT 0) → Direct all agency-agents for research → Generate cycles → Distribute to AGENTs 1-13
+```
+
+**Phase 2: Parallel Execution**
+```
+AGENT 0 leverages:
+- code-agent for rapid prototyping
+- research-agent for market analysis  
+- decision-agent for architecture decisions
+- integration-agent for external dependencies
+```
+
+**Phase 3: Quality Assurance**
+```
+AGENT 7 uses:
+- code-agent for comprehensive test coverage
+- research-agent for testing best practices
+- data-agent for test data management
+```
+
+**Phase 4: Documentation & Knowledge Transfer**
+```
+AGENT 13 leverages:
+- code-agent for API documentation
+- research-agent for technical documentation
+- data-agent for schema documentation
+```
+
+---
+
+## Integration Instructions
+
+### **For CEO Agent Directives**
+```
+[CEO DIRECTIVE] high – Use decision-agent to run Monte Carlo simulation on marketplace traffic predictions
+[CEO DIRECTIVE] medium – Use code-agent to generate Stripe integration APIs
+[CEO DIRECTIVE] low – Use research-agent to analyze competitor pricing models
+```
+
+### **Agency-Enhanced Delivery**
+When CEO delegates to AGENTS 1-13, they can immediately invoke the corresponding agency-agents for specialized capabilities:
+
+**ANTICIPATED Turnaround Times:**
+- Code generation: 5-15 minutes via `code-agent`
+- Research analysis: 10-30 minutes via `research-agent`
+- Decision analysis: 2-5 minutes via `decision-agent`
+- Data operations: 5-10 minutes via `data-agent`
+- Integration setup: 15-45 minutes via `integration-agent`
+
+### **Enhanced Defining of Done**
+```
+✓ Implementation complete (Code agent work)
+✓ Comprehensive tests (Code agent test generation)
+✓ Documentation written (Code agent documentation + Research agent)
+✓ Security reviewed (Security reviewer + Agency research)
+✓ Performance optimized (Data agent analysis + Decision agent)
+✓ All agency sub-tasks complete
+```
+
+---
+
+## Agency-Enhanced Risk Mitigation
+
+### **Eliminated Bottlenecks**
+- **Manual coding → Instant generation (code-agent)**
+- **Manual research → Instant analysis (research-agent)**
+- **Manual decisions → Instant simulations (decision-agent)**
+- **Manual data → Instant pipelines (data-agent)**
+- **Manual integrations → Instant setup (integration-agent)**
+
+### **Enhanced Capabilities**
+- **Simulation-heavy decisions:** Monte Carlo modeling for revenue predictions
+- **Research-intensive tasks:** Academic paper analysis, competitive intelligence
+- **Technical implementation:** TypeScript generation, API integration patterns
+- **Database optimization:** Schema analysis, query optimization strategies
+
+### **Unblocked Developer Experience**
+- Immediate access to specialized tools for complex requirements
+- Parallel processing of multiple analysis dimensions
+- Reduced cognitive load through specialized agent delegation
+- Significantly faster iteration cycles through automated capabilities

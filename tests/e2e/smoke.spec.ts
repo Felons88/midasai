@@ -22,7 +22,7 @@ test.describe("Public smoke", () => {
 
   test("search page loads", async ({ page }) => {
     await page.goto("/search")
-    await expect(page.getByRole("heading", { name: /search/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /Search Skills|Search Results/i })).toBeVisible()
   })
 
   test("robots.txt is served", async ({ request }) => {

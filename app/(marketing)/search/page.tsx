@@ -72,7 +72,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <div className="flex items-center gap-2.5 mb-5 animate-fade-in-up">
             <LayoutGrid className="h-5 w-5 text-cta shrink-0" />
             <h1 className="text-2xl font-bold text-text-primary">
-              {query ? "Search Results" : "Search Skills"}
+              {resolvedParams?.q ? "Search Results" : "Search Skills"}
             </h1>
             <span className="text-text-tertiary text-sm hidden sm:block">— find AI skills, agents, MCP servers, and more</span>
           </div>

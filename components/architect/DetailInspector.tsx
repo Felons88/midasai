@@ -22,7 +22,9 @@ interface DetailInspectorProps {
   workflow: WorkflowExpansion | null
   steps: ExpansionStep[]
   generatedFiles: Record<string, string>
+  newFiles: Record<string, boolean> // Tracks which files are newly generated
   loading: boolean
+  errorMessage?: string | null
   onClose?: () => void
 }
 
@@ -30,7 +32,9 @@ export function DetailInspector({
   workflow,
   steps,
   generatedFiles,
+  newFiles,
   loading,
+  errorMessage,
   onClose,
 }: DetailInspectorProps) {
   const [viewingFile, setViewingFile] = useState<string | null>(null)
@@ -46,6 +50,38 @@ export function DetailInspector({
         <p className="text-xs text-zinc-600 mt-1">
           View details, files, and pipeline steps
         </p>
+      </div>
+    )
+  }
+
+  // Display error message if there's one
+  if (errorMessage) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center px-6 py-10">
+        <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
+          <AlertTriangle className="w-6 h-6 text-red-400" />
+        </div>
+        <p className="text-sm font-medium text-red-400 mb-2">
+          Unable to Load Workflow Details
+        </p>
+        <p className="text-xs text-red-400/80 max-w-md">
+          {errorMessage}
+        </p>
+        <p className="text-xs text-zinc-500 mt-4">
+          Please try again or select a different workflow
+        </p>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="mt-4 px-4 py-2 rounded-xl text-xs font-bold text-black transition-all"
+            style={{
+              background: "linear-gradient(135deg, #CA8A04, #EAB308)",
+              boxShadow: "0 0 20px rgba(202,138,4,0.25)",
+            }}
+          >
+            Close
+          </button>
+        )}
       </div>
     )
   }
@@ -197,65 +233,80 @@ export function DetailInspector({
                 Generated Files
               </h4>
               <div className="space-y-1">
-                {fileKeys.map((filename) => (
-                  <div key={filename}>
-                    <button
-                      onClick={() =>
-                        setViewingFile(
-                          viewingFile === filename ? null : filename
-                        )
-                      }
-                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${
-                        viewingFile === filename
-                          ? "bg-amber-500/8 border border-amber-500/20"
-                          : "bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04]"
-                      }`}
-                    >
-                      <FileText
-                        className={`w-3.5 h-3.5 flex-shrink-0 ${
+                {fileKeys.map((filename) => {
+                  const isNew = !!newFiles?.[filename];
+                  return (
+                    <div key={filename}>
+                      <button
+                        onClick={() =>
+                          setViewingFile(
+                            viewingFile === filename ? null : filename
+                          )
+                        }
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${
                           viewingFile === filename
-                            ? "text-amber-400"
-                            : "text-zinc-500"
+                            ? "bg-amber-500/8 border border-amber-500/20"
+                            : "bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04]"
                         }`}
-                      />
-                      <span className="text-[11px] font-mono text-zinc-300 text-left truncate">
-                        {filename}
-                      </span>
-                      <ChevronRight
-                        className={`ml-auto w-3 h-3 text-zinc-600 transition-transform ${
-                          viewingFile === filename ? "rotate-90" : ""
-                        }`}
-                      />
-                    </button>
-
-                    {viewingFile === filename && (
-                      <div className="mt-1 rounded-lg border border-white/[0.06] bg-zinc-900/60 overflow-hidden wf-file-reveal">
-                        <div className="px-3 py-1.5 border-b border-white/[0.04] flex items-center justify-between">
-                          <span className="text-[9px] text-zinc-600 font-mono">
-                            {generatedFiles[filename].split(/\s+/).length} words
+                      >
+                        <FileText
+                          className={`w-3.5 h-3.5 flex-shrink-0 ${
+                            viewingFile === filename
+                              ? "text-amber-400"
+                              : "text-zinc-500"
+                          }`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[11px] font-mono text-zinc-300 text-left truncate">
+                            {filename}
                           </span>
-                          <button
-                            onClick={() =>
-                              handleCopy(generatedFiles[filename])
-                            }
-                            className="flex items-center gap-1 text-[9px] text-zinc-500 hover:text-white transition-all"
-                          >
-                            {copied ? (
-                              <Check className="w-2.5 h-2.5 text-green-400" />
-                            ) : (
-                              <Copy className="w-2.5 h-2.5" />
-                            )}
-                            {copied ? "Copied" : "Copy"}
-                          </button>
+                          {isNew && (
+                            <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
+                              NEW
+                            </span>
+                          )}
                         </div>
-                        <pre className="p-3 text-[10px] text-zinc-400 font-mono whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto scrollbar-architect">
-                          {generatedFiles[filename].slice(0, 3000)}
-                          {generatedFiles[filename].length > 3000 && "\n\n... (truncated)"}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                        <ChevronRight
+                          className={`ml-auto w-3 h-3 text-zinc-600 transition-transform ${
+                            viewingFile === filename ? "rotate-90" : ""
+                          }`}
+                        />
+                      </button>
+
+                      {viewingFile === filename && (
+                        <div className="mt-1 rounded-lg border border-white/[0.06] bg-zinc-900/60 overflow-hidden wf-file-reveal">
+                          <div className="px-3 py-1.5 border-b border-white/[0.04] flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[9px] text-zinc-600 font-mono">
+                                {generatedFiles[filename].split(/\s+/).length} words
+                              </span>
+                              <span className="text-[9px] text-zinc-500 font-mono">
+                                ~{Math.ceil(generatedFiles[filename].length / 1800)} pages
+                              </span>
+                            </div>
+                            <button
+                              onClick={() =>
+                                handleCopy(generatedFiles[filename])
+                              }
+                              className="flex items-center gap-1 text-[9px] text-zinc-500 hover:text-white transition-all"
+                            >
+                              {copied ? (
+                                <Check className="w-2.5 h-2.5 text-green-400" />
+                              ) : (
+                                <Copy className="w-2.5 h-2.5" />
+                              )}
+                              {copied ? "Copied" : "Copy"}
+                            </button>
+                          </div>
+                          {/* Full file content - removed truncation to show complete file */}
+                          <pre className="p-3 text-[10px] text-zinc-400 font-mono whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto scrollbar-architect">
+                            {generatedFiles[filename]}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
