@@ -1,7 +1,7 @@
 # MidasAI — Project State
 
-> **Last updated:** 2026-06-29  
-> **Build status:** ✅ Passes (`next build --no-lint`)  
+> **Last updated:** 2026-07-01  
+> **Build status:** ✅ Passes (`npm run build`)  
 > **Production readiness:** ~96/100  
 > **Active cycle:** 16 — Enterprise Workflow + Explore V2  
 > **Supabase project:** `rqermggomchlipmuigan`
@@ -415,10 +415,10 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 ## 11. Pending / Known Issues
 
 - Stripe live keys not yet configured (test mode works)
-- ExpandOverlay "step still running" — finalization may hang on slow AI responses
 - Some admin pages have limited real data (need production seeding)
 - Email templates need production SMTP verification
 - PostHog/GA/Clarity analytics not yet wired to production
+- Architect generation runs in the browser tab; page reloads interrupt the job (next iteration: server-side worker + Supabase Realtime)
 
 ---
 

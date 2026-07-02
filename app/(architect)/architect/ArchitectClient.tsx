@@ -700,7 +700,16 @@ export function ArchitectClient() {
         setGenerating(false)
         setPhase("ready")
         setCurrentFile(null)
+        if (job.error) {
+          // Show error to user
+          console.error("Job failed:", job.error)
+        }
         setFailedFiles([...job.failedFiles])
+      } else {
+        // idle status
+        setGenerating(false)
+        setPhase("idle")
+        setCurrentFile(null)
       }
     })
   }, [])
@@ -843,14 +852,15 @@ export function ArchitectClient() {
       if (data.summary) setSummary(data.summary)
 
       // Auto-generate when phase becomes ready
-      if (newPhase === "ready" && data.summary && !generating && ArchitectJobStore.getJob().status === "idle") {
+      if (newPhase === "ready" && data.summary && !generating) {
         const apiMsgs = updatedMessages.map(m => ({ role: m.role, content: m.content }))
+        // Start background job - it will auto-resume existing jobs
         ArchitectJobStore.start({
           messages: apiMsgs,
           summary: data.summary,
           filesToGenerate: data.summary.filesToGenerate,
           sessionId: sid,
-        })
+        }).catch(console.error)
       }
 
       // Log to Supabase

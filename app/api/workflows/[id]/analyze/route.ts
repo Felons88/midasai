@@ -26,6 +26,8 @@ export async function POST(
     if (wf.status === "ANALYZED") {
       return NextResponse.json({
         status: "ANALYZED",
+        stage: "analysis_complete",
+        progress: 100,
         file_count: wf.file_count || 0,
         analysis_summary: wf.expansion_config?.analysis_summary || null,
       })
@@ -60,6 +62,8 @@ export async function POST(
 
     return NextResponse.json({
       status: "ANALYZING",
+      stage: "deep_scan",
+      progress: 5,
       eta_seconds: 30,
     })
   } catch (e) {
@@ -83,7 +87,7 @@ export async function GET(
     const service = createServiceClient()
     const { data, error } = await service
       .from("workflow_expansions")
-      .select("*")
+      .select("status, pipeline_stage, pipeline_progress, file_count, expansion_config")
       .eq("id", id)
       .eq("user_id", user.id)
       .single()
@@ -91,14 +95,16 @@ export async function GET(
     if (error) throw error
     if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
-    // Also fetch steps
-    const { data: steps } = await service
-      .from("workflow_expansion_steps")
-      .select("*")
-      .eq("expansion_id", id)
-      .order("step_order", { ascending: true })
+    // Return analysis status for polling
+    const expansionConfig = typeof data.expansion_config === "object" ? data.expansion_config : {}
 
-    return NextResponse.json({ workflow: data, steps: steps ?? [] })
+    return NextResponse.json({
+      status: data.status,
+      stage: data.pipeline_stage,
+      progress: data.pipeline_progress,
+      file_count: data.file_count || 0,
+      analysis_summary: expansionConfig.analysis_summary || null,
+    })
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     return NextResponse.json({ error: msg }, { status: 500 })
