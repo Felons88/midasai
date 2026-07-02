@@ -13,12 +13,14 @@ export function StatsSection({
   totalDownloads: number
   averageRating: number
 }) {
-  const stats = [
-    { value: totalListings, label: "Skills & Assets", suffix: "+" },
-    { value: totalDownloads, label: "Installs", suffix: totalDownloads >= 1000000 ? "M+" : "+" },
-    { value: totalCreators, label: "Creators", suffix: "+" },
-    { value: averageRating, label: "Average Rating", suffix: "/5", decimals: 1 },
+  const allStats = [
+    { value: totalListings, label: "Skills & Assets", suffix: "+", decimals: 0, min: 1 },
+    { value: totalDownloads, label: "Installs", suffix: totalDownloads >= 1000000 ? "M+" : "+", decimals: 0, min: 1 },
+    { value: totalCreators, label: "Creators", suffix: "+", decimals: 0, min: 1 },
+    { value: averageRating, label: "Average Rating", suffix: "/5", decimals: 1, min: 0.1 },
   ]
+
+  const stats = allStats.filter((stat) => stat.value >= stat.min)
 
   // Format large numbers for display
   const formatValue = (stat: typeof stats[0]) => {
@@ -28,34 +30,39 @@ export function StatsSection({
     return { value: stat.value, display: null }
   }
 
+  if (stats.length === 0) return null
+
   return (
-    <section className="border-y border-white/5 bg-surface/30 py-10 relative">
-      <div className="container mx-auto px-4">
+    <section className="relative -mt-6 z-20">
+      <div className="absolute inset-x-0 -top-24 h-32 bg-gradient-to-b from-background/0 via-background/80 to-background pointer-events-none" />
+      <div className="container mx-auto px-4 relative">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4">
-            {stats.map((stat, index) => {
-              const { value, display } = formatValue(stat)
-              return (
-                <div
-                  key={stat.label}
-                  className="text-center"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div className="text-3xl md:text-4xl font-bold text-text-primary mb-1">
-                    {display ? (
-                      <span>{display}</span>
-                    ) : (
-                      <AnimatedCounter
-                        value={value}
-                        suffix={stat.suffix}
-                        decimals={stat.decimals}
-                      />
-                    )}
+          <div className="rounded-2xl border border-white/10 bg-surface/80 backdrop-blur-2xl shadow-2xl py-8 md:py-10 px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4">
+              {stats.map((stat, index) => {
+                const { value, display } = formatValue(stat)
+                return (
+                  <div
+                    key={stat.label}
+                    className="text-center"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <div className="text-3xl md:text-4xl font-bold text-text-primary mb-1">
+                      {display ? (
+                        <span>{display}</span>
+                      ) : (
+                        <AnimatedCounter
+                          value={value}
+                          suffix={stat.suffix}
+                          decimals={stat.decimals}
+                        />
+                      )}
+                    </div>
+                    <div className="text-sm text-text-secondary">{stat.label}</div>
                   </div>
-                  <div className="text-sm text-text-secondary">{stat.label}</div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         </div>
       </div>

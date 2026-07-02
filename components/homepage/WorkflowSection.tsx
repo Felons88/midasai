@@ -112,7 +112,7 @@ export function WorkflowSection() {
                 )
               })}
             </div>
-            <div className="mt-8 flex items-center justify-center gap-6 text-xs text-text-tertiary">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-text-tertiary">
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
                 One-click install

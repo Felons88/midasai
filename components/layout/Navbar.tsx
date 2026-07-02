@@ -51,7 +51,7 @@ export function Navbar() {
           </div>
 
           {/* CENTER: Global Search */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
+          <div className="hidden md:flex flex-1 max-w-md lg:max-w-[12rem] xl:max-w-[20rem] 2xl:max-w-md mx-4 lg:mx-6">
             <form action="/search" method="GET" className="relative w-full">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
               <input

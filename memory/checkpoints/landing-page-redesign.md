@@ -84,6 +84,18 @@ None.
 - Trimmed category list from 20 to 12 and reduced card/grid padding.
 - Reduced carousel and feature grid gaps.
 
+### Layout bug fixes
+- Fixed duplicate placeholder overlap in `HeroSearchBox` by hiding the native placeholder when the typewriter overlay is active.
+- Increased hero search width from `max-w-2xl` to `max-w-3xl` (~15% wider).
+- Standardized hero spacing: badge mb-8, headline mb-5, paragraph mb-10, CTAs mb-12, search mb-10, trending tags gap-3.
+- Moved floating cards to the viewport edges at `2xl` and reduced their width to `w-52` so they never compete with the headline.
+- Removed `overflow-hidden` from the hero section so the search dropdown is not clipped.
+- Reworked `StatsSection` as a floating glass panel with a gradient fade to improve the hero-to-stats transition.
+- Filtered empty stats (0 installs, 0 creators, 0 rating) and hide the entire stats section when no metrics are meaningful.
+- Replaced empty hero badge text with a launch message when no listings exist.
+- Reduced navbar search width at `lg` and `xl` breakpoints to prevent nav overflow/crowding.
+- Made workflow trust badges wrap on small screens.
+
 ## Next Tasks
 
 - Add Playwright E2E smoke tests for new homepage sections.

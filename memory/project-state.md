@@ -404,6 +404,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 ## 10. What's Working
 
 - ✅ Premium landing page with animated hero, spotlight search, live stats, category grid, and marketplace carousels
+- ✅ Hero layout stability: no duplicate placeholders, no clipped dropdowns, no floating-card overlap, responsive navbar
 - ✅ Full marketplace browse, search, filter, sort
 - ✅ Listing creation (manual + GitHub import + AI scan)
 - ✅ Stripe checkout for paid listings

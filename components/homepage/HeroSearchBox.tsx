@@ -117,7 +117,7 @@ export function HeroSearchBox() {
   const showDropdown = focused && (query || recentSearches.length > 0 || TRENDING_SEARCHES.length > 0)
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto">
+    <div className="relative w-full max-w-3xl mx-auto">
       <form onSubmit={handleSubmit} className="relative">
         <div
           className={cn(
@@ -135,7 +135,7 @@ export function HeroSearchBox() {
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setFocused(true)}
             onBlur={() => setTimeout(() => setFocused(false), 150)}
-            placeholder={mounted ? "Search skills, agents, workflows, templates..." : "Search marketplace..."}
+            placeholder={showTypewriter ? "" : mounted ? "Search skills, agents, workflows, templates..." : "Search marketplace..."}
             className={cn(
               "flex-1 h-14 bg-transparent text-base text-text-primary placeholder:text-text-tertiary",
               "focus-visible:outline-none",

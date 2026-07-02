@@ -17,22 +17,70 @@ const HERO_TRENDING = [
 
 export function HeroSection({ totalListings }: { totalListings: number }) {
   return (
-    <section className="relative min-h-[75vh] flex items-center justify-center overflow-hidden pt-16 pb-12 lg:pt-20 lg:pb-16">
+    <section className="relative min-h-[75vh] flex items-center justify-center pt-16 pb-12 lg:pt-20 lg:pb-16">
       <HeroBackground />
+
+      {/* Floating cards — positioned at viewport edges, never overlapping content */}
+      <div className="hidden 2xl:block pointer-events-none absolute inset-y-0 left-0 right-0 z-[5]">
+        <div className="absolute top-1/2 -translate-y-1/2 left-6 xl:left-10 flex flex-col justify-center gap-6">
+          <FloatingCard
+            icon={Bot}
+            title="AI Agent Installed"
+            subtitle="Code review agent by @aismith"
+            variant="gold"
+            delay={0}
+            className="w-52"
+          />
+          <FloatingCard
+            icon={FileCode}
+            title="Cursor Rule Downloaded"
+            subtitle="React architecture rules"
+            variant="purple"
+            delay={0.6}
+            className="w-52"
+          />
+        </div>
+        <div className="absolute top-1/2 -translate-y-1/2 right-6 xl:right-10 flex flex-col justify-center gap-6">
+          <FloatingCard
+            icon={Workflow}
+            title="Workflow Template"
+            subtitle="DevOps pipeline for Vercel"
+            variant="blue"
+            delay={1.2}
+            className="w-52"
+          />
+          <FloatingCard
+            icon={Layers}
+            title="Prompt Pack Added"
+            subtitle="Sales outreach prompts"
+            variant="gold"
+            delay={1.8}
+            className="w-52"
+          />
+        </div>
+      </div>
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-5xl mx-auto text-center">
           {/* Announcement badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/80 border border-white/10 mb-6 animate-fade-in-up backdrop-blur-xl">
-            <span className="w-2 h-2 rounded-full bg-cta animate-pulse" />
-            <span className="text-sm font-medium text-text-secondary">
-              {totalListings.toLocaleString()}+ AI assets ready to install
-            </span>
-            <Sparkles className="h-4 w-4 text-cta" />
-          </div>
+          {totalListings > 0 ? (
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/80 border border-white/10 mb-8 animate-fade-in-up backdrop-blur-xl">
+              <span className="w-2 h-2 rounded-full bg-cta animate-pulse" />
+              <span className="text-sm font-medium text-text-secondary">
+                {totalListings.toLocaleString()}+ AI assets ready to install
+              </span>
+              <Sparkles className="h-4 w-4 text-cta" />
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/80 border border-white/10 mb-8 animate-fade-in-up backdrop-blur-xl">
+              <span className="w-2 h-2 rounded-full bg-cta animate-pulse" />
+              <span className="text-sm font-medium text-text-secondary">Launching soon — join the waitlist</span>
+              <Sparkles className="h-4 w-4 text-cta" />
+            </div>
+          )}
 
           {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-text-primary mb-4 leading-[1.05] tracking-tight animate-fade-in-up text-balance">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-text-primary mb-5 leading-[1.05] tracking-tight animate-fade-in-up text-balance">
             The marketplace for{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cta via-cta-light to-amber-200">
               AI development
@@ -40,12 +88,12 @@ export function HeroSection({ totalListings }: { totalListings: number }) {
           </h1>
 
           {/* Subheadline */}
-          <p className="text-base sm:text-lg md:text-xl text-text-secondary mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in-up text-balance" style={{ animationDelay: "0.05s" }}>
+          <p className="text-base sm:text-lg md:text-xl text-text-secondary mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in-up text-balance" style={{ animationDelay: "0.05s" }}>
             Discover, install, and sell Claude Skills, Cursor Rules, AI Agents, Workflow Templates, Prompt Packs, and Architect Blueprints.
           </p>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
             <Link
               href="/auth/register"
               className="group relative inline-flex items-center gap-2 h-14 px-8 rounded-xl bg-gradient-to-r from-cta to-cta-light text-primary-foreground font-semibold text-base hover:shadow-glow transition-all duration-300 hover:-translate-y-0.5"
@@ -63,12 +111,12 @@ export function HeroSection({ totalListings }: { totalListings: number }) {
           </div>
 
           {/* Search */}
-          <div className="animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
+          <div className="mb-10 animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
             <HeroSearchBox />
           </div>
 
           {/* Trending searches */}
-          <div className="flex flex-wrap items-center justify-center gap-2 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+          <div className="flex flex-wrap items-center justify-center gap-3 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
             <span className="text-xs text-text-tertiary mr-1">Trending:</span>
             {HERO_TRENDING.map((term) => (
               <Link
@@ -79,42 +127,6 @@ export function HeroSection({ totalListings }: { totalListings: number }) {
                 {term}
               </Link>
             ))}
-          </div>
-        </div>
-
-        {/* Floating cards — positioned at outer edges, hidden when they would overlap content */}
-        <div className="hidden xl:block pointer-events-none">
-          <div className="absolute inset-y-0 left-0 w-56 flex flex-col justify-center gap-6 pl-6">
-            <FloatingCard
-              icon={Bot}
-              title="AI Agent Installed"
-              subtitle="Code review agent by @aismith"
-              variant="gold"
-              delay={0}
-            />
-            <FloatingCard
-              icon={FileCode}
-              title="Cursor Rule Downloaded"
-              subtitle="React architecture rules"
-              variant="purple"
-              delay={0.6}
-            />
-          </div>
-          <div className="absolute inset-y-0 right-0 w-56 flex flex-col justify-center gap-6 pr-6">
-            <FloatingCard
-              icon={Workflow}
-              title="Workflow Template"
-              subtitle="DevOps pipeline for Vercel"
-              variant="blue"
-              delay={1.2}
-            />
-            <FloatingCard
-              icon={Layers}
-              title="Prompt Pack Added"
-              subtitle="Sales outreach prompts"
-              variant="gold"
-              delay={1.8}
-            />
           </div>
         </div>
       </div>
