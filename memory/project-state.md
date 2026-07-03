@@ -485,6 +485,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Added auth to `/api/architect/chat`
 - ✅ `CreditCostBadge` component shows AI operation cost before generate
 - ✅ `/api/billing/pricing` endpoint for frontend cost lookups
+- ✅ Dashboard "Today's Priorities" layout fixed: narrower column, accurate singular/plural task label
 
 ---
 
