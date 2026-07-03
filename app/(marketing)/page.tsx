@@ -91,6 +91,12 @@ async function getHomePageData() {
     const totalCategories = categoriesCountResult.count ?? 0
     const totalReviews = reviewsCountResult.count ?? 0
 
+    const typeCounts = listings.reduce((acc: Record<string, number>, l: any) => {
+      const type = l.type ?? "OTHER"
+      acc[type] = (acc[type] ?? 0) + 1
+      return acc
+    }, {})
+
     return {
       totalListings,
       totalCreators,
@@ -99,6 +105,7 @@ async function getHomePageData() {
       totalCategories,
       totalReviews,
       categoryCounts,
+      typeCounts,
       creators,
       listings: normalizeListings(listings),
       trending: normalizeListings(trendingResult.data ?? []),
@@ -114,6 +121,7 @@ async function getHomePageData() {
       totalCategories: 0,
       totalReviews: 0,
       categoryCounts: {},
+      typeCounts: {},
       creators: [],
       listings: [],
       trending: [],
@@ -162,6 +170,7 @@ export default async function HomePage() {
     totalCategories,
     totalReviews,
     categoryCounts,
+    typeCounts,
     creators,
     trending,
     featured,
@@ -179,6 +188,7 @@ export default async function HomePage() {
         averageRating={averageRating}
         totalCategories={totalCategories}
         totalReviews={totalReviews}
+        typeCounts={typeCounts}
       />
       <CategoriesSection counts={categoryCounts} />
       <FeaturesSection />

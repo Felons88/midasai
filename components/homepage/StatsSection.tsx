@@ -2,6 +2,18 @@
 
 import { AnimatedCounter } from "./AnimatedCounter"
 
+const TYPE_LABELS: Record<string, string> = {
+  SKILL: "Skills",
+  AGENT: "Agents",
+  PLUGIN: "Plugins",
+  MCP: "MCPs",
+  PROMPT: "Prompts",
+  WORKFLOW: "Workflows",
+  TEMPLATE: "Templates",
+  AUTOMATION: "Automations",
+  DEVELOPER_TOOL: "Dev Tools",
+}
+
 export function StatsSection({
   totalListings,
   totalCreators,
@@ -9,6 +21,7 @@ export function StatsSection({
   averageRating,
   totalCategories,
   totalReviews,
+  typeCounts,
 }: {
   totalListings: number
   totalCreators: number
@@ -16,6 +29,7 @@ export function StatsSection({
   averageRating: number
   totalCategories: number
   totalReviews: number
+  typeCounts: Record<string, number>
 }) {
   const allStats = [
     { value: totalListings, label: "AI Assets", suffix: "+", decimals: 0, min: 1 },
@@ -27,6 +41,12 @@ export function StatsSection({
   ]
 
   const stats = allStats.filter((stat) => stat.value >= stat.min)
+
+  const assetBreakdown = Object.entries(typeCounts)
+    .filter(([_, count]) => (count ?? 0) > 0)
+    .sort((a, b) => b[1] - a[1])
+    .map(([type, count]) => `${count} ${TYPE_LABELS[type] ?? type}`)
+    .join(" · ")
 
   // Format large numbers for display
   const formatValue = (stat: typeof stats[0]) => {
@@ -65,6 +85,14 @@ export function StatsSection({
                       )}
                     </div>
                     <div className="text-sm text-text-secondary">{stat.label}</div>
+                    {stat.label === "AI Assets" && assetBreakdown && (
+                      <div
+                        className="text-[10px] text-text-tertiary mt-1 leading-tight truncate"
+                        title={assetBreakdown}
+                      >
+                        {assetBreakdown}
+                      </div>
+                    )}
                   </div>
                 )
               })}
