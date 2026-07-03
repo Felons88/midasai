@@ -7,6 +7,8 @@ import { Coins, TrendingUp, Calendar, ChevronDown, ChevronUp, Zap } from "lucide
 export interface CreditWidgetData {
   balance: {
     monthlyCredits: number
+    monthlyCap: number
+    dailyAllowance: number
     purchasedCredits: number
     bonusCredits: number
     totalUsed: number
@@ -20,6 +22,8 @@ export interface CreditWidgetData {
     estimatedMonthlyCredits: number
     currentBalance: number
     monthlyCredits: number
+    monthlyCap: number
+    dailyAllowance: number
   }
 }
 
@@ -112,7 +116,7 @@ export function CreditWidget({ compact = true, tier = "FREE", className = "" }: 
               <p className="text-xs text-white/40">Credits</p>
               <p className="text-sm font-semibold text-white tabular-nums">
                 {formatNumber(balance.available)}
-                <span className="text-white/30 font-normal"> / {formatNumber(balance.monthlyCredits)}</span>
+                <span className="text-white/30 font-normal"> / {formatNumber(balance.dailyAllowance)}</span>
               </p>
             </div>
           </div>
@@ -162,7 +166,15 @@ export function CreditWidget({ compact = true, tier = "FREE", className = "" }: 
 
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-white/40">Monthly allocation</span>
+          <span className="text-white/40">Daily allowance</span>
+          <span className="text-white tabular-nums">{formatNumber(balance.dailyAllowance)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-white/40">Monthly cap</span>
+          <span className="text-white tabular-nums">{formatNumber(balance.monthlyCap)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-white/40">Current daily balance</span>
           <span className="text-white tabular-nums">{formatNumber(balance.monthlyCredits)}</span>
         </div>
         <div className="flex justify-between">
@@ -174,7 +186,7 @@ export function CreditWidget({ compact = true, tier = "FREE", className = "" }: 
           <span className="text-white tabular-nums">{formatNumber(balance.bonusCredits)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-white/40">Used</span>
+          <span className="text-white/40">Used this month</span>
           <span className="text-white tabular-nums">{formatNumber(balance.totalUsed)}</span>
         </div>
         <div className="flex justify-between">

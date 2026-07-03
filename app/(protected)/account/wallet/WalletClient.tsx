@@ -11,6 +11,8 @@ import {
 interface WalletClientProps {
   balance: {
     monthlyCredits: number
+    monthlyCap: number
+    dailyAllowance: number
     purchasedCredits: number
     bonusCredits: number
     totalUsed: number
@@ -24,6 +26,8 @@ interface WalletClientProps {
     estimatedMonthlyCredits: number
     currentBalance: number
     monthlyCredits: number
+    monthlyCap: number
+    dailyAllowance: number
   }
   transactions: any[]
   reservations: any[]
@@ -91,14 +95,18 @@ export function WalletClient({ balance, forecast, transactions, reservations }: 
           <TrendingUp className="h-4 w-4 text-white/40" />
           <h2 className="text-sm font-semibold text-white">Usage Forecast</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+          <div>
+            <p className="text-white/40">Daily allowance</p>
+            <p className="text-white font-medium tabular-nums">{formatNumber(balance.dailyAllowance)} credits</p>
+          </div>
+          <div>
+            <p className="text-white/40">Monthly cap</p>
+            <p className="text-white font-medium tabular-nums">{formatNumber(balance.monthlyCap)} credits</p>
+          </div>
           <div>
             <p className="text-white/40">Daily average</p>
             <p className="text-white font-medium tabular-nums">{formatNumber(forecast.dailyAverageCredits)} credits</p>
-          </div>
-          <div>
-            <p className="text-white/40">Estimated monthly</p>
-            <p className="text-white font-medium tabular-nums">{formatNumber(forecast.estimatedMonthlyCredits)} credits</p>
           </div>
           <div>
             <p className="text-white/40">Days remaining</p>

@@ -86,16 +86,17 @@ export async function syncSubscriptionRecord(
 
     // Allocate monthly AI credits based on plan
     const creditService = createCreditService(service)
-    const monthlyCredits = {
-      FREE: 0,
-      PRO: 1000,
-      TEAM: 5000,
-      ENTERPRISE: 50_000,
-    }[input.tier] ?? 0
+    const creditPolicy = {
+      FREE: { monthlyCap: 600, dailyAllowance: 150 },
+      PRO: { monthlyCap: 1000, dailyAllowance: 500 },
+      TEAM: { monthlyCap: 5000, dailyAllowance: 2000 },
+      ENTERPRISE: { monthlyCap: 50_000, dailyAllowance: 10_000 },
+    }[input.tier] ?? { monthlyCap: 600, dailyAllowance: 150 }
 
     await creditService.allocateMonthlyCredits(
       { userId: input.userId },
-      monthlyCredits
+      creditPolicy.monthlyCap,
+      creditPolicy.dailyAllowance
     )
   }
 }

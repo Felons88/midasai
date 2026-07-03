@@ -49,6 +49,8 @@ interface DashboardData {
       estimatedMonthlyCredits: number
       currentBalance: number
       monthlyCredits: number
+      monthlyCap: number
+      dailyAllowance: number
     }
     recommendation: {
       recommendedTier: "FREE" | "PRO" | "TEAM" | "ENTERPRISE"

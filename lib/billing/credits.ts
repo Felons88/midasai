@@ -29,6 +29,8 @@ export interface CaptureResult {
 
 export interface CreditBalance {
   monthlyCredits: number
+  monthlyCap: number
+  dailyAllowance: number
   purchasedCredits: number
   bonusCredits: number
   totalUsed: number
@@ -45,6 +47,8 @@ export class CreditService {
   constructor(private supabase: SupabaseClient) {}
 
   async getBalance(owner: CreditOwner): Promise<CreditBalance> {
+    await this.ensureDailyCredits(owner)
+
     if (isOrg(owner)) {
       const { data, error } = await this.supabase
         .from("organization_credits")
@@ -55,6 +59,8 @@ export class CreditService {
       if (error || !data) {
         return {
           monthlyCredits: 0,
+          monthlyCap: 0,
+          dailyAllowance: 0,
           purchasedCredits: 0,
           bonusCredits: 0,
           totalUsed: 0,
@@ -66,6 +72,8 @@ export class CreditService {
 
       return {
         monthlyCredits: data.monthly_credits,
+        monthlyCap: data.monthly_cap,
+        dailyAllowance: data.daily_allowance,
         purchasedCredits: data.purchased_credits,
         bonusCredits: data.bonus_credits,
         totalUsed: data.total_used,
@@ -84,6 +92,8 @@ export class CreditService {
     if (error || !data) {
       return {
         monthlyCredits: 0,
+        monthlyCap: 0,
+        dailyAllowance: 0,
         purchasedCredits: 0,
         bonusCredits: 0,
         totalUsed: 0,
@@ -95,6 +105,8 @@ export class CreditService {
 
     return {
       monthlyCredits: data.monthly_credits,
+      monthlyCap: data.monthly_cap,
+      dailyAllowance: data.daily_allowance,
       purchasedCredits: data.purchased_credits,
       bonusCredits: data.bonus_credits,
       totalUsed: data.total_used,
@@ -102,6 +114,76 @@ export class CreditService {
       available: data.monthly_credits + data.purchased_credits + data.bonus_credits,
       resetAt: data.reset_at,
     }
+  }
+
+  async ensureDailyCredits(owner: CreditOwner): Promise<number> {
+    const { monthlyCap, dailyAllowance } = await this.resolveCreditPolicy(owner)
+
+    if (isOrg(owner)) {
+      const { data, error } = await this.supabase.rpc("ensure_org_daily_credits", {
+        p_organization_id: owner.organizationId,
+        p_monthly_cap: monthlyCap,
+        p_daily_allowance: dailyAllowance,
+      })
+      if (error) {
+        console.error("[credits] ensureDailyCredits org error:", error)
+        return 0
+      }
+      return data ?? 0
+    }
+
+    const { data, error } = await this.supabase.rpc("ensure_user_daily_credits", {
+      p_user_id: owner.userId,
+      p_monthly_cap: monthlyCap,
+      p_daily_allowance: dailyAllowance,
+    })
+    if (error) {
+      console.error("[credits] ensureDailyCredits user error:", error)
+      return 0
+    }
+    return data ?? 0
+  }
+
+  private async resolveCreditPolicy(owner: CreditOwner): Promise<{ monthlyCap: number; dailyAllowance: number }> {
+    if (isOrg(owner)) {
+      const { data: org } = await this.supabase
+        .from("organizations")
+        .select("plan_id")
+        .eq("id", owner.organizationId)
+        .single()
+
+      if (org?.plan_id) {
+        const { data: plan } = await this.supabase
+          .from("plan_definitions")
+          .select("tier")
+          .eq("id", org.plan_id)
+          .single()
+        return this.creditPolicyForTier(plan?.tier as string)
+      }
+    }
+
+    if (isOrg(owner)) return this.creditPolicyForTier("FREE")
+
+    const { data: sub } = await this.supabase
+      .from("subscriptions")
+      .select("tier")
+      .eq("user_id", owner.userId)
+      .in("status", ["ACTIVE", "TRIALING"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    return this.creditPolicyForTier(sub?.tier ?? "FREE")
+  }
+
+  private creditPolicyForTier(tier?: string): { monthlyCap: number; dailyAllowance: number } {
+    const map: Record<string, { monthlyCap: number; dailyAllowance: number }> = {
+      FREE: { monthlyCap: 600, dailyAllowance: 150 },
+      PRO: { monthlyCap: 1000, dailyAllowance: 500 },
+      TEAM: { monthlyCap: 5000, dailyAllowance: 2000 },
+      ENTERPRISE: { monthlyCap: 50000, dailyAllowance: 10000 },
+    }
+    return map[tier?.toUpperCase() ?? "FREE"] ?? map.FREE
   }
 
   async reserveCredits(
@@ -303,7 +385,8 @@ export class CreditService {
 
   async allocateMonthlyCredits(
     owner: CreditOwner,
-    amount: number
+    monthlyCap: number,
+    dailyAllowance: number
   ): Promise<void> {
     await this.ensureBalanceRow(owner)
     const now = new Date().toISOString()
@@ -312,7 +395,8 @@ export class CreditService {
       await this.supabase
         .from("organization_credits")
         .update({
-          monthly_credits: amount,
+          monthly_cap: monthlyCap,
+          daily_allowance: dailyAllowance,
           total_used: 0,
           reset_at: now,
           updated_at: now,
@@ -322,7 +406,8 @@ export class CreditService {
       await this.supabase
         .from("credit_balances")
         .update({
-          monthly_credits: amount,
+          monthly_cap: monthlyCap,
+          daily_allowance: dailyAllowance,
           total_used: 0,
           reset_at: now,
           updated_at: now,
@@ -332,9 +417,11 @@ export class CreditService {
 
     await this.recordTransaction(owner, {
       type: "monthly_allocation",
-      amount,
+      amount: dailyAllowance,
       description: "Monthly credit allocation",
     })
+
+    await this.ensureDailyCredits(owner)
   }
 
   async addPurchasedCredits(

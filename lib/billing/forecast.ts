@@ -10,7 +10,9 @@ export interface UsageForecast {
   daysRemaining: number | null
   estimatedMonthlyCredits: number
   currentBalance: number
-  monthlyAllocation: number
+  monthlyCredits: number
+  monthlyCap: number
+  dailyAllowance: number
 }
 
 export interface PlanRecommendation {
@@ -56,7 +58,9 @@ export async function getUsageForecast(
     daysRemaining,
     estimatedMonthlyCredits: estimatedMonthly,
     currentBalance: balance.available,
-    monthlyAllocation: balance.monthlyCredits,
+    monthlyCredits: balance.monthlyCredits,
+    monthlyCap: balance.monthlyCap,
+    dailyAllowance: balance.dailyAllowance,
   }
 }
 
