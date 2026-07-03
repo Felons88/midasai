@@ -708,6 +708,62 @@ export type Database = {
         }
         Relationships: []
       }
+      categorization_jobs: {
+        Row: {
+          attempt_count: number
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          input_hash: string | null
+          listing_id: string
+          max_attempts: number
+          priority: number
+          result: Json | null
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          input_hash?: string | null
+          listing_id: string
+          max_attempts?: number
+          priority?: number
+          result?: Json | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          input_hash?: string | null
+          listing_id?: string
+          max_attempts?: number
+          priority?: number
+          result?: Json | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categorization_jobs_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_items: {
         Row: {
           added_at: string | null
@@ -1044,6 +1100,266 @@ export type Database = {
           },
         ]
       }
+      discovered_repositories: {
+        Row: {
+          created_at: string | null
+          default_branch: string | null
+          description: string | null
+          first_seen_at: string
+          forks_count: number
+          full_name: string
+          github_id: number
+          has_readme: boolean
+          homepage: string | null
+          html_url: string
+          id: string
+          last_seen_at: string
+          license: string | null
+          metadata: Json
+          name: string
+          open_issues_count: number
+          owner: string
+          owner_avatar_url: string | null
+          owner_html_url: string | null
+          primary_language: string | null
+          pushed_at: string | null
+          quality_score: number | null
+          repo_size_kb: number | null
+          search_vector: unknown
+          stargazers_count: number
+          status: string
+          topics: string[] | null
+          watchers_count: number
+        }
+        Insert: {
+          created_at?: string | null
+          default_branch?: string | null
+          description?: string | null
+          first_seen_at?: string
+          forks_count?: number
+          full_name: string
+          github_id: number
+          has_readme?: boolean
+          homepage?: string | null
+          html_url: string
+          id?: string
+          last_seen_at?: string
+          license?: string | null
+          metadata?: Json
+          name: string
+          open_issues_count?: number
+          owner: string
+          owner_avatar_url?: string | null
+          owner_html_url?: string | null
+          primary_language?: string | null
+          pushed_at?: string | null
+          quality_score?: number | null
+          repo_size_kb?: number | null
+          search_vector?: unknown
+          stargazers_count?: number
+          status?: string
+          topics?: string[] | null
+          watchers_count?: number
+        }
+        Update: {
+          created_at?: string | null
+          default_branch?: string | null
+          description?: string | null
+          first_seen_at?: string
+          forks_count?: number
+          full_name?: string
+          github_id?: number
+          has_readme?: boolean
+          homepage?: string | null
+          html_url?: string
+          id?: string
+          last_seen_at?: string
+          license?: string | null
+          metadata?: Json
+          name?: string
+          open_issues_count?: number
+          owner?: string
+          owner_avatar_url?: string | null
+          owner_html_url?: string | null
+          primary_language?: string | null
+          pushed_at?: string | null
+          quality_score?: number | null
+          repo_size_kb?: number | null
+          search_vector?: unknown
+          stargazers_count?: number
+          status?: string
+          topics?: string[] | null
+          watchers_count?: number
+        }
+        Relationships: []
+      }
+      discovery_analytics: {
+        Row: {
+          created_at: string
+          details: Json
+          event_type: string
+          id: string
+          job_id: string | null
+          query_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          event_type: string
+          id?: string
+          job_id?: string | null
+          query_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          event_type?: string
+          id?: string
+          job_id?: string | null
+          query_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discovery_analytics_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "discovery_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discovery_analytics_query_id_fkey"
+            columns: ["query_id"]
+            isOneToOne: false
+            referencedRelation: "discovery_queries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discovery_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          id: string
+          query_id: string
+          raw_response: Json | null
+          repos_duplicated: number
+          repos_failed: number
+          repos_found: number
+          repos_new: number
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          query_id: string
+          raw_response?: Json | null
+          repos_duplicated?: number
+          repos_failed?: number
+          repos_found?: number
+          repos_new?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          query_id?: string
+          raw_response?: Json | null
+          repos_duplicated?: number
+          repos_failed?: number
+          repos_found?: number
+          repos_new?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discovery_jobs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discovery_jobs_query_id_fkey"
+            columns: ["query_id"]
+            isOneToOne: false
+            referencedRelation: "discovery_queries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discovery_queries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          id: string
+          language: string | null
+          last_run_at: string | null
+          min_stars: number
+          name: string
+          order: string
+          query: string
+          schedule_cron: string | null
+          sort: string
+          topics: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          language?: string | null
+          last_run_at?: string | null
+          min_stars?: number
+          name: string
+          order?: string
+          query: string
+          schedule_cron?: string | null
+          sort?: string
+          topics?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          language?: string | null
+          last_run_at?: string | null
+          min_stars?: number
+          name?: string
+          order?: string
+          query?: string
+          schedule_cron?: string | null
+          sort?: string
+          topics?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discovery_queries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       downloads: {
         Row: {
           created_at: string | null
@@ -1342,6 +1658,67 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      import_queue: {
+        Row: {
+          created_at: string
+          id: string
+          listing_id: string | null
+          notes: string | null
+          priority: number
+          repository_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listing_id?: string | null
+          notes?: string | null
+          priority?: number
+          repository_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listing_id?: string | null
+          notes?: string | null
+          priority?: number
+          repository_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_queue_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_queue_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "discovered_repositories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_queue_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       listing_faqs: {
         Row: {
@@ -2500,6 +2877,140 @@ export type Database = {
           },
         ]
       }
+      repository_classifications: {
+        Row: {
+          classification_result: Json
+          classified_at: string
+          confidence_score: number | null
+          difficulty: string | null
+          frameworks: string[] | null
+          id: string
+          industries: string[] | null
+          languages: string[] | null
+          marketplace_relevance: string | null
+          primary_category: string | null
+          quality_score: number | null
+          related_repositories: string[] | null
+          repository_id: string
+          secondary_categories: string[] | null
+          supported_ides: string[] | null
+          supported_models: string[] | null
+          tags: string[] | null
+          target_audience: string[] | null
+          use_cases: string[] | null
+        }
+        Insert: {
+          classification_result?: Json
+          classified_at?: string
+          confidence_score?: number | null
+          difficulty?: string | null
+          frameworks?: string[] | null
+          id?: string
+          industries?: string[] | null
+          languages?: string[] | null
+          marketplace_relevance?: string | null
+          primary_category?: string | null
+          quality_score?: number | null
+          related_repositories?: string[] | null
+          repository_id: string
+          secondary_categories?: string[] | null
+          supported_ides?: string[] | null
+          supported_models?: string[] | null
+          tags?: string[] | null
+          target_audience?: string[] | null
+          use_cases?: string[] | null
+        }
+        Update: {
+          classification_result?: Json
+          classified_at?: string
+          confidence_score?: number | null
+          difficulty?: string | null
+          frameworks?: string[] | null
+          id?: string
+          industries?: string[] | null
+          languages?: string[] | null
+          marketplace_relevance?: string | null
+          primary_category?: string | null
+          quality_score?: number | null
+          related_repositories?: string[] | null
+          repository_id?: string
+          secondary_categories?: string[] | null
+          supported_ides?: string[] | null
+          supported_models?: string[] | null
+          tags?: string[] | null
+          target_audience?: string[] | null
+          use_cases?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repository_classifications_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: true
+            referencedRelation: "discovered_repositories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repository_versions: {
+        Row: {
+          captured_at: string
+          discovery_job_id: string
+          forks_count: number
+          has_readme: boolean
+          id: string
+          metadata: Json
+          open_issues_count: number
+          repo_size_kb: number | null
+          repository_id: string
+          stargazers_count: number
+          topics: string[] | null
+          watchers_count: number
+        }
+        Insert: {
+          captured_at?: string
+          discovery_job_id: string
+          forks_count?: number
+          has_readme?: boolean
+          id?: string
+          metadata?: Json
+          open_issues_count?: number
+          repo_size_kb?: number | null
+          repository_id: string
+          stargazers_count?: number
+          topics?: string[] | null
+          watchers_count?: number
+        }
+        Update: {
+          captured_at?: string
+          discovery_job_id?: string
+          forks_count?: number
+          has_readme?: boolean
+          id?: string
+          metadata?: Json
+          open_issues_count?: number
+          repo_size_kb?: number | null
+          repository_id?: string
+          stargazers_count?: number
+          topics?: string[] | null
+          watchers_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repository_versions_discovery_job_id_fkey"
+            columns: ["discovery_job_id"]
+            isOneToOne: false
+            referencedRelation: "discovery_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repository_versions_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "discovered_repositories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       review_responses: {
         Row: {
           created_at: string | null
@@ -3488,6 +3999,7 @@ export type Database = {
           views: number
         }[]
       }
+      is_admin: { Args: never; Returns: boolean }
       mark_all_notifications_read: {
         Args: { p_user_id: string }
         Returns: undefined

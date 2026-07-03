@@ -18,6 +18,7 @@ import {
   HardDrive,
   Layers,
   FolderKanban,
+  Globe,
 } from "lucide-react"
 
 export type AdminNavItem = {
@@ -87,6 +88,7 @@ export function getAdminNavSections(
         { href: `${prefix}/files`, label: "Files", icon: HardDrive },
         { href: `${prefix}/projects`, label: "Projects", icon: FolderKanban },
         { href: `${prefix}/tools`, label: "Tools", icon: Wrench },
+        { href: `${prefix}/discovery`, label: "Discovery", icon: Globe },
         { href: `${prefix}/categorization`, label: "Categorization", icon: Layers },
         { href: `${prefix}/communications`, label: "Communications", icon: FolderOpen },
       ],
