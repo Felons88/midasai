@@ -33,7 +33,7 @@ export function FloatingCard({
   return (
     <div
       className={cn(
-        "absolute flex items-center gap-3 rounded-2xl border bg-gradient-to-br p-4 shadow-2xl backdrop-blur-xl",
+        "flex items-center gap-3 rounded-2xl border bg-gradient-to-br p-4 shadow-2xl backdrop-blur-xl",
         "animate-float",
         gradients[variant],
         className
