@@ -4,6 +4,7 @@
 > **Build status:** ✅ Passes (`npm run build`)  
 > **E2E smoke:** 15/22 passing (7 env/flaky test failures; admin changes are build-only in this cycle)  
 > **Production readiness:** ~97/100  
+> **Admin route:** `/felon-admin` (`NEXT_PUBLIC_ADMIN_ROUTE_PREFIX=felon-admin`)
 > **Active cycle:** 17 — Landing Page Redesign + Launch Readiness  
 > **Supabase project:** `rqermggomchlipmuigan`
 

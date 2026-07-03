@@ -38,7 +38,8 @@
 - Added `getAdminCategories`, `getAdminAnnouncements`, `getAdminProjects`, and `getRecentActivity` to `lib/admin/queries.ts`.
 
 ### Validation
-- `npm run build` passes.
+- Admin route prefix configured to `/felon-admin` via `NEXT_PUBLIC_ADMIN_ROUTE_PREFIX=felon-admin` in `.env.local`.
+- `npm run build` passes with the new prefix.
 - `npx playwright test tests/e2e/smoke.spec.ts` — 15 passed, 7 failed.
   - Failures are public-page timeouts and pre-existing env-specific issues, not caused by admin changes.
   - The admin panel itself is dynamic and protected; it requires the configured admin route prefix to test.
