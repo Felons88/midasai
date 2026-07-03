@@ -1,6 +1,6 @@
 # MidasAI — Project State
 
-> **Last updated:** 2026-07-02  
+> **Last updated:** 2026-07-03  
 > **Build status:** ✅ Passes (`npm run build`)  
 > **E2E smoke:** 15/22 passing (7 env/flaky test failures; admin changes are build-only in this cycle)  
 > **Production readiness:** ~97/100  
@@ -448,6 +448,11 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ New admin pages: Users, Creators, Categories, Announcements, System Health, Projects
 - ✅ Admin data table: sorting, per-column filters, pagination, CSV export
 - ✅ Admin panel uses only the admin shell; standard authenticated navbar is suppressed for admin routes
+- ✅ Phase 2 — Users & Roles: `users.status` + `users.last_active_at`, role APIs, suspend/activate, notify, audit logs
+- ✅ `/admin/users` server-side filters, status column, suspend/activate button
+- ✅ `/admin/users/[id]` detail page with notify, suspend, audit log
+- ✅ `/admin/roles` static permission matrix
+- ✅ Suspended users are redirected to `/auth/login?error=suspended`
 
 ---
 
