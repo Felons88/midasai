@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Download, Star, ArrowLeft, Eye } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createClient, createPublicClient, createServiceClient } from "@/lib/supabase/server"
@@ -270,6 +270,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
 
   incrementViews(id, listing.views ?? 0)
   trackServerEvent("listing_viewed", { listing_id: id })
+  const displayViews = (listing.views ?? 0) + 1
 
   const canSubmitReview =
     Boolean(user) && !userHasReviewed && user!.id !== listing.creator_id
@@ -345,7 +346,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
               avgRating={avgRating}
               reviewCount={reviewCount}
               downloads={listing.downloads ?? 0}
-              views={listing.views ?? 0}
+              views={displayViews}
               verified={creatorProfile?.verified ?? false}
               featured={listing.featured ?? false}
             />
@@ -424,64 +425,6 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
             </div>
 
             <div className="space-y-4 animate-fade-in-up lg:sticky lg:top-24 lg:self-start">
-              <Card className="glass">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg text-text-primary">Details</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-text-tertiary">Type</span>
-                    <span className="text-text-primary font-medium">{listing.type}</span>
-                  </div>
-                  {listing.categories && (
-                    <div className="flex justify-between">
-                      <span className="text-text-tertiary">Category</span>
-                      <Link
-                        href={`/search?query=${encodeURIComponent(listing.categories.name)}`}
-                        className="text-cta hover:underline"
-                      >
-                        {listing.categories.name}
-                      </Link>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-text-tertiary">Price</span>
-                    <span className="text-cta font-bold">
-                      {listing.price > 0 ? `$${listing.price}` : "Free"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-tertiary">Downloads</span>
-                    <span className="flex items-center gap-1 text-text-primary">
-                      <Download className="h-3.5 w-3.5" />
-                      {listing.downloads || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-tertiary">Views</span>
-                    <span className="flex items-center gap-1 text-text-primary">
-                      <Eye className="h-3.5 w-3.5" />
-                      {(listing.views ?? 0) + 1}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-tertiary">Rating</span>
-                    <span className="flex items-center gap-1">
-                      <Star className="h-3.5 w-3.5 fill-cta text-cta" />
-                      {avgRating.toFixed(1)} ({reviewCount})
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-tertiary">Updated</span>
-                    <span className="text-text-primary">
-                      {listing.updated_at
-                        ? new Date(listing.updated_at).toLocaleDateString()
-                        : "—"}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
               <Card className="glass">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg text-text-primary">Creator</CardTitle>

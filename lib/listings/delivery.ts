@@ -36,12 +36,7 @@ export function getAcquireButtonLabel(options: {
 
   const { price, delivery } = options
 
-  if (delivery === "github") {
-    if (price > 0) return `Get on GitHub — $${price}`
-    return "Get on GitHub"
-  }
-
-  if (delivery === "install") {
+  if (delivery === "github" || delivery === "install") {
     if (price > 0) return `Install — $${price}`
     return "Install"
   }
