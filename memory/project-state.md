@@ -454,6 +454,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ `/admin/roles` static permission matrix
 - ✅ Suspended users are redirected to `/auth/login?error=suspended`
 - ✅ Middleware preserves `x-pathname` through `/felon-admin` → `/admin` rewrite so the protected layout suppresses the standard shell
+- ✅ Architect enforces markdown-only output; `.ts` filenames from AI are normalized to `.md`
 
 ---
 
