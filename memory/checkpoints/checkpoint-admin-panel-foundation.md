@@ -38,7 +38,9 @@
 - Added `getAdminCategories`, `getAdminAnnouncements`, `getAdminProjects`, and `getRecentActivity` to `lib/admin/queries.ts`.
 
 ### Validation
-- Admin route prefix configured to `/felon-admin` via `NEXT_PUBLIC_ADMIN_ROUTE_PREFIX=felon-admin` in `.env.local`.
+- Admin route permanently set to `/felon-admin` in `lib/admin-route.ts` (internal routes remain at `/admin`).
+- Middleware now requires authentication before rewriting `/felon-admin` to `/admin`; direct `/admin` URLs return 404.
+- Verified: `/felon-admin/dashboard` redirects unauthenticated users to `/auth/login`; `/admin/dashboard` returns 404.
 - `npm run build` passes with the new prefix.
 - `npx playwright test tests/e2e/smoke.spec.ts` — 15 passed, 7 failed.
   - Failures are public-page timeouts and pre-existing env-specific issues, not caused by admin changes.
