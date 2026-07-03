@@ -7,10 +7,10 @@ import { PLAN_LIMITS, PlanTier, formatLimit } from "@/lib/subscriptions"
 const PLANS: PlanTier[] = ["FREE", "PRO", "TEAM", "ENTERPRISE"]
 
 const PLAN_DESCRIPTIONS: Record<PlanTier, string> = {
-  FREE: "Perfect for getting started and exploring the platform.",
-  PRO: "For serious creators and growing businesses.",
-  TEAM: "For teams, agencies, and high-volume operations.",
-  ENTERPRISE: "Custom contracts, SLAs, and dedicated infrastructure.",
+  FREE: "Discover and try MidasAI.",
+  PRO: "For individual developers.",
+  TEAM: "For small teams and startups (up to 10 seats).",
+  ENTERPRISE: "For companies needing custom terms.",
 }
 
 const PLAN_FEATURES: Record<PlanTier, string[]> = {

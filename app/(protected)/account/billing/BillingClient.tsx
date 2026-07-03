@@ -56,10 +56,10 @@ const TIER_CONFIG: Record<PlanTier, { icon: React.ElementType; color: string; bg
 }
 
 const TIER_DESCRIPTION: Record<PlanTier, string> = {
-  FREE: "Browse, download, and explore the marketplace with essential limits.",
-  PRO: "Ad-free browsing, unlimited downloads, creator analytics, and AI upload.",
-  TEAM: "Team collaboration, shared credit pool, unlimited webhooks, and dedicated support.",
-  ENTERPRISE: "Custom contracts, SLA guarantees, unlimited everything, and dedicated support.",
+  FREE: "Discover and try MidasAI with essential limits.",
+  PRO: "For individual developers who need more power and AI features.",
+  TEAM: "For small teams and startups (up to 10 seats).",
+  ENTERPRISE: "For companies needing custom contracts, SLAs, and dedicated support.",
 }
 
 const TIER_ORDER: PlanTier[] = ["FREE", "PRO", "TEAM", "ENTERPRISE"]
@@ -188,6 +188,12 @@ function PlanCard({
           <Check className={`h-3.5 w-3.5 mt-0.5 flex-shrink-0 ${config.color}`} />
           {plan.apiRateLimit === -1 ? "Unlimited API rate" : `${plan.apiRateLimit.toLocaleString()} req/hr`}
         </li>
+        {tier === "TEAM" && (
+          <li className="flex items-start gap-2 text-xs text-white/60">
+            <Check className={`h-3.5 w-3.5 mt-0.5 flex-shrink-0 ${config.color}`} />
+            Up to 10 team seats
+          </li>
+        )}
       </ul>
 
       {current ? (
@@ -322,13 +328,13 @@ export default function BillingClient({ context, subscription }: BillingClientPr
             <p className="text-xs text-white/40">Credits & transactions</p>
           </div>
         </Link>
-        <Link href="/developer/billing" className="flex items-center gap-3 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+        <Link href="/account/settings" className="flex items-center gap-3 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
           <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-            <BarChart3 className="h-5 w-5 text-blue-400" />
+            <RefreshCw className="h-5 w-5 text-blue-400" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-white">Developer Billing</p>
-            <p className="text-xs text-white/40">API & usage details</p>
+            <p className="text-sm font-semibold text-white">Account Settings</p>
+            <p className="text-xs text-white/40">Manage profile & preferences</p>
           </div>
         </Link>
         <Link href="/developer/keys" className="flex items-center gap-3 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-colors">

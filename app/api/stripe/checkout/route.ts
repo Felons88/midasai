@@ -11,13 +11,20 @@ export async function POST(request: NextRequest) {
     const { tier, interval = "monthly" } = await request.json() as { tier: PlanTier; interval: "monthly" | "yearly" }
 
     const stripeKey = process.env.STRIPE_SECRET_KEY
-    if (!stripeKey) return NextResponse.json({ error: "Stripe not configured" }, { status: 500 })
+    if (!stripeKey || stripeKey.includes("dummy")) {
+      return NextResponse.json({ error: "Stripe is not configured with a real secret key" }, { status: 500 })
+    }
 
     const plan = PLAN_LIMITS[tier]
     if (!plan) return NextResponse.json({ error: "Invalid plan" }, { status: 400 })
 
     const priceId = interval === "yearly" ? plan.stripePriceIdYearly : plan.stripePriceIdMonthly
-    if (!priceId) return NextResponse.json({ error: "Price not configured for this plan" }, { status: 400 })
+    if (!priceId) {
+      return NextResponse.json({ error: `Stripe price ID not configured for ${tier} ${interval}. Add STRIPE_${tier}_MONTHLY_PRICE_ID to your environment.` }, { status: 400 })
+    }
+    if (!priceId.startsWith("price_")) {
+      return NextResponse.json({ error: `Invalid Stripe price ID for ${tier}: ${priceId}` }, { status: 400 })
+    }
 
     // Get or create Stripe customer
     let stripeCustomerId: string | null = null
@@ -57,7 +64,7 @@ export async function POST(request: NextRequest) {
       "line_items[0][price]": priceId,
       "line_items[0][quantity]": "1",
       mode: "subscription",
-      success_url: `${origin}/developer/billing?success=1`,
+      success_url: `${origin}/account/billing?success=1`,
       cancel_url: `${origin}/pricing?cancelled=1`,
       "subscription_data[metadata][user_id]": user.id,
       "subscription_data[metadata][tier]": tier,
@@ -76,7 +83,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: session.url })
   } catch (err) {
+    const message = err instanceof Error ? err.message : "Internal server error"
     console.error("[stripe/checkout]", err)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

@@ -333,8 +333,8 @@ REVOKE EXECUTE ON FUNCTION reset_monthly_credits() FROM PUBLIC;
 INSERT INTO plan_definitions (tier, name, price_monthly, price_yearly, metadata)
 VALUES
   ('FREE', 'Free', 0, 0, '{"description": "For individuals exploring the platform"}'::jsonb),
-  ('PRO', 'Pro', 2900, 29000, '{"description": "For serious creators and professionals"}'::jsonb),
-  ('TEAM', 'Team', 7900, 79000, '{"description": "For teams building together"}'::jsonb),
+  ('PRO', 'Pro', 1900, 19000, '{"description": "For individual developers and creators"}'::jsonb),
+  ('TEAM', 'Team', 5900, 59000, '{"description": "For teams and growing businesses (up to 10 seats)"}'::jsonb),
   ('ENTERPRISE', 'Enterprise', 0, 0, '{"description": "Custom enterprise contracts", "contact_sales": true}'::jsonb)
 ON CONFLICT (tier) DO UPDATE SET
   name = EXCLUDED.name,

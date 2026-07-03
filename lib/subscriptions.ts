@@ -53,8 +53,8 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
   },
   PRO: {
     tier: 'PRO',
-    priceMonthly: 29,
-    priceYearly: 290,
+    priceMonthly: 19,
+    priceYearly: 190,
     apiRateLimit: 2000,
     storageGb: 100,
     maxListings: -1,
@@ -74,8 +74,8 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
   },
   TEAM: {
     tier: 'TEAM',
-    priceMonthly: 79,
-    priceYearly: 790,
+    priceMonthly: 59,
+    priceYearly: 590,
     apiRateLimit: 10000,
     storageGb: 500,
     maxListings: -1,
