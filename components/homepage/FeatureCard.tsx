@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { cn } from "@/lib/utils"
 import type { LucideIcon } from "lucide-react"
 
@@ -10,20 +11,15 @@ export type FeatureItem = {
   gradient: string
   stat?: string
   statLabel?: string
+  href?: string
 }
 
 export function FeatureCard({ feature, index = 0, className }: { feature: FeatureItem; index?: number; className?: string }) {
   const Icon = feature.icon
+  const isLink = Boolean(feature.href)
 
-  return (
-    <div
-      className={cn(
-        "group relative overflow-hidden rounded-xl border border-white/10 bg-surface/40 backdrop-blur-sm p-5",
-        "hover:border-white/20 hover:-translate-y-1 hover:shadow-xl transition-all duration-300",
-        className
-      )}
-      style={{ animationDelay: `${index * 0.05}s` }}
-    >
+  const content = (
+    <>
       <div
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
         style={{ background: feature.gradient }}
@@ -48,6 +44,27 @@ export function FeatureCard({ feature, index = 0, className }: { feature: Featur
         </h3>
         <p className="text-sm text-text-secondary leading-relaxed">{feature.description}</p>
       </div>
+    </>
+  )
+
+  const classes = cn(
+    "group relative overflow-hidden rounded-xl border border-white/10 bg-surface/40 backdrop-blur-sm p-5",
+    "hover:border-white/20 hover:-translate-y-1 hover:shadow-xl transition-all duration-300",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta",
+    className
+  )
+
+  if (isLink) {
+    return (
+      <Link href={feature.href!} className={classes} style={{ animationDelay: `${index * 0.05}s` }}>
+        {content}
+      </Link>
+    )
+  }
+
+  return (
+    <div className={classes} style={{ animationDelay: `${index * 0.05}s` }}>
+      {content}
     </div>
   )
 }

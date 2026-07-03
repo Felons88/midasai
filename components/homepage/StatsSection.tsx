@@ -7,17 +7,23 @@ export function StatsSection({
   totalCreators,
   totalDownloads,
   averageRating,
+  totalCategories,
+  totalReviews,
 }: {
   totalListings: number
   totalCreators: number
   totalDownloads: number
   averageRating: number
+  totalCategories: number
+  totalReviews: number
 }) {
   const allStats = [
-    { value: totalListings, label: "Skills & Assets", suffix: "+", decimals: 0, min: 1 },
+    { value: totalListings, label: "AI Assets", suffix: "+", decimals: 0, min: 1 },
     { value: totalDownloads, label: "Installs", suffix: totalDownloads >= 1000000 ? "M+" : "+", decimals: 0, min: 1 },
+    { value: totalReviews, label: "Reviews", suffix: "+", decimals: 0, min: 1 },
     { value: totalCreators, label: "Creators", suffix: "+", decimals: 0, min: 1 },
-    { value: averageRating, label: "Average Rating", suffix: "/5", decimals: 1, min: 0.1 },
+    { value: totalCategories, label: "Categories", suffix: "+", decimals: 0, min: 1 },
+    { value: averageRating, label: "Rating", suffix: "/5", decimals: 1, min: 0.1 },
   ]
 
   const stats = allStats.filter((stat) => stat.value >= stat.min)
@@ -38,7 +44,7 @@ export function StatsSection({
       <div className="container mx-auto px-4 relative">
         <div className="max-w-6xl mx-auto">
           <div className="rounded-2xl border border-white/10 bg-surface/80 backdrop-blur-2xl shadow-2xl py-8 md:py-10 px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 md:gap-4">
               {stats.map((stat, index) => {
                 const { value, display } = formatValue(stat)
                 return (

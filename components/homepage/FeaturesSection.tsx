@@ -12,6 +12,7 @@ const FEATURES: FeatureItem[] = [
     gradient: "linear-gradient(135deg, rgba(202, 138, 4, 0.15), rgba(234, 179, 8, 0.05))",
     stat: "1,200+",
     statLabel: "Skills",
+    href: "/search?type=SKILL",
   },
   {
     title: "Cursor Rules",
@@ -20,6 +21,7 @@ const FEATURES: FeatureItem[] = [
     gradient: "linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.05))",
     stat: "800+",
     statLabel: "Rules",
+    href: "/search?category=cursor-rules",
   },
   {
     title: "AI Agents",
@@ -28,6 +30,7 @@ const FEATURES: FeatureItem[] = [
     gradient: "linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(124, 58, 237, 0.05))",
     stat: "600+",
     statLabel: "Agents",
+    href: "/search?type=AGENT",
   },
   {
     title: "Workflow Templates",
@@ -36,6 +39,7 @@ const FEATURES: FeatureItem[] = [
     gradient: "linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.05))",
     stat: "450+",
     statLabel: "Workflows",
+    href: "/search?type=WORKFLOW",
   },
   {
     title: "Prompt Packs",
@@ -44,6 +48,7 @@ const FEATURES: FeatureItem[] = [
     gradient: "linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(219, 39, 119, 0.05))",
     stat: "2,100+",
     statLabel: "Prompts",
+    href: "/search?type=PROMPT",
   },
   {
     title: "Memory Systems",
@@ -52,6 +57,7 @@ const FEATURES: FeatureItem[] = [
     gradient: "linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(2, 132, 199, 0.05))",
     stat: "320+",
     statLabel: "Memories",
+    href: "/search?category=memory-systems",
   },
   {
     title: "Automation Packs",
@@ -60,6 +66,7 @@ const FEATURES: FeatureItem[] = [
     gradient: "linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.05))",
     stat: "540+",
     statLabel: "Packs",
+    href: "/search?type=AUTOMATION",
   },
   {
     title: "Documentation Templates",
@@ -68,6 +75,7 @@ const FEATURES: FeatureItem[] = [
     gradient: "linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(79, 70, 229, 0.05))",
     stat: "380+",
     statLabel: "Templates",
+    href: "/search?type=TEMPLATE",
   },
 ]
 

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, Cpu, FileText, Layers, GitBranch, Workflow, Shield, Sparkles, Code2 } from "lucide-react"
+import { ArrowRight, Cpu, FileText, Layers, GitBranch, Workflow, Shield, Sparkles } from "lucide-react"
 import { SectionHeader } from "./SectionHeader"
 
 const CAPABILITIES = [
@@ -85,28 +85,28 @@ export function ArchitectSection() {
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
-                    <Code2 className="h-4 w-4 text-blue-400" />
-                    <span className="text-sm text-text-secondary">src/app/layout.tsx</span>
-                    <span className="ml-auto text-xs text-emerald-400">Generated</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
-                    <Code2 className="h-4 w-4 text-blue-400" />
-                    <span className="text-sm text-text-secondary">src/components/Dashboard.tsx</span>
-                    <span className="ml-auto text-xs text-emerald-400">Generated</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
-                    <Layers className="h-4 w-4 text-purple-400" />
-                    <span className="text-sm text-text-secondary">lib/auth/session.ts</span>
-                    <span className="ml-auto text-xs text-emerald-400">Generated</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
-                    <FileText className="h-4 w-4 text-cta" />
+                    <FileText className="h-4 w-4 text-blue-400" />
                     <span className="text-sm text-text-secondary">README.md</span>
                     <span className="ml-auto text-xs text-emerald-400">Generated</span>
                   </div>
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
+                    <FileText className="h-4 w-4 text-blue-400" />
+                    <span className="text-sm text-text-secondary">CLAUDE.md</span>
+                    <span className="ml-auto text-xs text-emerald-400">Generated</span>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
+                    <FileText className="h-4 w-4 text-purple-400" />
+                    <span className="text-sm text-text-secondary">cursor-rules.md</span>
+                    <span className="ml-auto text-xs text-emerald-400">Generated</span>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
+                    <FileText className="h-4 w-4 text-cta" />
+                    <span className="text-sm text-text-secondary">AGENTS.md</span>
+                    <span className="ml-auto text-xs text-emerald-400">Generated</span>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
                     <Workflow className="h-4 w-4 text-pink-400" />
-                    <span className="text-sm text-text-secondary">.github/workflows/ci.yml</span>
+                    <span className="text-sm text-text-secondary">WORKFLOW.md</span>
                     <span className="ml-auto text-xs text-emerald-400">Generated</span>
                   </div>
                 </div>

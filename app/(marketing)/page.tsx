@@ -24,6 +24,8 @@ async function getHomePageData() {
       creatorsResult,
       trendingResult,
       featuredResult,
+      categoriesCountResult,
+      reviewsCountResult,
     ] = await Promise.all([
       supabase
         .from("listings")
@@ -47,6 +49,8 @@ async function getHomePageData() {
         .limit(8),
       supabase.from("listings").select("id, title, downloads, average_rating, review_count, images, type, price, creator:users!listings_creator_id_fkey(name, avatar_url, creator_profile:creators!creators_user_id_fkey(verified))").eq("status", "ACTIVE").order("downloads", { ascending: false, nullsFirst: false }).limit(12),
       supabase.from("listings").select("id, title, downloads, average_rating, review_count, images, type, price, creator:users!listings_creator_id_fkey(name, avatar_url, creator_profile:creators!creators_user_id_fkey(verified))").eq("status", "ACTIVE").eq("featured", true).order("quality_score", { ascending: false, nullsFirst: false }).limit(12),
+      supabase.from("categories").select("id", { count: "exact", head: true }).eq("is_active", true),
+      supabase.from("reviews").select("id", { count: "exact", head: true }),
     ])
 
     const listings = listingsResult.data ?? []
@@ -84,11 +88,16 @@ async function getHomePageData() {
       }
     })
 
+    const totalCategories = categoriesCountResult.count ?? 0
+    const totalReviews = reviewsCountResult.count ?? 0
+
     return {
       totalListings,
       totalCreators,
       totalDownloads,
       averageRating: avgRating,
+      totalCategories,
+      totalReviews,
       categoryCounts,
       creators,
       listings: normalizeListings(listings),
@@ -102,6 +111,8 @@ async function getHomePageData() {
       totalCreators: 0,
       totalDownloads: 0,
       averageRating: 0,
+      totalCategories: 0,
+      totalReviews: 0,
       categoryCounts: {},
       creators: [],
       listings: [],
@@ -148,6 +159,8 @@ export default async function HomePage() {
     totalCreators,
     totalDownloads,
     averageRating,
+    totalCategories,
+    totalReviews,
     categoryCounts,
     creators,
     trending,
@@ -164,6 +177,8 @@ export default async function HomePage() {
         totalCreators={totalCreators}
         totalDownloads={totalDownloads}
         averageRating={averageRating}
+        totalCategories={totalCategories}
+        totalReviews={totalReviews}
       />
       <CategoriesSection counts={categoryCounts} />
       <FeaturesSection />
