@@ -8,7 +8,6 @@ import {
   shouldSkipMarketingRedirect,
 } from "@/lib/subdomains"
 import { getAuthLoginUrl, getAuthLoginUrlForHost } from "@/lib/site-url"
-import { mapAliasToAdminPath, shouldBlockDefaultAdminPath } from "@/lib/admin-route"
 
 function applySecurityHeaders(response: NextResponse) {
   const securityHeaders = getSecurityHeaders()
@@ -90,32 +89,6 @@ export async function middleware(request: NextRequest) {
 
   if (request.method !== "GET" && request.method !== "HEAD" && request.method !== "OPTIONS") {
     response.headers.set("X-CSRF-Protection", "1; mode=strict")
-  }
-
-  const adminPath = mapAliasToAdminPath(effectivePath)
-  if (adminPath) {
-    const url = request.nextUrl.clone()
-    url.pathname = adminPath
-    requestHeaders.set("x-pathname", adminPath)
-    const sessionRequest = new NextRequest(url, request)
-    const sessionResponse = await updateSession(sessionRequest)
-    if (sessionResponse.status === 307 || sessionResponse.status === 302) {
-      const loginUrl = getAuthLoginUrl(adminPath)
-      const redirectResponse = NextResponse.redirect(loginUrl)
-      sessionResponse.cookies.getAll().forEach((cookie) => {
-        redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
-      })
-      return applySecurityHeaders(redirectResponse)
-    }
-    const response = NextResponse.rewrite(url, { request: { headers: requestHeaders } })
-    sessionResponse.cookies.getAll().forEach((cookie) => {
-      response.cookies.set(cookie.name, cookie.value, cookie)
-    })
-    return applySecurityHeaders(response)
-  }
-
-  if (shouldBlockDefaultAdminPath(effectivePath)) {
-    return NextResponse.rewrite(new URL("/not-found", request.url))
   }
 
   if (path === "/skills" || path.startsWith("/skills/")) {

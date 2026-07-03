@@ -25,6 +25,16 @@ export function isDefaultAdminPath(pathname: string): boolean {
   return pathname === INTERNAL_ADMIN_PREFIX || pathname.startsWith(`${INTERNAL_ADMIN_PREFIX}/`)
 }
 
+export function isAdminPath(pathname: string): boolean {
+  const prefix = getAdminRoutePrefix()
+  return (
+    pathname === INTERNAL_ADMIN_PREFIX ||
+    pathname.startsWith(`${INTERNAL_ADMIN_PREFIX}/`) ||
+    pathname === prefix ||
+    pathname.startsWith(`${prefix}/`)
+  )
+}
+
 /** When the public admin prefix is not the internal /admin route, block direct /admin URLs (404). */
 export function shouldBlockDefaultAdminPath(pathname: string): boolean {
   return isAdminAliasEnabled() && isDefaultAdminPath(pathname)

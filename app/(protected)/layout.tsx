@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell"
 import { shouldShowAdsForUser } from "@/lib/ads/server"
-import { isDefaultAdminPath } from "@/lib/admin-route"
+import { isAdminPath } from "@/lib/admin-route"
 
 export const dynamic = "force-dynamic"
 
@@ -42,7 +42,7 @@ export default async function AuthenticatedLayout({
 
   const headersList = await headers()
   const pathname = headersList.get("x-pathname") ?? ""
-  const isAdminRoute = isDefaultAdminPath(pathname)
+  const isAdminRoute = isAdminPath(pathname)
 
   if (isAdminRoute) {
     return <>{children}</>
