@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-03
 **Agent:** AGENT 9 (Monetization) + AGENT 1 (Frontend) + AGENT 2 (Database)
-**Status:** Phase 1 audit + foundational services complete
+**Status:** Phase 1 audit + foundational services + daily credit allocation fix complete
 
 ---
 
@@ -82,6 +82,22 @@ Created agent ownership map in `plans/growth-monetization-platform.md` covering 
 
 Regenerated `types/database.ts`.
 
+### Daily Credit Allocation Fix
+
+- Added migration `20260703_100005_daily_credit_allocation.sql` with:
+  - `monthly_cap`, `daily_allowance`, `last_daily_allocation_at` columns
+  - Atomic `ensure_user_daily_credits` and `ensure_org_daily_credits` functions
+  - Backfill for existing users with free allowance
+- Updated `CreditService.getBalance` to auto-top-up daily credits
+- `CreditService.ensureDailyCredits` resolves tier-based policy:
+  - FREE: 150 daily / 600 monthly
+  - PRO: 500 daily / 1,000 monthly
+  - TEAM: 2,000 daily / 5,000 monthly
+  - ENTERPRISE: 10,000 daily / 50,000 monthly
+- Updated `CreditService.allocateMonthlyCredits` and `stripe-subscription.ts` to use new policy
+- Updated `CreditBalance`, `UsageForecast`, `CreditWidgetData`, `WalletClient` interfaces to expose new fields
+- Updated UI labels: daily allowance, monthly cap, current daily balance, used this month
+
 ### Build
 
 - `npm run build` passes
@@ -92,9 +108,15 @@ Regenerated `types/database.ts`.
 
 - `plans/growth-monetization-platform.md`
 - `supabase/migrations/20260703_100004_growth_platform_schema.sql`
+- `supabase/migrations/20260703_100005_daily_credit_allocation.sql`
+- `lib/billing/credits.ts`
 - `lib/billing/forecast.ts`
 - `lib/billing/dismissals.ts`
 - `lib/billing/upgrade-events.ts`
+- `lib/billing/stripe-subscription.ts`
+- `components/billing/CreditWidget.tsx`
+- `app/(protected)/account/wallet/WalletClient.tsx`
+- `types/database.ts`
 - `lib/billing/rewards.ts`
 - `lib/analytics.ts`
 - `components/billing/CreditWidget.tsx`

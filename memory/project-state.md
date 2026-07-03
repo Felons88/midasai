@@ -477,6 +477,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Usage Wallet page at `/account/wallet` with balance, forecast, transactions, reservations
 - ✅ Upgrade experiences: `UpgradeCard`, `UsageBanner`, dashboard usage banner + upgrade recommendation card
 - ✅ Feature lock overlay component
+- ✅ Daily credit allocation: 150/day, 600/month cap, no stacking, auto top-up on balance read (FREE tier fixed)
 - ✅ Growth context API `/api/billing/growth-context` with dismissal tracking and upgrade event logging
 - ✅ Extended analytics event types for upgrade/credit lifecycle
 
@@ -498,6 +499,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - Feature lock overlay not yet applied to specific premium features
 - Daily login reward scheduler not yet implemented
 - Real-time credit updates currently use 30s polling instead of Supabase Realtime
+- Credit allocation policy now uses daily allowance; may need admin UI to tune per-tier values
 
 ---
 
