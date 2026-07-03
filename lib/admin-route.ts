@@ -1,4 +1,5 @@
-const DEFAULT_ADMIN_PREFIX = "/admin"
+const DEFAULT_ADMIN_PREFIX = "/felon-admin"
+const INTERNAL_ADMIN_PREFIX = "/admin"
 
 function normalizePrefix(value: string | undefined): string {
   if (!value) return DEFAULT_ADMIN_PREFIX
@@ -17,24 +18,24 @@ export function getAdminRoutePrefix(): string {
 }
 
 export function isAdminAliasEnabled(): boolean {
-  return getAdminRoutePrefix() !== DEFAULT_ADMIN_PREFIX
+  return getAdminRoutePrefix() !== INTERNAL_ADMIN_PREFIX
 }
 
 export function isDefaultAdminPath(pathname: string): boolean {
-  return pathname === DEFAULT_ADMIN_PREFIX || pathname.startsWith(`${DEFAULT_ADMIN_PREFIX}/`)
+  return pathname === INTERNAL_ADMIN_PREFIX || pathname.startsWith(`${INTERNAL_ADMIN_PREFIX}/`)
 }
 
-/** When an obfuscated admin prefix is configured, block direct /admin URLs (404). */
+/** When the public admin prefix is not the internal /admin route, block direct /admin URLs (404). */
 export function shouldBlockDefaultAdminPath(pathname: string): boolean {
   return isAdminAliasEnabled() && isDefaultAdminPath(pathname)
 }
 
 export function mapAliasToAdminPath(pathname: string): string | null {
   const prefix = getAdminRoutePrefix()
-  if (prefix === DEFAULT_ADMIN_PREFIX) return null
-  if (pathname === prefix) return `${DEFAULT_ADMIN_PREFIX}/dashboard`
+  if (prefix === INTERNAL_ADMIN_PREFIX) return null
+  if (pathname === prefix) return `${INTERNAL_ADMIN_PREFIX}/dashboard`
   if (pathname.startsWith(`${prefix}/`)) {
-    return `${DEFAULT_ADMIN_PREFIX}${pathname.slice(prefix.length)}`
+    return `${INTERNAL_ADMIN_PREFIX}${pathname.slice(prefix.length)}`
   }
   return null
 }
