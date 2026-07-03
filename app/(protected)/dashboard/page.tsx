@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { getPlanLimits } from "@/lib/subscriptions"
+import { createCreditService } from "@/lib/billing/credits"
+import { getUsageForecast, getPlanRecommendation } from "@/lib/billing/forecast"
 import DashboardClient from "./DashboardClient"
 
 async function getDashboardData(userId: string) {
@@ -23,6 +25,9 @@ async function getDashboardData(userId: string) {
     { count: webhookCount },
     { count: mcpCount },
     { count: apiLogCount },
+    creditBalance,
+    forecast,
+    recommendation,
   ] = await Promise.all([
     supabase.from('users').select('name, role, avatar_url').eq('id', userId).single(),
     supabase.from('downloads').select('id', { count: 'exact', head: true }).eq('user_id', userId),
@@ -38,6 +43,9 @@ async function getDashboardData(userId: string) {
     supabase.from('webhooks').select('id', { count: 'exact', head: true }).eq('user_id', userId),
     supabase.from('mcp_servers').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'ACTIVE'),
     supabase.from('api_logs').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('created_at', thirtyDaysAgo),
+    createCreditService(supabase).getBalance({ userId }),
+    getUsageForecast(supabase, { userId }),
+    getPlanRecommendation(supabase, { userId }),
   ])
 
   const revenue = transactions?.reduce((s: number, t: any) => s + (t.amount || 0), 0) || 0
@@ -78,6 +86,11 @@ async function getDashboardData(userId: string) {
       webhookLimit: planLimits.maxWebhooks,
       mcpServers: mcpCount || 0,
       mcpLimit: planLimits.maxMcpServers,
+    },
+    credits: {
+      balance: creditBalance,
+      forecast,
+      recommendation,
     },
     recentActivity: recentActivity || [],
     marketplaceListings: marketplaceListings || [],

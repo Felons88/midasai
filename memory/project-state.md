@@ -472,6 +472,13 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Updated PricingClient, account billing page, and upgrade buttons for new tiers
 - ✅ Updated Stripe checkout subscription route to use plan definitions
 - ✅ Regenerated `types/database.ts` after all schema changes
+- ✅ Enterprise Growth Platform Phase 1: growth schema, forecast service, recommendation service, reward service
+- ✅ AI Credit Awareness: `CreditWidget`, `CreditPill`, `/api/billing/credits`, sidebar + top bar + dashboard integration
+- ✅ Usage Wallet page at `/account/wallet` with balance, forecast, transactions, reservations
+- ✅ Upgrade experiences: `UpgradeCard`, `UsageBanner`, dashboard usage banner + upgrade recommendation card
+- ✅ Feature lock overlay component
+- ✅ Growth context API `/api/billing/growth-context` with dismissal tracking and upgrade event logging
+- ✅ Extended analytics event types for upgrade/credit lifecycle
 
 ---
 
@@ -487,6 +494,10 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - AI credit tracking not yet wired to AI chat, architect, or workflow expansion routes
 - Credit pack purchase UI and webhook handling not yet built
 - Organization creation UI and team invitation flow not yet built
+- Growth platform triggers need client-side orchestration (toast/banner/drawer) beyond dashboard
+- Feature lock overlay not yet applied to specific premium features
+- Daily login reward scheduler not yet implemented
+- Real-time credit updates currently use 30s polling instead of Supabase Realtime
 
 ---
 

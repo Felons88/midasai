@@ -1,3 +1,119 @@
+# Enterprise Growth, Monetization & Upgrade Experience Platform
+
+## Phase 1 — Repository Audit
+- [x] Read AGENTS.md, project memory, TODO, design.md
+- [x] Audit auth, dashboard, navigation, AI credit, subscription, billing, analytics, recommendations, notifications, layout, backend
+- [x] Document natural placement rules in `plans/growth-monetization-platform.md`
+
+## Phase 2 — Agent Assignment
+- [x] Assign roles to specialist agents and document in `plans/growth-monetization-platform.md`
+
+## Phase 3 — AI Credit Awareness System
+- [x] Create `components/billing/CreditWidget.tsx`
+- [x] Create `components/billing/CreditPill.tsx`
+- [x] Create `/api/billing/credits` endpoint
+- [x] Integrate CreditWidget into `AppSidebar` footer
+- [x] Integrate CreditPill into `TopBar`
+- [x] Add credit card to dashboard
+- [ ] Add contextual widget to `/architect` and AI Studio pages
+- [ ] Real-time updates via Supabase Realtime (currently polling)
+
+## Phase 4 — Intelligent Upgrade System
+- [x] Create `lib/billing/forecast.ts` for usage forecasting
+- [x] Create `lib/billing/recommendations.ts` (inside forecast)
+- [x] Create `/api/billing/growth-context` endpoint
+- [x] Detect usage thresholds, low credits, renewal, recommendations
+- [x] Track dismissals via `dismissed_prompts` table
+- [x] Track upgrade events via `upgrade_events` table
+- [ ] Client-side trigger orchestration (toast/banner/sidebar)
+
+## Phase 5 — Upgrade Experiences
+- [x] Create `components/billing/UpgradeCard.tsx`
+- [x] Create `components/billing/UsageBanner.tsx`
+- [x] Dashboard upgrade card + usage banner
+- [ ] Upgrade toast
+- [ ] Bottom drawer (mobile)
+- [ ] Plan comparison modal
+
+## Phase 6 — Feature Lock Experience
+- [x] Create `components/billing/FeatureLockOverlay.tsx`
+- [ ] Apply overlay to AI upload, custom domain, creator verification, featured listings, team members
+
+## Phase 7 — Usage Forecast
+- [x] Implement `getUsageForecast` and `getPlanRecommendation`
+- [x] Display on dashboard credit card
+- [ ] Display on billing, AI Studio, architect, settings
+
+## Phase 8 — Credit Refund Experience
+- [x] `credit_refunds` table
+- [ ] Post-operation refund toast
+- [ ] Refund details in wallet
+
+## Phase 9 — Usage Wallet
+- [x] Create `app/(protected)/account/wallet/page.tsx`
+- [x] Create `WalletClient` with balance, forecast, transactions, reservations
+- [ ] Advanced filtering, charts, feature/project usage breakdown
+- [ ] Daily/monthly usage, top features, average cost
+
+## Phase 10 — Plan Comparison
+- [ ] Premium comparison interface with Free/Pro/Team/Enterprise
+- [ ] Dynamic updates when plans change
+
+## Phase 11 — Dashboard Integration
+- [x] Credit widget in sidebar
+- [x] Credit pill in top bar
+- [x] Credit/upgrade card in dashboard
+- [ ] Integration into marketplace, architect, AI Studio, projects, billing, settings
+
+## Phase 12 — Analytics
+- [x] Extend `AnalyticsEvent` type with upgrade/credit events
+- [ ] Wire events in all upgrade components
+- [ ] Batch analytics endpoint
+
+## Phase 13 — Reward Systems
+- [x] `reward_programs`, `reward_history` tables
+- [x] `lib/billing/rewards.ts` service
+- [x] `claimDailyLoginReward`, `processReferral`
+- [ ] Daily login edge function + scheduler
+- [ ] Streak tracking and achievement rewards
+
+## Phase 14 — Credit Packs
+- [ ] Credit pack purchase UI
+- [ ] `/api/stripe/credits/checkout` endpoint
+- [ ] Webhook fulfillment for credit packs
+
+## Phase 15 — Team Credit Pools
+- [x] `organization_wallets` table
+- [ ] Team wallet UI
+- [ ] Member/project usage breakdown
+- [ ] Admin alerts and approvals
+
+## Phase 16 — Recommendation Engine
+- [x] Basic recommendation scoring in `lib/billing/forecast.ts`
+- [ ] Feature usage analysis, project size, AI consumption, search frequency
+- [ ] Relevant prompt timing
+
+## Phase 17 — Frontend Polish
+- [ ] Premium animations via framer-motion
+- [ ] Responsive mobile drawer
+- [ ] Accessibility audit
+- [ ] Loading skeletons and empty states
+
+## Phase 18 — Backend Platform
+- [x] CreditService, UsageService, EntitlementService, RateLimiter
+- [x] RecommendationService, RewardService, WalletService
+- [ ] NotificationService, BillingService, PromotionService, ReferralService, AuditService
+
+## Phase 19 — Database
+- [x] `dismissed_prompts`, `upgrade_events`, `feature_usage_summary`, `reward_programs`, `reward_history`, `usage_predictions`, `plan_recommendations`, `organization_wallets`, `referral_rewards`, `credit_refunds`, `promotion_campaigns`, `promotion_redemptions`
+- [ ] `credit_wallet`, `analytics_events` (if not already present)
+
+## Phase 20 — Automated Testing
+- [ ] Unit tests for credit reservation/capture/refund
+- [ ] API tests for checkout and webhooks
+- [ ] E2E tests for upgrade flow, feature lock, credit widget
+- [ ] Accessibility and performance tests
+
 # Enterprise Billing, Credit Engine & Subscription Platform
 
 ## Phase 1: Database Schema

@@ -7,6 +7,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createBrowserSupabaseClient } from "@/lib/supabase/client"
 import { NotificationBell } from "@/components/notifications/NotificationCenter"
+import { CreditPill } from "@/components/billing/CreditPill"
 
 interface TopBarProps {
   userEmail?: string
@@ -65,6 +66,8 @@ export function TopBar({ userEmail, userName, userAvatar, onSearchOpen }: TopBar
 
       {/* Right Actions */}
       <div className="flex items-center gap-1">
+        <CreditPill />
+
         {/* Quick Create */}
         <Button
           variant="ghost"

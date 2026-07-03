@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { createBrowserSupabaseClient } from "@/lib/supabase/client"
+import { CreditWidget } from "@/components/billing/CreditWidget"
 
 interface AppSidebarProps {
   userRole?: string
@@ -189,6 +190,8 @@ export function AppSidebar({
 
       {/* User footer */}
       <div className="flex-shrink-0 border-t border-white/[0.06] p-3 space-y-1">
+        {!collapsed && <CreditWidget className="mb-3" />}
+
         {/* Avatar row */}
         <div className={`flex items-center gap-3 px-1 py-1.5 ${collapsed ? "justify-center" : ""}`}>
           {userAvatar ? (

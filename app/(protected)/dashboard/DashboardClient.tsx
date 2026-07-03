@@ -9,6 +9,10 @@ import {
   MessageSquare, ShoppingBag
 } from "lucide-react"
 
+import { UpgradeCard } from "@/components/billing/UpgradeCard"
+import { UsageBanner } from "@/components/billing/UsageBanner"
+import { CreditWidget } from "@/components/billing/CreditWidget"
+
 interface DashboardData {
   userName: string
   userRole: string
@@ -28,6 +32,30 @@ interface DashboardData {
     apiKeys: number; apiKeyLimit: number
     webhooks: number; webhookLimit: number
     mcpServers: number; mcpLimit: number
+  }
+  credits: {
+    balance: {
+      monthlyCredits: number
+      purchasedCredits: number
+      bonusCredits: number
+      totalUsed: number
+      lifetimeUsed: number
+      available: number
+      resetAt: string | null
+    }
+    forecast: {
+      dailyAverageCredits: number
+      daysRemaining: number | null
+      estimatedMonthlyCredits: number
+      currentBalance: number
+      monthlyCredits: number
+    }
+    recommendation: {
+      recommendedTier: "FREE" | "PRO" | "TEAM" | "ENTERPRISE"
+      score: number
+      reasons: string[]
+      potentialSavings: number
+    } | null
   }
   recentActivity: any[]
   marketplaceListings: any[]
@@ -84,18 +112,20 @@ function Sparkline({ positive = true }: { positive?: boolean }) {
 }
 
 export default function DashboardClient({ data }: { data: DashboardData }) {
-  const { userName, userRole, tier, planName, stats, usage, billing, recentActivity, marketplaceListings } = data
+  const { userName, userRole, tier, planName, stats, usage, credits, billing, recentActivity, marketplaceListings } = data
   const isCreator = ["CREATOR", "ADMIN", "OWNER"].includes(userRole)
   const firstName = userName?.split(" ")[0] || "there"
   const hour = new Date().getHours()
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"
 
   const tierColor: Record<string, string> = {
-    FREE: "text-white/50", STARTER: "text-blue-400", PRO: "text-amber-400", BUSINESS: "text-purple-400"
+    FREE: "text-white/50", PRO: "text-amber-400", TEAM: "text-blue-400", ENTERPRISE: "text-purple-400"
   }
   const tierBg: Record<string, string> = {
-    FREE: "bg-white/[0.04] border-white/[0.08]", STARTER: "bg-blue-500/10 border-blue-500/20",
-    PRO: "bg-amber-500/10 border-amber-500/20", BUSINESS: "bg-purple-500/10 border-purple-500/20"
+    FREE: "bg-white/[0.04] border-white/[0.08]",
+    PRO: "bg-amber-500/10 border-amber-500/20",
+    TEAM: "bg-blue-500/10 border-blue-500/20",
+    ENTERPRISE: "bg-purple-500/10 border-purple-500/20"
   }
 
   // ── Quick actions ──
@@ -162,6 +192,29 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           </Link>
         </div>
       </div>
+
+      {/* ── GROWTH BANNER ── */}
+      {(() => {
+        const usageItems = [
+          { label: "API requests", used: usage.apiRequests, limit: usage.apiRequestLimit },
+          { label: "API keys", used: usage.apiKeys, limit: usage.apiKeyLimit },
+          { label: "Webhooks", used: usage.webhooks, limit: usage.webhookLimit },
+          { label: "MCP servers", used: usage.mcpServers, limit: usage.mcpLimit },
+        ]
+        const threshold = usageItems
+          .map((u) => ({ ...u, pct: u.limit > 0 ? Math.round((u.used / u.limit) * 100) : 0 }))
+          .filter((u) => u.pct >= 75)
+          .sort((a, b) => b.pct - a.pct)[0]
+        if (!threshold) return null
+        return (
+          <UsageBanner
+            feature={threshold.label}
+            used={threshold.used}
+            limit={threshold.limit}
+            percentage={threshold.pct}
+          />
+        )
+      })()}
 
       {/* ── ROW 1: BUSINESS METRICS (8 compact cards) ── */}
       <div className="grid grid-cols-4 xl:grid-cols-8 gap-3">
@@ -235,8 +288,32 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           </div>
         </div>
 
-        {/* AI Recommendations — 2 cols */}
-        <div className="xl:col-span-2 rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
+        {/* AI Recommendations + Credit + Upgrade — 2 cols */}
+        <div className="xl:col-span-2 space-y-4">
+          <CreditWidget compact={false} />
+
+          {credits.recommendation && credits.recommendation.score >= 20 && tier !== credits.recommendation.recommendedTier && (
+            <UpgradeCard
+              title={`Recommended: ${credits.recommendation.recommendedTier}`}
+              description={credits.recommendation.reasons.join(" · ")}
+              recommendedTier={credits.recommendation.recommendedTier}
+              cta="View plans"
+              href="/account/billing"
+              variant="dashboard"
+            />
+          )}
+
+          {credits.forecast.daysRemaining !== null && credits.forecast.daysRemaining <= 14 && credits.forecast.daysRemaining > 0 && (
+            <UpgradeCard
+              title="Credits running low"
+              description={`At your current usage, credits will run out in about ${credits.forecast.daysRemaining} days.`}
+              cta="Buy credits"
+              href="/account/wallet"
+              variant="dashboard"
+            />
+          )}
+
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
           <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.05]">
             <Sparkles className="h-3.5 w-3.5 text-amber-400" />
             <h2 className="text-xs font-semibold text-white/70 uppercase tracking-widest">AI Recommendations</h2>
@@ -265,6 +342,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
               </div>
             )}
           </div>
+        </div>
         </div>
       </div>
 

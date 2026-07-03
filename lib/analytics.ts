@@ -18,6 +18,19 @@ type AnalyticsEvent =
   | "architect_workshop_created"
   | "recommendation_served"
   | "recommendation_clicked"
+  | "upgrade_viewed"
+  | "upgrade_dismissed"
+  | "upgrade_accepted"
+  | "credits_depleted"
+  | "credits_refunded"
+  | "feature_locked"
+  | "usage_milestone_reached"
+  | "plan_changed"
+  | "payment_failed"
+  | "payment_recovered"
+  | "subscription_renewed"
+  | "referral_completed"
+  | "daily_login_reward_claimed"
 
 type EventProperties = Record<string, string | number | boolean | null | undefined>
 
