@@ -182,7 +182,7 @@ export function parseClawHubSkill(
   }
 }
 
-async function resolveSystemCreatorId(service: SupabaseClient): Promise<string> {
+export async function resolveSystemCreatorId(service: SupabaseClient): Promise<string> {
   const envId =
     process.env.SYSTEM_IMPORT_CREATOR_ID?.trim() ||
     process.env.CLAWHUB_IMPORT_CREATOR_ID?.trim()

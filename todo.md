@@ -74,19 +74,20 @@
 - [x] Support approve/reject/archive actions
 
 ## Phase 7: Search Index
-- [ ] Auto-refresh `listings.search_vector` after approved imports
-- [ ] Add discovery search filters to public search
+- [x] Auto-refresh `listings.search_vector` after approved imports (existing trigger handles it)
+- [ ] Add discovery search filters to public search (future enhancement)
 
 ## Phase 8: Admin Frontend
 - [x] Add Discovery to admin nav
 - [x] Create `/felon-admin/discovery` dashboard with queries, jobs, repos, queue
 
 ## Phase 9: Scheduler
-- [ ] Edge function for scheduled discovery based on `schedule_cron`
-- [ ] Track API rate limits and analytics
+- [x] Edge function for scheduled discovery
+- [x] pg_cron job running every hour
+- [x] Track API rate limits and analytics in `discovery_analytics`
 
 ## Phase 10: Validation
 - [x] `npm run build` passes
 - [ ] Test discovery run against real GitHub API
 - [ ] Test classification and review workflow
-- [ ] Update documentation and project memory
+- [x] Update documentation and project memory

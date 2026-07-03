@@ -459,6 +459,8 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ `docs.midasai.tech` rewrites to `/docs`; production branch updated to `main` on Vercel
 - ✅ Homepage stats bar now shows requested static trust metrics: 27,423+ AI Assets, 4,891+ Creators, 3.2M+ Downloads, 42 Categories, 8,700+ Workflows, 5,100+ Agents, 185K+ Users
 - ✅ GitHub Discovery & Prompt Import pipeline foundation: schema, discovery service, classification, review queue, admin dashboard
+- ✅ Scheduled discovery: `github-discovery-scheduler` edge function + hourly pg_cron job
+- ✅ Approved imports create `listings` rows; search vector auto-refreshes via existing trigger
 
 ---
 

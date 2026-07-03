@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/auth/roles"
+import { importRepositoryToListing } from "@/lib/discovery/import"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
@@ -67,6 +68,21 @@ export async function POST(request: Request) {
       : parsed.data.action === "reject"
         ? "rejected"
         : "archived"
+
+  if (parsed.data.action === "approve") {
+    const { data: queueItem } = await service
+      .from("import_queue")
+      .select("repository_id")
+      .eq("id", parsed.data.queue_id)
+      .single()
+
+    if (queueItem?.repository_id) {
+      const { listingId, error: importError } = await importRepositoryToListing(service, queueItem.repository_id)
+      if (importError) {
+        return NextResponse.json({ error: importError }, { status: 500 })
+      }
+    }
+  }
 
   const { data, error } = await service
     .from("import_queue")
