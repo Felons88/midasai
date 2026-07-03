@@ -339,12 +339,15 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
               description={listing.short_description || listing.description}
               type={listing.type}
               categoryName={listing.categories?.name}
+              categorySlug={listing.categories?.slug}
               tags={normalizedTags}
               price={Number(listing.price) || 0}
               avgRating={avgRating}
               reviewCount={reviewCount}
               downloads={listing.downloads ?? 0}
+              views={listing.views ?? 0}
               verified={creatorProfile?.verified ?? false}
+              featured={listing.featured ?? false}
             />
           </div>
 
