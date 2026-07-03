@@ -488,6 +488,9 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Dashboard "Today's Priorities" layout fixed: narrower column, accurate singular/plural task label
 - ✅ Dashboard AI Recommendations moved below Today's Priorities box
 - ✅ Redesigned `/account/billing` with plan cards, usage breakdown, quick links, and payment/invoices sections
+- ✅ Unified billing: `/developer/billing` redirects to `/account/billing`
+- ✅ Updated plan prices: Pro $19/mo, Team $59/mo (up to 10 seats), Enterprise custom
+- ✅ Improved Stripe checkout error messages and validation
 
 ---
 
