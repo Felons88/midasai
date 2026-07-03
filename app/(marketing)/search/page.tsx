@@ -12,6 +12,7 @@ import {
 import { SearchAutocomplete } from "@/components/marketplace/SearchAutocomplete"
 import { SearchResults as SearchResultsComponent } from "@/components/marketplace/SearchResults"
 import { applyListingSearch, applySearchRanking } from "@/lib/search/listings"
+import { trackServerEvent } from "@/lib/analytics-server"
 import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
@@ -109,6 +110,18 @@ async function SearchResults({
     const minPrice = resolvedParams?.minPrice ? parseFloat(resolvedParams.minPrice) : undefined
     const maxPrice = resolvedParams?.maxPrice ? parseFloat(resolvedParams.maxPrice) : undefined
     const minRating = resolvedParams?.minRating ? parseFloat(resolvedParams.minRating) : undefined
+
+    if (query) {
+      void trackServerEvent("search_performed", {
+        query,
+        categories: selectedCategories.join(","),
+        type: selectedType,
+        sort,
+        min_price: minPrice,
+        max_price: maxPrice,
+        min_rating: minRating,
+      })
+    }
 
     const [categoriesResult, typeEnumsResult, rawListings, countResult] = await Promise.all([
       supabase.from("categories").select("id, name, slug").eq("is_active", true).order("name"),

@@ -129,6 +129,24 @@ test.describe("API smoke", () => {
     expect(res.status()).toBe(410)
   })
 
+  test("analytics event API accepts valid events", async ({ request }) => {
+    const res = await request.post("/api/analytics/event", {
+      data: {
+        event: "listing_clicked",
+        properties: { listing_id: "37246ef6-4b70-4413-b04e-d4269e8c74b7", type: "SKILL" },
+      },
+    })
+    expect(res.ok()).toBeTruthy()
+  })
+
+  test("recommendations API returns results", async ({ request }) => {
+    const res = await request.get("/api/recommendations")
+    expect(res.ok()).toBeTruthy()
+    const body = await res.json()
+    expect(body).toHaveProperty("recommendations")
+    expect(Array.isArray(body.recommendations)).toBe(true)
+  })
+
   test("unknown routes return 404 page", async ({ page }) => {
     await page.goto("/this-route-does-not-exist-midasai")
     await expect(page.locator(".not-found-glitch")).toBeVisible()

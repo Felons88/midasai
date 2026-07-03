@@ -50,6 +50,7 @@ export function BookmarkFlow({
         if (!error) {
           setBookmarked(false)
           onBookmarkChange?.(false)
+          trackEvent("listing_unbookmarked", { listing_id: listingId })
         }
       } else {
         // Add bookmark

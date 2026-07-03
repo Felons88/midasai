@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { ArrowUpRight } from "lucide-react"
+import { trackEvent } from "@/lib/analytics"
 import { cn } from "@/lib/utils"
 import type { LucideIcon } from "lucide-react"
 
@@ -26,6 +27,13 @@ export function CategoryCard({ category, index = 0 }: { category: CategoryItem; 
         "hover:border-white/20 hover:-translate-y-1 hover:shadow-xl transition-all duration-300",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta"
       )}
+      onClick={() =>
+        trackEvent("category_clicked", {
+          category_slug: category.slug,
+          category_label: category.label,
+          position: index,
+        })
+      }
       style={{ animationDelay: `${index * 0.03}s` }}
     >
       <div

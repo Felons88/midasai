@@ -1,20 +1,20 @@
-import { createServiceClient } from "@/lib/supabase/server"
+import { createClient } from "@/lib/supabase/server"
 import type { AnalyticsEvent, EventProperties } from "@/lib/analytics"
+import { updateUserProfileFromEvent } from "@/lib/recommendations/profile"
 
 export async function trackServerEvent(
   event: AnalyticsEvent,
   properties: EventProperties & { listing_id?: string }
 ) {
-  const listingId = properties.listing_id
-  if (!listingId) return
-
   try {
-    const service = createServiceClient()
-    await service.from("analytics").insert({
-      event_type: event,
-      listing_id: listingId,
-      metadata: properties,
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from("analytics_events").insert({
+      event,
+      user_id: user?.id ?? null,
+      properties: properties as Record<string, unknown>,
     })
+    void updateUserProfileFromEvent(user?.id, event, properties)
   } catch {
     // best-effort server-side event log
   }

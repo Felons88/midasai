@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { trackEvent } from "@/lib/analytics"
 import { ArchitectJobStore } from "@/lib/architect/job-store"
 import {
   Send, Sparkles, Copy, Check,
@@ -810,6 +811,11 @@ export function ArchitectClient() {
 
     try {
       const sid = await ensureSession(newMessages)
+      trackEvent("architect_prompt_sent", {
+        session_id: sid,
+        prompt: input.trim().slice(0, 500),
+        phase: phase,
+      })
       const apiMessages = newMessages.map(m => ({ role: m.role, content: m.content }))
       const res = await fetch("/api/architect/chat", {
         method: "POST",

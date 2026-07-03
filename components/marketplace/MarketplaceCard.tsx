@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { truncateText } from "@/lib/listings/normalize"
+import { trackEvent } from "@/lib/analytics"
 import { useState } from "react"
 import { InstallModal } from "./InstallModal"
 import type { ReactNode } from "react"
@@ -64,6 +65,13 @@ export function MarketplaceCard({
         href={`/listing/${listing.id}`}
         className="group block h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta rounded-xl"
         aria-label={`${listing.title} by ${creator?.name ?? "MidasAI"}`}
+        onClick={() =>
+          trackEvent("listing_clicked", {
+            listing_id: listing.id,
+            type: listing.type ?? "SKILL",
+            position: index,
+          })
+        }
       >
         <Card
           className={cn(

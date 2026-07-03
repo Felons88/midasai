@@ -2,7 +2,7 @@
 
 > **Last updated:** 2026-07-02  
 > **Build status:** ✅ Passes (`npm run build`)  
-> **E2E smoke:** 19/20 passing (1 env-specific admin-route test fails locally)  
+> **E2E smoke:** 19/22 passing (3 env/pre-existing test failures; new analytics/recommendation tests pass)  
 > **Production readiness:** ~97/100  
 > **Active cycle:** 17 — Landing Page Redesign + Launch Readiness  
 > **Supabase project:** `rqermggomchlipmuigan`
@@ -439,6 +439,10 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Listing documentation tab fetches the README from the GitHub repo (falls back to `listing.readme`) instead of mirroring the top description
 - ✅ Authenticated navbar uses "Dashboard" instead of "Creator Studio"; public navbar no longer shows a separate "Creator Portal" button
 - ✅ Dashboard notification panel removed
+- ✅ Event collection pipeline: every click, search, install, bookmark, and Architect prompt is tracked in `analytics_events`
+- ✅ User interest profile (`user_interest_profile`) updates in real time from the event stream
+- ✅ Recommendation engine: `GET /api/recommendations` scores listings based on the user profile with recency decay
+- ✅ Simple keyword extraction for Architect prompts to infer categories and listing types
 
 ---
 
