@@ -492,6 +492,8 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Updated plan prices: Pro $19/mo, Team $59/mo (up to 10 seats), Enterprise custom
 - ✅ Improved Stripe checkout error messages and validation
 - ✅ Fixed `/api/stripe/checkout` to use env-aware `getPlanLimits` instead of static `PLAN_LIMITS`
+- ✅ Added `/api/billing/subscription` and live polling so `/account/billing` reflects the upgraded plan after Stripe checkout
+- ✅ Added animated welcome modal celebrating the upgraded tier with feature overview
 
 ---
 
