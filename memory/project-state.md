@@ -457,7 +457,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Architect enforces markdown-only output; `.ts` filenames from AI are normalized to `.md`
 - ✅ API docs moved from `/api-docs` to `/docs/api`; old `/api-docs` route removed
 - ✅ `docs.midasai.tech` rewrites to `/docs`; production branch updated to `main` on Vercel
-- ✅ Homepage stats bar now shows AI asset-type breakdown (Skills, Agents, MCPs, etc.) under AI Assets
+- ✅ Homepage stats bar now shows requested static trust metrics: 27,423+ AI Assets, 4,891+ Creators, 3.2M+ Downloads, 42 Categories, 8,700+ Workflows, 5,100+ Agents, 185K+ Users
 
 ---
 
