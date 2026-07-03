@@ -491,6 +491,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Unified billing: `/developer/billing` redirects to `/account/billing`
 - ✅ Updated plan prices: Pro $19/mo, Team $59/mo (up to 10 seats), Enterprise custom
 - ✅ Improved Stripe checkout error messages and validation
+- ✅ Fixed `/api/stripe/checkout` to use env-aware `getPlanLimits` instead of static `PLAN_LIMITS`
 
 ---
 
