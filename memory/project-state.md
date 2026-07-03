@@ -487,6 +487,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ `/api/billing/pricing` endpoint for frontend cost lookups
 - ✅ Dashboard "Today's Priorities" layout fixed: narrower column, accurate singular/plural task label
 - ✅ Dashboard AI Recommendations moved below Today's Priorities box
+- ✅ Redesigned `/account/billing` with plan cards, usage breakdown, quick links, and payment/invoices sections
 
 ---
 
