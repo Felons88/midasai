@@ -1,15 +1,16 @@
 "use client"
 
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import {
   CreditCard, Download, Star, Rocket, Crown, Building2,
   Check, Zap, HardDrive, Globe, BarChart3, Shield,
   ArrowUpRight, Loader2, Receipt, Wallet, AlertTriangle,
-  Calendar, RefreshCw
+  Calendar, RefreshCw, Sparkles, PartyPopper, X
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { UpgradeButton } from "@/components/billing/UpgradeButton"
-import { PLAN_LIMITS, type PlanTier } from "@/lib/subscriptions"
+import { getPlanLimits, PLAN_LIMITS, type PlanTier } from "@/lib/subscriptions"
 import type { BillingContext } from "@/lib/billing/entitlements"
 
 interface BillingClientProps {
@@ -222,12 +223,165 @@ function PlanCard({
   )
 }
 
+type Subscription = BillingClientProps["subscription"]
+
+function WelcomeModal({
+  tier,
+  onClose,
+}: {
+  tier: PlanTier
+  onClose: () => void
+}) {
+  const config = TIER_CONFIG[tier]
+  const Icon = config.icon
+  const plan = getPlanLimits(tier)
+
+  const benefits = [
+    { label: "API rate limit", value: plan.apiRateLimit === -1 ? "Unlimited" : `${plan.apiRateLimit.toLocaleString()} req/hr`, icon: Zap },
+    { label: "Storage", value: plan.storageGb === -1 ? "Unlimited" : `${plan.storageGb} GB`, icon: HardDrive },
+    { label: "Listings", value: plan.maxListings === -1 ? "Unlimited" : `${plan.maxListings}`, icon: Globe },
+    { label: "Webhooks", value: plan.maxWebhooks === -1 ? "Unlimited" : `${plan.maxWebhooks}`, icon: CreditCard },
+    { label: "API keys", value: plan.maxApiKeys === -1 ? "Unlimited" : `${plan.maxApiKeys}`, icon: Zap },
+  ]
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
+      <div
+        className={`relative w-full max-w-md rounded-2xl border ${config.border} bg-gradient-to-br ${config.gradient} p-6 shadow-2xl animate-in zoom-in-95 fade-in duration-300`}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-1 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className={`relative h-20 w-20 rounded-2xl ${config.bg} flex items-center justify-center mb-4`}>
+            <div className="absolute inset-0 rounded-2xl bg-amber-400/20 blur-xl animate-pulse" />
+            <Icon className={`relative h-10 w-10 ${config.color}`} />
+          </div>
+          <div className="flex items-center gap-2 mb-2">
+            <PartyPopper className="h-5 w-5 text-amber-400" />
+            <h2 className="text-xl font-bold text-white">Welcome to {tier.charAt(0) + tier.slice(1).toLowerCase()}!</h2>
+          </div>
+          <p className="text-sm text-white/50">
+            Your upgrade is active. Here&apos;s everything you now have access to.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          {benefits.map((b) => (
+            <div key={b.label} className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
+              <div className="flex items-center gap-2 mb-1">
+                <b.icon className={`h-3.5 w-3.5 ${config.color}`} />
+                <span className="text-[10px] text-white/40 uppercase tracking-wider">{b.label}</span>
+              </div>
+              <p className="text-sm font-semibold text-white">{b.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-2 mb-6">
+          <div className="flex items-start gap-2 text-xs text-white/60">
+            <Check className={`h-4 w-4 mt-0.5 flex-shrink-0 ${config.color}`} />
+            <span>AI upload assistant & creator verification badge</span>
+          </div>
+          <div className="flex items-start gap-2 text-xs text-white/60">
+            <Check className={`h-4 w-4 mt-0.5 flex-shrink-0 ${config.color}`} />
+            <span>Custom domain support for your listings</span>
+          </div>
+          <div className="flex items-start gap-2 text-xs text-white/60">
+            <Check className={`h-4 w-4 mt-0.5 flex-shrink-0 ${config.color}`} />
+            <span>Priority support & advanced analytics</span>
+          </div>
+          {tier === "TEAM" && (
+            <div className="flex items-start gap-2 text-xs text-white/60">
+              <Check className={`h-4 w-4 mt-0.5 flex-shrink-0 ${config.color}`} />
+              <span>Up to 10 team seats with shared credit pool</span>
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={onClose}
+          className="w-full h-11 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm transition-colors flex items-center justify-center gap-2"
+        >
+          <Sparkles className="h-4 w-4" />
+          Start exploring
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function BillingClient({ context, subscription }: BillingClientProps) {
   const { limits, usage } = context
-  const tier = limits.tier
+  const [liveSubscription, setLiveSubscription] = useState<Subscription>(subscription)
+
+  const searchParams = useSearchParams()
+  const justUpgraded = searchParams.get("success") === "1"
+  const upgradedTierParam = searchParams.get("tier") as PlanTier | null
+
+  const tier = useMemo<PlanTier>(() => {
+    const liveTier = liveSubscription?.tier
+    if (liveTier === "FREE" || liveTier === "PRO" || liveTier === "TEAM" || liveTier === "ENTERPRISE") {
+      return liveTier
+    }
+    if (upgradedTierParam === "FREE" || upgradedTierParam === "PRO" || upgradedTierParam === "TEAM" || upgradedTierParam === "ENTERPRISE") {
+      return upgradedTierParam
+    }
+    return limits.tier
+  }, [liveSubscription, limits.tier, upgradedTierParam])
+
+  const displayedLimits = useMemo(() => ({
+    ...limits,
+    tier,
+    maxListings: PLAN_LIMITS[tier].maxListings,
+    maxWebhooks: PLAN_LIMITS[tier].maxWebhooks,
+    maxApiKeys: PLAN_LIMITS[tier].maxApiKeys,
+    maxMcpServers: PLAN_LIMITS[tier].maxMcpServers,
+    maxApplications: PLAN_LIMITS[tier].maxApplications,
+    maxDownloadsPerMonth: PLAN_LIMITS[tier].maxDownloadsPerMonth,
+    storageGb: PLAN_LIMITS[tier].storageGb,
+    apiRateLimit: PLAN_LIMITS[tier].apiRateLimit,
+  }), [limits, tier])
+
   const config = TIER_CONFIG[tier]
   const Icon = config.icon
   const [loadingTier, setLoadingTier] = useState<PlanTier | null>(null)
+  const [showWelcome, setShowWelcome] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const refreshSubscription = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      const res = await fetch("/api/billing/subscription")
+      const data = await res.json()
+      if (data.subscription) {
+        setLiveSubscription(data.subscription)
+      }
+    } catch (e) {
+      console.error("Failed to refresh subscription", e)
+    } finally {
+      setRefreshing(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!justUpgraded) return
+    refreshSubscription()
+    const id = setInterval(refreshSubscription, 3000)
+    const timeout = setTimeout(() => {
+      clearInterval(id)
+      setShowWelcome(true)
+    }, 2000)
+    return () => {
+      clearInterval(id)
+      clearTimeout(timeout)
+    }
+  }, [justUpgraded, refreshSubscription])
 
   const handleUpgrade = async (targetTier: PlanTier) => {
     setLoadingTier(targetTier)
@@ -253,9 +407,10 @@ export default function BillingClient({ context, subscription }: BillingClientPr
     }
   }
 
-  const isActive = subscription?.status === "ACTIVE" || subscription?.status === "TRIALING"
-  const willCancel = subscription?.cancel_at_period_end
-  const periodEnd = subscription?.current_period_end
+  const isActive = liveSubscription?.status === "ACTIVE" || liveSubscription?.status === "TRIALING"
+  const willCancel = liveSubscription?.cancel_at_period_end
+  const periodEnd = liveSubscription?.current_period_end
+  const subscriptionId = liveSubscription?.stripe_subscription_id
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
@@ -282,7 +437,7 @@ export default function BillingClient({ context, subscription }: BillingClientPr
                 )}
                 {willCancel && (
                   <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-[11px] font-semibold text-amber-400">
-                    Cancels {formatDate(periodEnd)}
+                    Cancels {formatDate(periodEnd ?? null)}
                   </span>
                 )}
               </div>
@@ -299,7 +454,7 @@ export default function BillingClient({ context, subscription }: BillingClientPr
               {periodEnd && (
                 <p className="text-xs text-white/40 flex items-center gap-1 lg:justify-end mt-1">
                   <Calendar className="h-3 w-3" />
-                  {willCancel ? "Access until" : "Renews on"} {formatDate(periodEnd)}
+                  {willCancel ? "Access until" : "Renews on"} {formatDate(periodEnd ?? null)}
                 </p>
               )}
             </div>
@@ -312,10 +467,10 @@ export default function BillingClient({ context, subscription }: BillingClientPr
           </div>
         </div>
 
-        {subscription?.stripe_subscription_id && tier !== "FREE" && (
+        {subscriptionId && tier !== "FREE" && (
           <div className="mt-6 pt-5 border-t border-white/[0.06] flex items-center gap-2 text-xs text-white/40">
             <RefreshCw className="h-3.5 w-3.5" />
-            Subscription ID: <span className="font-mono text-white/60">{subscription.stripe_subscription_id}</span>
+            Subscription ID: <span className="font-mono text-white/60">{subscriptionId}</span>
           </div>
         )}
       </div>
@@ -372,13 +527,13 @@ export default function BillingClient({ context, subscription }: BillingClientPr
             <span className="text-[10px] text-white/30 uppercase tracking-wider">Resets monthly</span>
           </div>
           <div className="px-5 py-3">
-            <UsageBar label="Downloads" used={usage.downloadsThisMonth} max={limits.maxDownloadsPerMonth} icon={Download} />
-            <UsageBar label="Listings" used={usage.listings} max={limits.maxListings} icon={Globe} />
-            <UsageBar label="API Keys" used={usage.apiKeys} max={limits.maxApiKeys} icon={Zap} />
-            <UsageBar label="Webhooks" used={usage.webhooks} max={limits.maxWebhooks} icon={HardDrive} />
-            <UsageBar label="MCP Connections" used={usage.mcpServers} max={limits.maxMcpServers} icon={CreditCard} />
+            <UsageBar label="Downloads" used={usage.downloadsThisMonth} max={displayedLimits.maxDownloadsPerMonth} icon={Download} />
+            <UsageBar label="Listings" used={usage.listings} max={displayedLimits.maxListings} icon={Globe} />
+            <UsageBar label="API Keys" used={usage.apiKeys} max={displayedLimits.maxApiKeys} icon={Zap} />
+            <UsageBar label="Webhooks" used={usage.webhooks} max={displayedLimits.maxWebhooks} icon={HardDrive} />
+            <UsageBar label="MCP Connections" used={usage.mcpServers} max={displayedLimits.maxMcpServers} icon={CreditCard} />
           </div>
-          {limits.maxDownloadsPerMonth !== -1 && usage.downloadsThisMonth >= limits.maxDownloadsPerMonth * 0.8 && (
+          {displayedLimits.maxDownloadsPerMonth !== -1 && usage.downloadsThisMonth >= displayedLimits.maxDownloadsPerMonth * 0.8 && (
             <div className="px-5 py-3 bg-amber-500/5 border-t border-white/[0.04] flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 text-amber-400 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-amber-400/80">You&apos;re approaching your monthly download limit. Consider upgrading for unlimited access.</p>
@@ -436,6 +591,13 @@ export default function BillingClient({ context, subscription }: BillingClientPr
           </div>
         </div>
       </div>
+
+      {showWelcome && (
+        <WelcomeModal
+          tier={tier}
+          onClose={() => setShowWelcome(false)}
+        />
+      )}
     </div>
   )
 }

@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       "line_items[0][price]": priceId,
       "line_items[0][quantity]": "1",
       mode: "subscription",
-      success_url: `${origin}/account/billing?success=1`,
+      success_url: `${origin}/account/billing?success=1&tier=${tier}`,
       cancel_url: `${origin}/pricing?cancelled=1`,
       "subscription_data[metadata][user_id]": user.id,
       "subscription_data[metadata][tier]": tier,

@@ -17,6 +17,8 @@ export interface PlanLimits {
   maxMcpServers: number     // -1 = unlimited
   maxWebhooks: number       // -1 = unlimited
   maxApplications: number   // -1 = unlimited
+  maxApiKeys: number       // -1 = unlimited
+  maxDownloadsPerMonth: number // -1 = unlimited
   maxFeaturedListings: number // -1 = unlimited
   platformFeePct: number    // percentage kept by platform
   canUseAiUpload: boolean
@@ -40,6 +42,8 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
     maxMcpServers: 1,
     maxWebhooks: 1,
     maxApplications: 1,
+    maxApiKeys: 2,
+    maxDownloadsPerMonth: 10,
     maxFeaturedListings: 0,
     platformFeePct: 15,
     canUseAiUpload: false,
@@ -61,6 +65,8 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
     maxMcpServers: 25,
     maxWebhooks: 50,
     maxApplications: 25,
+    maxApiKeys: 50,
+    maxDownloadsPerMonth: -1,
     maxFeaturedListings: 5,
     platformFeePct: 8,
     canUseAiUpload: true,
@@ -82,6 +88,8 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
     maxMcpServers: -1,
     maxWebhooks: -1,
     maxApplications: -1,
+    maxApiKeys: -1,
+    maxDownloadsPerMonth: -1,
     maxFeaturedListings: -1,
     platformFeePct: 5,
     canUseAiUpload: true,
@@ -103,6 +111,8 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
     maxMcpServers: -1,
     maxWebhooks: -1,
     maxApplications: -1,
+    maxApiKeys: -1,
+    maxDownloadsPerMonth: -1,
     maxFeaturedListings: -1,
     platformFeePct: 3,
     canUseAiUpload: true,
