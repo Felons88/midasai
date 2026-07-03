@@ -12,13 +12,6 @@ export async function updateSession(request: NextRequest) {
     return new NextResponse(null, { status: 404 })
   }
 
-  const aliasToAdmin = mapAliasToAdminPath(request.nextUrl.pathname)
-  if (aliasToAdmin) {
-    const url = request.nextUrl.clone()
-    url.pathname = aliasToAdmin
-    return NextResponse.rewrite(url)
-  }
-
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -61,6 +54,17 @@ export async function updateSession(request: NextRequest) {
     url.pathname = '/auth/login'
     url.searchParams.set('redirect', request.nextUrl.pathname)
     return NextResponse.redirect(url)
+  }
+
+  const aliasToAdmin = mapAliasToAdminPath(request.nextUrl.pathname)
+  if (aliasToAdmin) {
+    const url = request.nextUrl.clone()
+    url.pathname = aliasToAdmin
+    const response = NextResponse.rewrite(url)
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      response.cookies.set(cookie.name, cookie.value, cookie)
+    })
+    return response
   }
 
   return supabaseResponse

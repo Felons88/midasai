@@ -1,4 +1,4 @@
-const DEFAULT_ADMIN_PREFIX = "/felon-admin"
+const DEFAULT_ADMIN_PREFIX = "/admin"
 
 function normalizePrefix(value: string | undefined): string {
   if (!value) return DEFAULT_ADMIN_PREFIX
