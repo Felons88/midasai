@@ -53,6 +53,7 @@ export function getAdminNavSections(
       label: "People",
       items: [
         { href: `${prefix}/users`, label: "Users", icon: Users },
+        { href: `${prefix}/roles`, label: "Roles", icon: ShieldAlert },
         { href: `${prefix}/creators`, label: "Creators", icon: Briefcase },
       ],
     },

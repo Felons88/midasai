@@ -18,6 +18,12 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const [supabase] = useState(() => createBrowserSupabaseClient())
 
+  useEffect(() => {
+    if (searchParams.get('error') === 'suspended') {
+      setError('Your account has been suspended. Contact support if you believe this is a mistake.')
+    }
+  }, [searchParams])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)

@@ -12,19 +12,20 @@ async function getUserData(userId: string) {
     const supabase = await createClient()
     const { data: user, error } = await supabase
       .from('users')
-      .select('role, name, email, avatar_url')
+      .select('role, status, name, email, avatar_url')
       .eq('id', userId)
       .single()
     
-    if (error) return { role: 'USER', name: '', email: '', avatar_url: '' }
+    if (error) return { role: 'USER', status: 'ACTIVE', name: '', email: '', avatar_url: '' }
     return {
       role: user?.role || 'USER',
+      status: user?.status || 'ACTIVE',
       name: user?.name || '',
       email: user?.email || '',
       avatar_url: user?.avatar_url || '',
     }
   } catch {
-    return { role: 'USER', name: '', email: '', avatar_url: '' }
+    return { role: 'USER', status: 'ACTIVE', name: '', email: '', avatar_url: '' }
   }
 }
 
@@ -40,6 +41,12 @@ export default async function AuthenticatedLayout({
     redirect("/auth/login")
   }
 
+  const userData = await getUserData(user.id)
+
+  if (userData.status === 'SUSPENDED') {
+    redirect('/auth/login?error=suspended')
+  }
+
   const headersList = await headers()
   const pathname = headersList.get("x-pathname") ?? ""
   const isAdminRoute = isAdminPath(pathname)
@@ -48,7 +55,6 @@ export default async function AuthenticatedLayout({
     return <>{children}</>
   }
 
-  const userData = await getUserData(user.id)
   const showAds = await shouldShowAdsForUser(supabase, user.id)
 
   return (

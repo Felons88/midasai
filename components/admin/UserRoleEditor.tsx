@@ -21,8 +21,8 @@ export function UserRoleEditor({ userId, currentRole }: { userId: string; curren
     if (next === role) return
     setBusy(true)
     try {
-      const res = await fetch(`/api/admin/users/${userId}`, {
-        method: "PATCH",
+      const res = await fetch(`/api/admin/users/${userId}/role`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: next }),
       })

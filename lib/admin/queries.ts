@@ -173,14 +173,37 @@ export async function getRecentTransactions(limit = 20) {
   return data ?? []
 }
 
-export async function getAdminUsers(limit = 100) {
+export type GetAdminUsersOptions = {
+  search?: string
+  role?: string
+  status?: string
+  from?: string
+  to?: string
+  page?: number
+  pageSize?: number
+}
+
+export async function getAdminUsers(options: GetAdminUsersOptions = {}) {
+  const { search, role, status, from, to, page = 1, pageSize = 50 } = options
   const db = createServiceClient()
-  const { data } = await db
+
+  let q = db
     .from("users")
-    .select("id, name, email, role, avatar_url, created_at")
-    .order("created_at", { ascending: false })
-    .limit(limit)
-  return data ?? []
+    .select("id, name, email, role, status, last_active_at, avatar_url, created_at", { count: "exact" })
+
+  if (role && role !== "ALL") q = q.eq("role", role)
+  if (status && status !== "ALL") q = q.eq("status", status)
+  if (from) q = q.gte("created_at", from)
+  if (to) q = q.lte("created_at", to)
+  if (search) q = q.or(`name.ilike.%${search}%,email.ilike.%${search}%`)
+
+  const start = (page - 1) * pageSize
+  const end = start + pageSize - 1
+  q = q.order("created_at", { ascending: false }).range(start, end)
+
+  const { data, error, count } = await q
+  if (error) throw error
+  return { data: data ?? [], count: count ?? 0 }
 }
 
 export async function getAdminUserDetail(userId: string) {
@@ -387,6 +410,28 @@ export async function getRecentActivity(limit = 15) {
   const { data } = await db
     .from("analytics_events")
     .select("event, user_id, properties, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit)
+  return data ?? []
+}
+
+export async function getAdminUserAuditLogs(userId: string, limit = 50) {
+  const db = createServiceClient()
+  const { data } = await db
+    .from("audit_logs")
+    .select("id, action, entity_type, entity_id, metadata, created_at, user:users!audit_logs_user_id_fkey(name, email)")
+    .eq("entity_id", userId)
+    .eq("entity_type", "user")
+    .order("created_at", { ascending: false })
+    .limit(limit)
+  return data ?? []
+}
+
+export async function getAdminAuditLogs(limit = 100) {
+  const db = createServiceClient()
+  const { data } = await db
+    .from("audit_logs")
+    .select("id, action, entity_type, entity_id, metadata, created_at, user:users!audit_logs_user_id_fkey(name, email)")
     .order("created_at", { ascending: false })
     .limit(limit)
   return data ?? []
