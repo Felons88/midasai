@@ -5,7 +5,7 @@
 
 import { STRIPE_PLAN_PRICE_IDS } from "@/lib/stripe/config"
 
-export type PlanTier = 'FREE' | 'STARTER' | 'PRO' | 'BUSINESS'
+export type PlanTier = 'FREE' | 'PRO' | 'TEAM' | 'ENTERPRISE'
 
 export interface PlanLimits {
   tier: PlanTier
@@ -51,31 +51,10 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
     stripePriceIdMonthly: '',
     stripePriceIdYearly: '',
   },
-  STARTER: {
-    tier: 'STARTER',
-    priceMonthly: 19,
-    priceYearly: 190,
-    apiRateLimit: 500,
-    storageGb: 10,
-    maxListings: 25,
-    maxMcpServers: 5,
-    maxWebhooks: 10,
-    maxApplications: 5,
-    maxFeaturedListings: 1,
-    platformFeePct: 12,
-    canUseAiUpload: true,
-    canUseCustomDomain: false,
-    canVerifyCreator: false,
-    analyticsTier: 'advanced',
-    supportTier: 'email',
-    payoutSpeed: 'weekly',
-    stripePriceIdMonthly: '',
-    stripePriceIdYearly: '',
-  },
   PRO: {
     tier: 'PRO',
-    priceMonthly: 49,
-    priceYearly: 490,
+    priceMonthly: 29,
+    priceYearly: 290,
     apiRateLimit: 2000,
     storageGb: 100,
     maxListings: -1,
@@ -93,10 +72,10 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
     stripePriceIdMonthly: '',
     stripePriceIdYearly: '',
   },
-  BUSINESS: {
-    tier: 'BUSINESS',
-    priceMonthly: 149,
-    priceYearly: 1490,
+  TEAM: {
+    tier: 'TEAM',
+    priceMonthly: 79,
+    priceYearly: 790,
     apiRateLimit: 10000,
     storageGb: 500,
     maxListings: -1,
@@ -105,6 +84,27 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
     maxApplications: -1,
     maxFeaturedListings: -1,
     platformFeePct: 5,
+    canUseAiUpload: true,
+    canUseCustomDomain: true,
+    canVerifyCreator: true,
+    analyticsTier: 'enterprise',
+    supportTier: 'dedicated',
+    payoutSpeed: 'weekly',
+    stripePriceIdMonthly: '',
+    stripePriceIdYearly: '',
+  },
+  ENTERPRISE: {
+    tier: 'ENTERPRISE',
+    priceMonthly: 0,
+    priceYearly: 0,
+    apiRateLimit: -1,
+    storageGb: -1,
+    maxListings: -1,
+    maxMcpServers: -1,
+    maxWebhooks: -1,
+    maxApplications: -1,
+    maxFeaturedListings: -1,
+    platformFeePct: 3,
     canUseAiUpload: true,
     canUseCustomDomain: true,
     canVerifyCreator: true,
@@ -169,7 +169,7 @@ export function checkFeatureAccess(
   if (typeof value === 'boolean') {
     if (value) return { allowed: true }
     // Find minimum tier that enables it
-    for (const t of ['STARTER', 'PRO', 'BUSINESS'] as PlanTier[]) {
+    for (const t of ['PRO', 'TEAM', 'ENTERPRISE'] as PlanTier[]) {
       if (PLAN_LIMITS[t][feature] === true) {
         return { allowed: false, requiredTier: t }
       }
@@ -184,7 +184,7 @@ export function checkFeatureAccess(
   return { allowed: true }
 }
 
-export const PLAN_ORDER: PlanTier[] = ['FREE', 'STARTER', 'PRO', 'BUSINESS']
+export const PLAN_ORDER: PlanTier[] = ['FREE', 'PRO', 'TEAM', 'ENTERPRISE']
 
 export function isPlanAtLeast(userTier: string | null | undefined, requiredTier: PlanTier): boolean {
   const userIdx = PLAN_ORDER.indexOf((userTier as PlanTier) ?? 'FREE')

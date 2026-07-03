@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface UpgradeButtonProps {
-  tier: "PRO" | "ENTERPRISE"
+  tier: "PRO" | "TEAM" | "ENTERPRISE"
   label?: string
   variant?: "default" | "outline"
   className?: string

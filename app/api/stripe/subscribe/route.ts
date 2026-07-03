@@ -1,12 +1,13 @@
 import { createClient } from "@/lib/supabase/server"
 import { getStripe } from "@/lib/stripe"
 import { getStripePriceId } from "@/lib/stripe/config"
-import { SUBSCRIPTION_TIERS } from "@/lib/monetization"
+import { getResolvedPlan, type PlanTier } from "@/lib/billing/plans"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
 const subscribeSchema = z.object({
-  tier: z.enum(["PRO", "ENTERPRISE"]),
+  tier: z.enum(["PRO", "TEAM", "ENTERPRISE"]),
+  interval: z.enum(["monthly", "yearly"]).default("monthly"),
 })
 
 export async function POST(request: Request) {
@@ -31,18 +32,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid tier" }, { status: 400 })
   }
 
-  const { tier } = parsed.data
-  const tierConfig = SUBSCRIPTION_TIERS.find((t) => t.tier === tier)
+  const { tier, interval } = parsed.data
 
-  if (!tierConfig || tierConfig.price <= 0) {
+  const plan = await getResolvedPlan(supabase, tier as PlanTier)
+  if (!plan) {
+    return NextResponse.json({ error: "Unknown plan" }, { status: 400 })
+  }
+
+  const price = interval === "yearly" ? plan.priceYearly : plan.priceMonthly
+  if (price <= 0) {
     return NextResponse.json({ error: "Invalid subscription tier" }, { status: 400 })
   }
 
-  const priceId =
-    tier === "PRO"
-      ? getStripePriceId("PRO", "monthly")
-      : getStripePriceId("BUSINESS", "monthly")
-
+  const priceId = getStripePriceId(tier, interval)
   const origin = new URL(request.url).origin
 
   const lineItem = priceId
@@ -50,11 +52,11 @@ export async function POST(request: Request) {
     : {
         price_data: {
           currency: "usd",
-          unit_amount: Math.round(tierConfig.price * 100),
-          recurring: { interval: tierConfig.interval },
+          unit_amount: price,
+          recurring: { interval: interval === "yearly" ? "year" : "month" },
           product_data: {
             name: `MidasAI ${tier}`,
-            description: tierConfig.features.slice(0, 3).join(" · "),
+            description: "MidasAI subscription",
           },
         },
         quantity: 1,
@@ -67,12 +69,14 @@ export async function POST(request: Request) {
     metadata: {
       user_id: user.id,
       tier,
+      interval,
       checkout_type: "subscription",
     },
     subscription_data: {
       metadata: {
         user_id: user.id,
         tier,
+        interval,
       },
     },
     line_items: [lineItem],

@@ -4,13 +4,13 @@ import { useState } from "react"
 import { Check, ArrowUpRight, Zap, HardDrive, Key, Globe, BarChart3, Shield } from "lucide-react"
 import { PLAN_LIMITS, PlanTier, formatLimit } from "@/lib/subscriptions"
 
-const PLANS: PlanTier[] = ["FREE", "STARTER", "PRO", "BUSINESS"]
+const PLANS: PlanTier[] = ["FREE", "PRO", "TEAM", "ENTERPRISE"]
 
 const PLAN_DESCRIPTIONS: Record<PlanTier, string> = {
   FREE: "Perfect for getting started and exploring the platform.",
-  STARTER: "For indie creators building their first audience.",
   PRO: "For serious creators and growing businesses.",
-  BUSINESS: "For teams, agencies, and high-volume operations.",
+  TEAM: "For teams, agencies, and high-volume operations.",
+  ENTERPRISE: "Custom contracts, SLAs, and dedicated infrastructure.",
 }
 
 const PLAN_FEATURES: Record<PlanTier, string[]> = {
@@ -22,18 +22,6 @@ const PLAN_FEATURES: Record<PlanTier, string[]> = {
     "Basic analytics",
     "Community support",
     "15% platform fee",
-  ],
-  STARTER: [
-    "500 API requests/hour",
-    "10 GB storage",
-    "25 active listings",
-    "10 webhooks",
-    "5 OAuth applications",
-    "Advanced analytics",
-    "AI upload assistant",
-    "1 featured listing",
-    "Email support",
-    "12% platform fee",
   ],
   PRO: [
     "2,000 API requests/hour",
@@ -49,40 +37,54 @@ const PLAN_FEATURES: Record<PlanTier, string[]> = {
     "Priority support",
     "8% platform fee",
   ],
-  BUSINESS: [
+  TEAM: [
     "10,000 API requests/hour",
     "500 GB storage",
     "Unlimited everything",
+    "Team collaboration",
+    "Shared credit pool",
+    "10 team members",
     "Enterprise analytics",
     "AI upload assistant",
     "Unlimited featured listings",
     "Custom domain",
     "Priority creator verification",
     "Dedicated support",
-    "Enterprise audit logs",
     "5% platform fee",
+  ],
+  ENTERPRISE: [
+    "Unlimited API requests",
+    "Unlimited storage",
+    "Unlimited everything",
+    "Custom contracts",
+    "SLA guarantee",
+    "Unlimited team members",
+    "Dedicated support",
+    "Enterprise audit logs",
+    "Custom integrations",
+    "3% platform fee",
   ],
 }
 
 const TIER_ACCENT: Record<PlanTier, string> = {
   FREE: "border-white/[0.08]",
-  STARTER: "border-blue-500/30",
   PRO: "border-amber-500/40",
-  BUSINESS: "border-purple-500/30",
+  TEAM: "border-blue-500/30",
+  ENTERPRISE: "border-purple-500/30",
 }
 
 const TIER_BUTTON: Record<PlanTier, string> = {
   FREE: "bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.1]",
-  STARTER: "bg-blue-500 text-white hover:bg-blue-400",
   PRO: "bg-amber-500 text-black hover:bg-amber-400",
-  BUSINESS: "bg-purple-500 text-white hover:bg-purple-400",
+  TEAM: "bg-blue-500 text-white hover:bg-blue-400",
+  ENTERPRISE: "bg-purple-500 text-white hover:bg-purple-400",
 }
 
 const TIER_BADGE: Record<PlanTier, string> = {
   FREE: "bg-white/[0.06] text-white/50",
-  STARTER: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
   PRO: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
-  BUSINESS: "bg-purple-500/10 text-purple-400 border border-purple-500/20",
+  TEAM: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
+  ENTERPRISE: "bg-purple-500/10 text-purple-400 border border-purple-500/20",
 }
 
 export default function PricingClient() {

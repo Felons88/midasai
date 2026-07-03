@@ -1,4 +1,4 @@
-import type { PlanTier } from "@/lib/subscriptions"
+import type { PlanTier } from "@/lib/billing/plans"
 
 function firstEnv(...keys: string[]): string {
   for (const key of keys) {
@@ -13,20 +13,20 @@ export const STRIPE_PLAN_PRICE_IDS: Record<
   Exclude<PlanTier, "FREE">,
   { monthly: string; yearly: string }
 > = {
-  STARTER: {
-    monthly: firstEnv("STRIPE_STARTER_MONTHLY_PRICE_ID"),
-    yearly: firstEnv("STRIPE_STARTER_YEARLY_PRICE_ID"),
-  },
   PRO: {
     monthly: firstEnv("STRIPE_PRO_MONTHLY_PRICE_ID", "STRIPE_PRO_PRICE_ID"),
     yearly: firstEnv("STRIPE_PRO_YEARLY_PRICE_ID"),
   },
-  BUSINESS: {
+  TEAM: {
+    monthly: firstEnv("STRIPE_TEAM_MONTHLY_PRICE_ID"),
+    yearly: firstEnv("STRIPE_TEAM_YEARLY_PRICE_ID"),
+  },
+  ENTERPRISE: {
     monthly: firstEnv(
-      "STRIPE_BUSINESS_MONTHLY_PRICE_ID",
+      "STRIPE_ENTERPRISE_MONTHLY_PRICE_ID",
       "STRIPE_ENTERPRISE_PRICE_ID"
     ),
-    yearly: firstEnv("STRIPE_BUSINESS_YEARLY_PRICE_ID"),
+    yearly: firstEnv("STRIPE_ENTERPRISE_YEARLY_PRICE_ID"),
   },
 }
 
@@ -35,9 +35,9 @@ export type StripeSetupStatus = {
   publishableKey: boolean
   webhookSecret: boolean
   prices: {
-    starterMonthly: boolean
     proMonthly: boolean
-    businessMonthly: boolean
+    teamMonthly: boolean
+    enterpriseMonthly: boolean
   }
   readyForCheckout: boolean
   missing: string[]
@@ -49,29 +49,31 @@ export function getStripeSetupStatus(): StripeSetupStatus {
   const webhookSecret = Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim())
 
   const prices = {
-    starterMonthly: Boolean(STRIPE_PLAN_PRICE_IDS.STARTER.monthly),
     proMonthly: Boolean(STRIPE_PLAN_PRICE_IDS.PRO.monthly),
-    businessMonthly: Boolean(STRIPE_PLAN_PRICE_IDS.BUSINESS.monthly),
+    teamMonthly: Boolean(STRIPE_PLAN_PRICE_IDS.TEAM.monthly),
+    enterpriseMonthly: Boolean(STRIPE_PLAN_PRICE_IDS.ENTERPRISE.monthly),
   }
 
   const missing: string[] = []
   if (!secretKey) missing.push("STRIPE_SECRET_KEY")
   if (!publishableKey) missing.push("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY")
   if (!webhookSecret) missing.push("STRIPE_WEBHOOK_SECRET")
-  if (!prices.starterMonthly) missing.push("STRIPE_STARTER_MONTHLY_PRICE_ID")
   if (!prices.proMonthly) {
     missing.push("STRIPE_PRO_MONTHLY_PRICE_ID (or STRIPE_PRO_PRICE_ID)")
   }
-  if (!prices.businessMonthly) {
-    missing.push("STRIPE_BUSINESS_MONTHLY_PRICE_ID (or STRIPE_ENTERPRISE_PRICE_ID)")
+  if (!prices.teamMonthly) {
+    missing.push("STRIPE_TEAM_MONTHLY_PRICE_ID")
+  }
+  if (!prices.enterpriseMonthly) {
+    missing.push("STRIPE_ENTERPRISE_MONTHLY_PRICE_ID (or STRIPE_ENTERPRISE_PRICE_ID)")
   }
 
   const readyForCheckout =
     secretKey &&
     publishableKey &&
-    prices.starterMonthly &&
     prices.proMonthly &&
-    prices.businessMonthly
+    prices.teamMonthly &&
+    prices.enterpriseMonthly
 
   return {
     secretKey,

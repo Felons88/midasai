@@ -463,17 +463,30 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Approved imports create `listings` rows; search vector auto-refreshes via existing trigger
 - ✅ Admin panel audit: fixed `/felon-admin` alias routing, internal admin link consistency, and added smoke tests
 - ✅ Removed unused imports in admin pages and replaced external `<a>` with internal `Link` in `/admin/roles`
+- ✅ Enterprise Billing Phase 1: schema, plan_definitions, plan_features, organizations, credits, usage tracking
+- ✅ New tier model: FREE / PRO / TEAM / ENTERPRISE
+- ✅ Database-driven entitlement system via `lib/billing/plans.ts` and `lib/billing/entitlements.ts`
+- ✅ Credit reservation/capture/refund service in `lib/billing/credits.ts`
+- ✅ AI usage tracking service in `lib/billing/usage.ts`
+- ✅ Distributed rate limiting via `rate_limit_buckets` and `check_rate_limit_bucket` RPC
+- ✅ Updated PricingClient, account billing page, and upgrade buttons for new tiers
+- ✅ Updated Stripe checkout subscription route to use plan definitions
+- ✅ Regenerated `types/database.ts` after all schema changes
 
 ---
 
 ## 11. Pending / Known Issues
 
 - Stripe live keys not yet configured (test mode works)
+- New Stripe env vars need to be added to production: `STRIPE_TEAM_MONTHLY_PRICE_ID`, `STRIPE_TEAM_YEARLY_PRICE_ID`, `STRIPE_ENTERPRISE_MONTHLY_PRICE_ID`, `STRIPE_ENTERPRISE_YEARLY_PRICE_ID`
 - Some admin pages have limited real data (need production seeding)
 - Email templates need production SMTP verification
 - PostHog/GA/Clarity analytics not yet wired to production
 - Architect generation runs in the browser tab; page reloads interrupt the job (next iteration: server-side worker + Supabase Realtime)
 - Seeded homepage assets need real data as creators publish
+- AI credit tracking not yet wired to AI chat, architect, or workflow expansion routes
+- Credit pack purchase UI and webhook handling not yet built
+- Organization creation UI and team invitation flow not yet built
 
 ---
 

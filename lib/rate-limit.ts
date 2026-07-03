@@ -1,18 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
 
-interface RateLimitResult {
+export interface RateLimitResult {
   success: boolean
   limit: number
   remaining: number
-  reset: number
+  reset: number // Unix seconds
 }
 
-interface RateLimitConfig {
+export interface RateLimitConfig {
   limit: number
   window: number // in seconds
 }
 
-const DEFAULT_LIMITS: Record<string, RateLimitConfig> = {
+export const DEFAULT_LIMITS: Record<string, RateLimitConfig> = {
   api: { limit: 100, window: 60 }, // 100 requests per minute
   auth: { limit: 10, window: 60 }, // 10 auth requests per minute
   upload: { limit: 5, window: 60 }, // 5 uploads per minute
@@ -25,79 +25,30 @@ export async function checkRateLimit(
 ): Promise<RateLimitResult> {
   const config = DEFAULT_LIMITS[type]
   const supabase = await createClient()
-  
-  const now = Math.floor(Date.now() / 1000)
-  const windowStart = now - config.window
-  
+
   try {
-    // Check existing rate limit record
-    const { data: existing } = await supabase
-      .from('rate_limits')
-      .select('*')
-      .eq('identifier', identifier)
-      .eq('type', type)
-      .single()
-    
-    if (existing) {
-      // Clean up old requests outside the window
-      const recentRequests = existing.requests.filter((timestamp: number) => timestamp > windowStart)
-      
-      if (recentRequests.length >= config.limit) {
-        return {
-          success: false,
-          limit: config.limit,
-          remaining: 0,
-          reset: existing.reset_at,
-        }
-      }
-      
-      // Add current request
-      recentRequests.push(now)
-      
-      // Update record
-      await supabase
-        .from('rate_limits')
-        .update({
-          requests: recentRequests,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', existing.id)
-      
-      return {
-        success: true,
-        limit: config.limit,
-        remaining: config.limit - recentRequests.length,
-        reset: existing.reset_at,
-      }
-    } else {
-      // Create new rate limit record
-      const resetAt = now + config.window
-      
-      await supabase
-        .from('rate_limits')
-        .insert({
-          identifier,
-          type,
-          requests: [now],
-          reset_at: resetAt,
-        })
-      
-      return {
-        success: true,
-        limit: config.limit,
-        remaining: config.limit - 1,
-        reset: resetAt,
-      }
+    const { data, error } = await supabase
+      .rpc('check_rate_limit_bucket', {
+        p_key: `${type}:${identifier}`,
+        p_limit: config.limit,
+        p_window_seconds: config.window,
+      })
+
+    if (error || !data || data.length === 0) {
+      console.error('Rate limit check error:', error)
+      return failOpen(config)
+    }
+
+    const row = data[0]
+    return {
+      success: row.allowed,
+      limit: row.limit_value,
+      remaining: row.remaining,
+      reset: Math.floor(new Date(row.reset_at).getTime() / 1000),
     }
   } catch (error) {
     console.error('Rate limit check error:', error)
-    // Fail open - allow request if rate limiting fails
-    return {
-      success: true,
-      limit: config.limit,
-      remaining: config.limit,
-      reset: now + config.window,
-    }
+    return failOpen(config)
   }
 }
 
@@ -106,5 +57,15 @@ export function getRateLimitHeaders(result: RateLimitResult): Record<string, str
     'X-RateLimit-Limit': result.limit.toString(),
     'X-RateLimit-Remaining': result.remaining.toString(),
     'X-RateLimit-Reset': result.reset.toString(),
+  }
+}
+
+function failOpen(config: RateLimitConfig): RateLimitResult {
+  const now = Math.floor(Date.now() / 1000)
+  return {
+    success: true,
+    limit: config.limit,
+    remaining: config.limit,
+    reset: now + config.window,
   }
 }

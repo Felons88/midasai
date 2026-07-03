@@ -1,3 +1,59 @@
+# Enterprise Billing, Credit Engine & Subscription Platform
+
+## Phase 1: Database Schema
+- [x] Add TEAM tier to subscription_tier_enum
+- [x] Create plan_definitions, plan_features tables
+- [x] Create organizations, organization_members tables
+- [x] Create credit_balances, credit_transactions, credit_reservations tables
+- [x] Create organization_credits table
+- [x] Create usage_events table
+- [x] Create billing_invoices, credit_packs, credit_adjustments tables
+- [x] Seed default plans and credit packs
+- [x] Add RLS policies
+- [x] Regenerate types/database.ts
+
+## Phase 2: Plan & Entitlement Services
+- [x] Build lib/billing/plans.ts
+- [x] Build lib/billing/credits.ts
+- [x] Refactor lib/billing/entitlements.ts to use plan_definitions
+- [x] Update lib/subscriptions.ts to new tier model
+- [x] Update lib/billing/stripe-subscription.ts to sync plan features and credits
+
+## Phase 3: UI & Checkout
+- [x] Update PricingClient to new tier model
+- [x] Update account billing page to new tier model
+- [x] Update UpgradeButton to accept TEAM
+- [x] Update /api/stripe/subscribe to use plan definitions
+- [ ] Update /api/stripe/checkout to use plan definitions
+- [ ] Build embedded billing components (Stripe Elements)
+- [ ] Build credit purchase UI
+- [ ] Add organization creation UI
+
+## Phase 4: AI Credit Integration
+- [x] Build lib/billing/usage.ts
+- [ ] Wrap AI chat with credit tracking
+- [ ] Wrap architect chat with credit tracking
+- [ ] Wrap workflow expansion with credit tracking
+- [ ] Charge credits based on model/token usage
+
+## Phase 5: Distributed Rate Limiting
+- [x] Create rate_limit_buckets table
+- [x] Create check_rate_limit_bucket RPC
+- [x] Rewrite lib/rate-limit.ts for distributed rate limiting
+- [x] Update middleware to use correct rate limiter
+
+## Phase 6: Webhook & Invoice Sync
+- [ ] Update webhook handler to handle credit pack purchases
+- [ ] Create invoice mirror on payment succeeded
+- [ ] Handle subscription cancellations/downgrades
+- [ ] Create organization subscription sync
+
+## Phase 7: Admin & Reporting
+- [ ] Admin credit adjustment UI
+- [ ] Admin plan feature editor
+- [ ] Usage analytics dashboard
+- [ ] Organization admin panel
+
 # MidasAI Workflow Inspection Fixes - Step-by-Step Plan
 
 ## Phase 1: Enable Workflow Inspector Access

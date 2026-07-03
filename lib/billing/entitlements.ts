@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
-import { SUBSCRIPTION_TIERS } from "@/lib/monetization"
+import { getResolvedPlan, type PlanTier, type FeatureKey } from "@/lib/billing/plans"
 
-export type BillingTier = "FREE" | "PRO" | "ENTERPRISE"
+export type BillingTier = PlanTier
 
 export type BillingLimits = {
   tier: BillingTier
@@ -29,48 +29,14 @@ export type BillingContext = {
   usage: BillingUsage
 }
 
-const API_KEY_LIMITS: Record<BillingTier, number> = {
-  FREE: 2,
-  PRO: 10,
-  ENTERPRISE: -1,
-}
-
-const TIER_DEFAULT_LIMITS: Record<
-  BillingTier,
-  Omit<BillingLimits, "tier" | "maxDownloadsPerMonth">
-> = {
-  FREE: {
-    maxListings: -1,
-    maxWebhooks: 1,
-    maxApiKeys: 2,
-    maxMcpServers: 1,
-    maxApplications: 1,
-    storageGb: 1,
-    apiRateLimit: 100,
-  },
-  PRO: {
-    maxListings: 25,
-    maxWebhooks: 10,
-    maxApiKeys: 10,
-    maxMcpServers: 5,
-    maxApplications: 5,
-    storageGb: 50,
-    apiRateLimit: 10_000,
-  },
-  ENTERPRISE: {
-    maxListings: -1,
-    maxWebhooks: -1,
-    maxApiKeys: -1,
-    maxMcpServers: -1,
-    maxApplications: -1,
-    storageGb: 500,
-    apiRateLimit: -1,
-  },
-}
-
 function monthStartIso() {
   const now = new Date()
   return new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+}
+
+export function isValidBillingTier(value: string | null | undefined): value is BillingTier {
+  const tier = value?.toUpperCase()
+  return tier === "FREE" || tier === "PRO" || tier === "TEAM" || tier === "ENTERPRISE"
 }
 
 export async function resolveUserTier(
@@ -83,9 +49,8 @@ export async function resolveUserTier(
     .eq("user_id", userId)
     .maybeSingle()
 
-  if (entitlement?.tier) {
-    const t = entitlement.tier.toUpperCase()
-    if (t === "PRO" || t === "ENTERPRISE" || t === "FREE") return t
+  if (entitlement?.tier && isValidBillingTier(entitlement.tier)) {
+    return entitlement.tier
   }
 
   const { data: subscription } = await supabase
@@ -97,10 +62,26 @@ export async function resolveUserTier(
     .limit(1)
     .maybeSingle()
 
-  if (subscription?.tier) {
-    const t = subscription.tier as BillingTier
-    if (t === "PRO" || t === "ENTERPRISE") return t
+  if (subscription?.tier && isValidBillingTier(subscription.tier)) {
+    return subscription.tier
   }
+
+  return "FREE"
+}
+
+export async function resolveOrganizationTier(
+  supabase: SupabaseClient,
+  organizationId: string
+): Promise<BillingTier> {
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("plan_id, plan_definitions!inner(tier)")
+    .eq("id", organizationId)
+    .maybeSingle()
+
+  const definitions = org?.plan_definitions as { tier: string } | { tier: string }[] | null | undefined
+  const tier = Array.isArray(definitions) ? definitions[0]?.tier : definitions?.tier
+  if (tier && isValidBillingTier(tier)) return tier
 
   return "FREE"
 }
@@ -110,27 +91,25 @@ export async function getBillingContext(
   userId: string
 ): Promise<BillingContext> {
   const tier = await resolveUserTier(supabase, userId)
+  const plan = await getResolvedPlan(supabase, tier)
 
-  const { data: entitlement } = await supabase
-    .from("feature_entitlements")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle()
-
-  const defaults = TIER_DEFAULT_LIMITS[tier]
-  const tierDownloads =
-    SUBSCRIPTION_TIERS.find((t) => t.tier === tier)?.limits.downloads ?? 10
+  const feature = (key: FeatureKey): number | null => {
+    if (!plan) return null
+    const f = plan.features[key]
+    if (!f || !f.enabled) return null
+    return f.limitValue ?? null
+  }
 
   const limits: BillingLimits = {
     tier,
-    maxListings: entitlement?.max_listings ?? defaults.maxListings,
-    maxWebhooks: entitlement?.max_webhooks ?? defaults.maxWebhooks,
-    maxApiKeys: API_KEY_LIMITS[tier],
-    maxMcpServers: entitlement?.max_mcp_servers ?? defaults.maxMcpServers,
-    maxApplications: entitlement?.max_applications ?? defaults.maxApplications,
-    maxDownloadsPerMonth: tierDownloads,
-    storageGb: entitlement?.storage_gb ?? defaults.storageGb,
-    apiRateLimit: entitlement?.api_rate_limit ?? defaults.apiRateLimit,
+    maxListings: feature("listings") ?? -1,
+    maxWebhooks: feature("webhooks") ?? 1,
+    maxApiKeys: feature("api_keys") ?? 2,
+    maxMcpServers: feature("mcp_servers") ?? 1,
+    maxApplications: feature("applications") ?? 1,
+    maxDownloadsPerMonth: feature("downloads_monthly") ?? 10,
+    storageGb: feature("storage_gb") ?? 1,
+    apiRateLimit: feature("api_rate_limit") ?? 100,
   }
 
   const monthStart = monthStartIso()
@@ -258,4 +237,44 @@ export function checkBillingLimit(
   }
 
   return { allowed: true }
+}
+
+export async function checkFeature(
+  supabase: SupabaseClient,
+  userId: string,
+  featureKey: FeatureKey
+): Promise<{ allowed: boolean; limit: number | null; used: number; message?: string }> {
+  const tier = await resolveUserTier(supabase, userId)
+  const plan = await getResolvedPlan(supabase, tier)
+
+  const feature = plan?.features[featureKey]
+  if (!feature || !feature.enabled) {
+    return { allowed: false, limit: null, used: 0, message: "Feature not available on your plan" }
+  }
+
+  const limit = feature.limitValue ?? null
+  if (limit === -1 || limit === null) {
+    return { allowed: true, limit, used: 0 }
+  }
+
+  const context = await getBillingContext(supabase, userId)
+  const usage = context.usage
+
+  const usedMap: Record<string, number> = {
+    listings: usage.listings,
+    webhooks: usage.webhooks,
+    api_keys: usage.apiKeys,
+    mcp_servers: usage.mcpServers,
+    applications: usage.applications,
+    downloads_monthly: usage.downloadsThisMonth,
+  }
+  const used = usedMap[featureKey] ?? 0
+
+  const allowed = limit === -1 || used < limit
+  return {
+    allowed,
+    limit,
+    used,
+    message: allowed ? undefined : `${featureKey} limit reached (${limit}). Upgrade your plan.`,
+  }
 }

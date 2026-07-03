@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { getBillingContext } from "@/lib/billing/entitlements"
-import { SUBSCRIPTION_TIERS } from "@/lib/monetization"
+import { PLAN_LIMITS } from "@/lib/subscriptions"
 import Link from "next/link"
 import { CreditCard } from "lucide-react"
 import { UpgradeButton } from "@/components/billing/UpgradeButton"
@@ -41,6 +41,7 @@ function UsageBar({
 const TIER_COLORS: Record<string, string> = {
   FREE: "bg-white/10 text-white/70",
   PRO: "bg-amber-400/10 text-amber-400",
+  TEAM: "bg-blue-400/10 text-blue-400",
   ENTERPRISE: "bg-purple-400/10 text-purple-400",
 }
 
@@ -64,7 +65,14 @@ export default async function BillingPage() {
     .limit(1)
     .maybeSingle()
 
-  const tierInfo = SUBSCRIPTION_TIERS.find((t) => t.tier === limits.tier)
+  const tierInfo = PLAN_LIMITS[limits.tier]
+
+  const tierDescription = {
+    FREE: "Browse and download from the marketplace.",
+    PRO: "Ad-free browsing · Unlimited downloads · Creator analytics",
+    TEAM: "Team collaboration · Shared credit pool · Dedicated support",
+    ENTERPRISE: "Custom contracts · SLA guarantee · Dedicated support",
+  }[limits.tier]
 
   return (
     <div className="p-8 max-w-2xl">
@@ -94,14 +102,20 @@ export default async function BillingPage() {
           )}
 
           <p className="text-sm text-white/50 mb-4">
-            {tierInfo?.features.slice(0, 3).join(" · ") ?? "Browse and download from the marketplace."}
+            {tierDescription ?? "Browse and download from the marketplace."}
           </p>
 
           {limits.tier === "FREE" && (
             <UpgradeButton tier="PRO" label="Upgrade to Pro" />
           )}
           {limits.tier === "PRO" && (
+            <UpgradeButton tier="TEAM" label="Upgrade to Team" variant="outline" />
+          )}
+          {limits.tier === "TEAM" && (
             <UpgradeButton tier="ENTERPRISE" label="Upgrade to Enterprise" variant="outline" />
+          )}
+          {limits.tier === "ENTERPRISE" && (
+            <p className="text-sm text-white/50">Contact sales to customize your Enterprise plan.</p>
           )}
         </div>
 
