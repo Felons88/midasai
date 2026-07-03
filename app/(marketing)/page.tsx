@@ -91,12 +91,6 @@ async function getHomePageData() {
     const totalCategories = categoriesCountResult.count ?? 0
     const totalReviews = reviewsCountResult.count ?? 0
 
-    const typeCounts = listings.reduce((acc: Record<string, number>, l: any) => {
-      const type = l.type ?? "OTHER"
-      acc[type] = (acc[type] ?? 0) + 1
-      return acc
-    }, {})
-
     return {
       totalListings,
       totalCreators,
@@ -105,7 +99,6 @@ async function getHomePageData() {
       totalCategories,
       totalReviews,
       categoryCounts,
-      typeCounts,
       creators,
       listings: normalizeListings(listings),
       trending: normalizeListings(trendingResult.data ?? []),
@@ -121,7 +114,6 @@ async function getHomePageData() {
       totalCategories: 0,
       totalReviews: 0,
       categoryCounts: {},
-      typeCounts: {},
       creators: [],
       listings: [],
       trending: [],
@@ -164,13 +156,7 @@ function normalizeListings(rows: any[]): MarketplaceCardData[] {
 export default async function HomePage() {
   const {
     totalListings,
-    totalCreators,
-    totalDownloads,
-    averageRating,
-    totalCategories,
-    totalReviews,
     categoryCounts,
-    typeCounts,
     creators,
     trending,
     featured,
@@ -181,15 +167,7 @@ export default async function HomePage() {
       <div className="noise-overlay" />
 
       <HeroSection totalListings={totalListings} />
-      <StatsSection
-        totalListings={totalListings}
-        totalCreators={totalCreators}
-        totalDownloads={totalDownloads}
-        averageRating={averageRating}
-        totalCategories={totalCategories}
-        totalReviews={totalReviews}
-        typeCounts={typeCounts}
-      />
+      <StatsSection />
       <CategoriesSection counts={categoryCounts} />
       <FeaturesSection />
 
