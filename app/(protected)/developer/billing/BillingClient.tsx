@@ -42,32 +42,32 @@ interface BillingData {
 
 // ── Tier config ──────────────────────────────────────────────────────
 const TIER_COLORS: Record<string, string> = {
-  FREE:     "text-white/60",
-  STARTER:  "text-blue-400",
-  PRO:      "text-amber-400",
-  BUSINESS: "text-purple-400",
+  FREE:      "text-white/60",
+  PRO:       "text-amber-400",
+  TEAM:      "text-blue-400",
+  ENTERPRISE:"text-purple-400",
 }
 const TIER_BG: Record<string, string> = {
-  FREE:     "from-white/[0.03] to-white/[0.01] border-white/[0.08]",
-  STARTER:  "from-blue-500/10 to-blue-600/5 border-blue-500/20",
-  PRO:      "from-amber-500/10 to-amber-600/5 border-amber-500/20",
-  BUSINESS: "from-purple-500/10 to-purple-600/5 border-purple-500/20",
+  FREE:      "from-white/[0.03] to-white/[0.01] border-white/[0.08]",
+  PRO:       "from-amber-500/10 to-amber-600/5 border-amber-500/20",
+  TEAM:      "from-blue-500/10 to-blue-600/5 border-blue-500/20",
+  ENTERPRISE:"from-purple-500/10 to-purple-600/5 border-purple-500/20",
 }
 const TIER_ICONS: Record<string, React.ElementType> = {
-  FREE: Star, STARTER: Rocket, PRO: Crown, BUSINESS: Building2,
+  FREE: Star, PRO: Rocket, TEAM: Crown, ENTERPRISE: Building2,
 }
 const NEXT_TIER: Record<string, PlanTier | null> = {
-  FREE: "STARTER", STARTER: "PRO", PRO: "BUSINESS", BUSINESS: null,
+  FREE: "PRO", PRO: "TEAM", TEAM: "ENTERPRISE", ENTERPRISE: null,
 }
 const UPGRADE_CTA: Record<string, string> = {
-  FREE:    "Upgrade to Starter",
-  STARTER: "Upgrade to Pro",
-  PRO:     "Upgrade to Business",
+  FREE: "Upgrade to Pro",
+  PRO:  "Upgrade to Team",
+  TEAM: "Upgrade to Enterprise",
 }
 const UPGRADE_SUB: Record<string, string> = {
-  FREE:    "Unlock more power and higher limits",
-  STARTER: "Most popular · AI upload, custom domain",
-  PRO:     "Enterprise-grade · Dedicated support",
+  FREE: "Unlock AI upload, custom domain, and higher limits",
+  PRO:  "Most popular · Team collaboration, unlimited webhooks",
+  TEAM: "Enterprise-grade · Dedicated support and custom terms",
 }
 
 function eventLabel(type: string): string {
@@ -152,10 +152,10 @@ function UpgradeButton({ tier, label, onClick, loading }: {
   }, [])
 
   const colors: Record<PlanTier, string> = {
-    FREE:     "from-white/10 to-white/5 border-white/20 text-white",
-    STARTER:  "from-blue-500 to-blue-600 border-blue-400/50 text-white shadow-blue-500/25",
-    PRO:      "from-amber-500 to-amber-600 border-amber-400/50 text-black shadow-amber-500/35",
-    BUSINESS: "from-purple-500 to-purple-600 border-purple-400/50 text-white shadow-purple-500/25",
+    FREE:      "from-white/10 to-white/5 border-white/20 text-white",
+    PRO:       "from-amber-500 to-amber-600 border-amber-400/50 text-black shadow-amber-500/35",
+    TEAM:      "from-blue-500 to-blue-600 border-blue-400/50 text-white shadow-blue-500/25",
+    ENTERPRISE:"from-purple-500 to-purple-600 border-purple-400/50 text-white shadow-purple-500/25",
   }
 
   return (
@@ -455,8 +455,8 @@ export default function BillingClient({
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4">
               <div className={`h-12 w-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${
-                tier === "PRO" ? "bg-amber-500/20" : tier === "BUSINESS" ? "bg-purple-500/20" :
-                tier === "STARTER" ? "bg-blue-500/20" : "bg-white/[0.06]"
+                tier === "ENTERPRISE" ? "bg-purple-500/20" : tier === "TEAM" ? "bg-blue-500/20" :
+                tier === "PRO" ? "bg-amber-500/20" : "bg-white/[0.06]"
               }`}>
                 <TierIcon className={`h-6 w-6 ${TIER_COLORS[tier]}`} />
               </div>
@@ -637,8 +637,8 @@ export default function BillingClient({
             </>
           )}
 
-          {/* Business — no upgrade */}
-          {tier === "BUSINESS" && (
+          {/* Enterprise — no upgrade */}
+          {tier === "ENTERPRISE" && (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
               <Crown className="h-8 w-8 text-purple-400" />
               <p className="text-sm font-semibold text-purple-400">Highest tier</p>
