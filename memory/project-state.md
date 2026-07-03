@@ -453,6 +453,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ `/admin/users/[id]` detail page with notify, suspend, audit log
 - ✅ `/admin/roles` static permission matrix
 - ✅ Suspended users are redirected to `/auth/login?error=suspended`
+- ✅ Middleware preserves `x-pathname` through `/felon-admin` → `/admin` rewrite so the protected layout suppresses the standard shell
 
 ---
 
