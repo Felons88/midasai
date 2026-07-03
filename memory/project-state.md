@@ -461,6 +461,8 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ GitHub Discovery & Prompt Import pipeline foundation: schema, discovery service, classification, review queue, admin dashboard
 - ✅ Scheduled discovery: `github-discovery-scheduler` edge function + hourly pg_cron job
 - ✅ Approved imports create `listings` rows; search vector auto-refreshes via existing trigger
+- ✅ Admin panel audit: fixed `/felon-admin` alias routing, internal admin link consistency, and added smoke tests
+- ✅ Removed unused imports in admin pages and replaced external `<a>` with internal `Link` in `/admin/roles`
 
 ---
 

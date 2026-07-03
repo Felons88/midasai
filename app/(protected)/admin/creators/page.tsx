@@ -1,10 +1,8 @@
-import { getAdminRoutePrefix } from "@/lib/admin-route"
 import { getCreatorAccounts } from "@/lib/admin/queries"
 import { AdminPageHeader } from "@/components/admin/AdminUi"
 import { AdminDataTable } from "@/components/admin/AdminDataTable"
 
 export default async function AdminCreatorsPage() {
-  const adminPrefix = getAdminRoutePrefix()
   const creators = await getCreatorAccounts(500)
 
   return (

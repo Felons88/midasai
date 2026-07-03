@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { getAdminRoutePrefix } from "@/lib/admin-route"
 import { getAdminUsers } from "@/lib/admin/queries"
 import { AdminPageHeader } from "@/components/admin/AdminUi"
@@ -93,9 +94,9 @@ export default async function AdminRolesPage() {
 
       <p className="text-sm text-white/40">
         Change a user&apos;s role from the{" "}
-        <a href={`${adminPrefix}/users`} className="text-amber-400 hover:underline">
+        <Link href={`${adminPrefix}/users`} className="text-amber-400 hover:underline">
           Users
-        </a>{" "}
+        </Link>{" "}
         page.
       </p>
     </div>

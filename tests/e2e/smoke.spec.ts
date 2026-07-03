@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test"
+import { getAdminRoutePrefix } from "@/lib/admin-route"
 
 test.describe("Public smoke", () => {
   test("homepage loads with marketplace branding", async ({ page }) => {
@@ -37,16 +38,22 @@ test.describe("Public smoke", () => {
     expect(res.ok()).toBeTruthy()
   })
 
-  test("raw /admin returns 404 when obfuscated alias is configured", async ({ request }) => {
-    const prefix = process.env.NEXT_PUBLIC_ADMIN_ROUTE_PREFIX
-    if (!prefix || prefix === "/admin") {
+  test("admin alias is resolved and default /admin is blocked", async ({ request }) => {
+    const adminPrefix = getAdminRoutePrefix()
+    if (adminPrefix === "/admin") {
       test.skip()
       return
     }
-    for (const path of ["/admin", "/admin/dashboard"]) {
-      const res = await request.get(path, { maxRedirects: 0 })
-      expect(res.status()).toBe(404)
-    }
+    const res = await request.get("/admin/dashboard", { maxRedirects: 0 })
+    expect(res.status()).toBe(404)
+  })
+
+  test("admin alias redirects to login when unauthenticated", async ({ request }) => {
+    const adminPrefix = getAdminRoutePrefix()
+    const res = await request.get(`${adminPrefix}/dashboard`, { maxRedirects: 0 })
+    expect([302, 307]).toContain(res.status())
+    const location = res.headers()["location"] ?? ""
+    expect(location).toContain("/auth/login")
   })
 })
 

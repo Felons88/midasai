@@ -1,10 +1,8 @@
-import { getAdminRoutePrefix } from "@/lib/admin-route"
 import { getAdminCategories } from "@/lib/admin/queries"
 import { AdminPageHeader } from "@/components/admin/AdminUi"
 import { AdminDataTable } from "@/components/admin/AdminDataTable"
 
 export default async function AdminCategoriesPage() {
-  const adminPrefix = getAdminRoutePrefix()
   const categories = await getAdminCategories(200)
 
   return (
