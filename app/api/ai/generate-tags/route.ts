@@ -3,6 +3,7 @@ import { generateTags } from '@/lib/ai/gemini'
 import { validateBody } from '@/lib/validation/schemas'
 import { createClient } from '@/lib/supabase/server'
 import { checkFeatureAccess } from '@/lib/subscriptions'
+import { runWithAIReservation } from '@/lib/billing/ai-reservation'
 import { z } from 'zod'
 
 const generateTagsSchema = z.object({
@@ -40,15 +41,44 @@ export async function POST(request: NextRequest) {
     
     const { title, description, type } = validatedData
 
-    const result = await generateTags(title, description, type)
-    
-    if (!result.success) {
-      return NextResponse.json({ error: result.error || 'Failed to generate tags' }, { status: 500 })
+    const aiResult = await runWithAIReservation(
+      { supabase, userId: user.id },
+      {
+        featureKey: "generate_tags",
+        operationId: `gen-tags-${user.id}-${Date.now()}`,
+        provider: "gemini",
+      },
+      async () => {
+        const result = await generateTags(title, description, type)
+        if (!result.success) throw new Error(result.error || "Failed to generate tags")
+        return result.content?.split(',') || []
+      }
+    )
+
+    if (aiResult.error) {
+      return NextResponse.json(
+        {
+          error: aiResult.error,
+          credits: {
+            reserved: aiResult.creditsReserved,
+            charged: aiResult.creditsCharged,
+            refunded: aiResult.creditsRefunded,
+            balance: aiResult.availableBalance,
+          },
+        },
+        { status: aiResult.error.includes("Insufficient credits") ? 402 : 500 }
+      )
     }
-    
-    const tags = result.content?.split(',') || []
-    
-    return NextResponse.json({ tags })
+
+    return NextResponse.json({
+      tags: aiResult.result,
+      credits: {
+        reserved: aiResult.creditsReserved,
+        charged: aiResult.creditsCharged,
+        refunded: aiResult.creditsRefunded,
+        balance: aiResult.availableBalance,
+      },
+    })
   } catch (error) {
     console.error('[ai/generate-tags]', error)
     

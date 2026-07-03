@@ -5,6 +5,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { createCreditService, type CreditOwner } from "@/lib/billing/credits"
+import { getReserveCredits } from "@/lib/billing/pricing"
 
 export type UsageFeatureKey =
   | "ai_chat"
@@ -15,6 +16,18 @@ export type UsageFeatureKey =
   | "search"
   | "import"
   | "download"
+  | "prompt_analysis"
+  | "prompt_categorization"
+  | "marketplace_ai_summary"
+  | "project_intelligence_scan"
+  | "github_repository_analysis"
+  | "ai_project_builder"
+  | "ai_code_review"
+  | "ai_optimization"
+  | "ai_debugging"
+  | "deployment_assistant"
+  | "generate_description"
+  | "generate_tags"
 
 export interface UsageEventInput {
   userId?: string
@@ -69,20 +82,31 @@ export class UsageService {
       operationId: string
       model?: string
       provider?: string
-      estimatedCredits: number
+      estimatedCredits?: number
+      units?: number
       metadata?: Record<string, unknown>
     },
-    operation: () => Promise<T>
+    operation: () => Promise<T>,
+    options: {
+      completionPct?: (result: T) => number
+      captureAmount?: (result: T) => number
+      ttlMs?: number
+    } = {}
   ): Promise<{ result: T | null; error: string | null; creditsCharged: number; creditsRefunded: number; reservationId: string | null }> {
     const creditService = createCreditService(this.supabase)
     const start = Date.now()
     const operationId = input.operationId
 
+    const estimatedCredits =
+      input.estimatedCredits ??
+      (await getReserveCredits(this.supabase, input.featureKey, input.units ?? 1))
+
     const reservation = await creditService.reserveCredits(
       owner,
       operationId,
       input.featureKey,
-      input.estimatedCredits
+      estimatedCredits,
+      options.ttlMs
     )
 
     if (!reservation.allowed) {
@@ -90,7 +114,7 @@ export class UsageService {
         ...this.ownerFields(owner),
         featureKey: input.featureKey,
         operationId,
-        creditsReserved: input.estimatedCredits,
+        creditsReserved: estimatedCredits,
         creditsCharged: 0,
         creditsRefunded: 0,
         durationMs: 0,
@@ -115,7 +139,6 @@ export class UsageService {
     }
 
     const durationMs = Date.now() - start
-    const status: "success" | "failure" = error ? "failure" : "success"
 
     if (error) {
       const releaseResult = await creditService.releaseCredits(
@@ -128,7 +151,7 @@ export class UsageService {
         operationId,
         model: input.model,
         provider: input.provider,
-        creditsReserved: input.estimatedCredits,
+        creditsReserved: estimatedCredits,
         creditsCharged: 0,
         creditsRefunded: releaseResult.refunded,
         durationMs,
@@ -144,11 +167,22 @@ export class UsageService {
       }
     }
 
+    let actualAmount = estimatedCredits
+    if (options.captureAmount) {
+      actualAmount = Math.max(0, Math.min(estimatedCredits, options.captureAmount(result as T)))
+    } else if (options.completionPct) {
+      const pct = Math.max(0, Math.min(1, options.completionPct(result as T)))
+      actualAmount = Math.round(estimatedCredits * pct)
+    }
+
     const captureResult = await creditService.captureCredits(
       owner,
       reservation.reservationId,
-      input.estimatedCredits
+      actualAmount
     )
+
+    const status: "success" | "partial" | "failure" =
+      captureResult.refunded > 0 ? "partial" : "success"
 
     await this.recordEvent({
       ...this.ownerFields(owner),
@@ -156,12 +190,12 @@ export class UsageService {
       operationId,
       model: input.model,
       provider: input.provider,
-      creditsReserved: input.estimatedCredits,
+      creditsReserved: estimatedCredits,
       creditsCharged: captureResult.captured,
       creditsRefunded: captureResult.refunded,
       durationMs,
       status,
-      metadata: input.metadata,
+      metadata: { ...input.metadata, completion_pct: actualAmount / estimatedCredits },
     })
 
     return {
@@ -171,6 +205,10 @@ export class UsageService {
       creditsRefunded: captureResult.refunded,
       reservationId: reservation.reservationId,
     }
+  }
+
+  async getEstimatedCredits(featureKey: UsageFeatureKey, units = 1): Promise<number> {
+    return getReserveCredits(this.supabase, featureKey, units)
   }
 
   async getUsageHistory(

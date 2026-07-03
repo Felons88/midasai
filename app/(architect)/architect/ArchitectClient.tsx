@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { trackEvent } from "@/lib/analytics"
 import { ArchitectJobStore } from "@/lib/architect/job-store"
+import { CreditCostBadge } from "@/components/billing/CreditCostBadge"
 import {
   Send, Sparkles, Copy, Check,
   Bot, User, Layers, Zap, FileText, RefreshCw, ArrowRight,
@@ -1429,13 +1430,16 @@ export function ArchitectClient() {
                     t.style.height = Math.min(t.scrollHeight, 128) + "px"
                   }}
                 />
-                <button
-                  onClick={sendMessage}
-                  disabled={!input.trim() || loading || generating}
-                  className="flex-shrink-0 w-9 h-9 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-25 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 shadow-lg shadow-amber-500/25"
-                >
-                  <Send className="w-4 h-4 text-black" />
-                </button>
+                <div className="flex flex-col items-end gap-1">
+                  <CreditCostBadge featureKey="ai_chat" />
+                  <button
+                    onClick={sendMessage}
+                    disabled={!input.trim() || loading || generating}
+                    className="flex-shrink-0 w-9 h-9 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-25 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 shadow-lg shadow-amber-500/25"
+                  >
+                    <Send className="w-4 h-4 text-black" />
+                  </button>
+                </div>
               </div>
               <div className="flex items-center justify-between mt-2 px-1">
                 <span className="text-[11px] text-zinc-700">↵ Send · ⇧↵ New line</span>

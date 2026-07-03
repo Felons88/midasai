@@ -1,5 +1,23 @@
 # Enterprise Growth, Monetization & Upgrade Experience Platform
 
+## AI Credit Reservation Engine (Active)
+- [x] Audit existing AI endpoints (architect, workflows, ai/generate-*)
+- [x] Create `ai_tool_pricing` schema with configurable per-feature credit costs
+- [x] Create `lib/billing/pricing.ts` service
+- [x] Extend `UsageService.trackAI` with partial capture and refund support
+- [x] Create `lib/billing/ai-reservation.ts` server helper for API routes
+- [x] Wire `/api/ai/generate-description` to reservation engine
+- [x] Wire `/api/ai/generate-tags` to reservation engine
+- [x] Wire `/api/architect/chat` to reservation engine (adds auth + credits)
+- [x] Wire `/api/architect/generate` to reservation engine (per-file partial capture)
+- [x] Create `components/billing/CreditCostBadge.tsx` to show cost before generate
+- [x] Show cost badge in Architect chat send area
+- [ ] Wire remaining AI endpoints: workflow expansion, AI search, marketplace AI summary, prompt analysis/categorization, project intelligence, GitHub analysis, code review, optimization, debugging, deployment assistant
+- [ ] Add credit cost badges to all AI generate buttons across UI
+- [ ] Display post-operation credit breakdown toast/modal
+- [ ] Real-time wallet balance update after AI operation completes
+- [ ] Add tests for reservation, capture, refund, insufficient credits, concurrent requests
+
 ## Phase 1 — Repository Audit
 - [x] Read AGENTS.md, project memory, TODO, design.md
 - [x] Audit auth, dashboard, navigation, AI credit, subscription, billing, analytics, recommendations, notifications, layout, backend

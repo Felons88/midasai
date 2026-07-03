@@ -480,6 +480,11 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Daily credit allocation: 150/day, 600/month cap, no stacking, auto top-up on balance read (FREE tier fixed)
 - ✅ Growth context API `/api/billing/growth-context` with dismissal tracking and upgrade event logging
 - ✅ Extended analytics event types for upgrade/credit lifecycle
+- ✅ AI Credit Reservation Engine Phase 1: `ai_tool_pricing` schema, configurable pricing service, partial capture/refund in `UsageService.trackAI`
+- ✅ Wired `/api/ai/generate-description`, `/api/ai/generate-tags`, `/api/architect/chat`, `/api/architect/generate` to credit reservation engine
+- ✅ Added auth to `/api/architect/chat`
+- ✅ `CreditCostBadge` component shows AI operation cost before generate
+- ✅ `/api/billing/pricing` endpoint for frontend cost lookups
 
 ---
 
@@ -492,7 +497,9 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - PostHog/GA/Clarity analytics not yet wired to production
 - Architect generation runs in the browser tab; page reloads interrupt the job (next iteration: server-side worker + Supabase Realtime)
 - Seeded homepage assets need real data as creators publish
-- AI credit tracking not yet wired to AI chat, architect, or workflow expansion routes
+- AI credit tracking wired to architect chat/generate and ai/generate-*; remaining AI endpoints (workflow expansion, AI search, marketplace summary, prompt analysis, project intelligence, GitHub analysis, code review, optimization, debugging, deployment assistant) still need wiring
+- Credit cost badges only added to architect chat; remaining AI generate buttons need badges
+- Post-operation credit breakdown UI not yet implemented
 - Credit pack purchase UI and webhook handling not yet built
 - Organization creation UI and team invitation flow not yet built
 - Growth platform triggers need client-side orchestration (toast/banner/drawer) beyond dashboard

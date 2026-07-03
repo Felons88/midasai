@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import { createServiceClient } from "@/lib/supabase/server"
+import { createServiceClient, createClient } from "@/lib/supabase/server"
+import { runWithAIReservation } from "@/lib/billing/ai-reservation"
 
 function normalizeMarkdownFile(name: string): string {
   const base = name.trim().replace(/\s+/g, "_")
@@ -95,6 +96,12 @@ interface PlatformSkill {
 
 export async function POST(req: Request) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const { messages, currentConfidence } = await req.json()
     if (!Array.isArray(messages)) {
       return NextResponse.json({ error: "messages required" }, { status: 400 })
@@ -200,38 +207,65 @@ export async function POST(req: Request) {
 
     // Sequential fallback — try each model until one succeeds
     // 429s are deferred and retried once at the end after a brief pause
-    let raw = ""
-    const errors: string[] = []
-    const rateLimited: string[] = []
-    for (const model of MODELS) {
-      try {
-        raw = await tryModel(model)
-        break
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e)
-        console.error(`[architect/chat] ${msg}`)
-        if (msg.includes("429")) {
-          rateLimited.push(model)
-        } else {
-          errors.push(msg)
+    const aiResult = await runWithAIReservation(
+      { supabase, userId: user.id },
+      {
+        featureKey: "ai_chat",
+        operationId: `architect-chat-${user.id}-${Date.now()}`,
+        provider: "openrouter",
+      },
+      async () => {
+        let raw = ""
+        const errors: string[] = []
+        const rateLimited: string[] = []
+        for (const model of MODELS) {
+          try {
+            raw = await tryModel(model)
+            break
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e)
+            console.error(`[architect/chat] ${msg}`)
+            if (msg.includes("429")) {
+              rateLimited.push(model)
+            } else {
+              errors.push(msg)
+            }
+          }
         }
-      }
-    }
-    // Retry rate-limited models after a short pause
-    if (!raw && rateLimited.length > 0) {
-      await new Promise(r => setTimeout(r, 3000))
-      for (const model of rateLimited) {
-        try {
-          raw = await tryModel(model)
-          break
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : String(e)
-          console.error(`[architect/chat] retry ${msg}`)
-          errors.push(msg)
+        if (!raw && rateLimited.length > 0) {
+          await new Promise(r => setTimeout(r, 3000))
+          for (const model of rateLimited) {
+            try {
+              raw = await tryModel(model)
+              break
+            } catch (e) {
+              const msg = e instanceof Error ? e.message : String(e)
+              console.error(`[architect/chat] retry ${msg}`)
+              errors.push(msg)
+            }
+          }
         }
+        if (!raw) throw new Error(`All models failed: ${[...errors].join(" | ")}`)
+        return raw
       }
+    )
+
+    if (aiResult.error) {
+      return NextResponse.json(
+        {
+          error: aiResult.error,
+          credits: {
+            reserved: aiResult.creditsReserved,
+            charged: aiResult.creditsCharged,
+            refunded: aiResult.creditsRefunded,
+            balance: aiResult.availableBalance,
+          },
+        },
+        { status: aiResult.error.includes("Insufficient credits") ? 402 : 500 }
+      )
     }
-    if (!raw) throw new Error(`All models failed: ${[...errors].join(" | ")}`)
+
+    let raw = aiResult.result as string
 
     // Repair JSON with unescaped newlines/tabs inside string values
     function repairJSON(text: string): string {
@@ -349,7 +383,15 @@ export async function POST(req: Request) {
         .filter((name, idx, arr) => name && arr.indexOf(name) === idx)
     }
 
-    return NextResponse.json(parsed)
+    return NextResponse.json({
+      ...parsed,
+      credits: {
+        reserved: aiResult.creditsReserved,
+        charged: aiResult.creditsCharged,
+        refunded: aiResult.creditsRefunded,
+        balance: aiResult.availableBalance,
+      },
+    })
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
     console.error("[architect/chat]", msg)

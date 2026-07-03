@@ -3,6 +3,7 @@ import { generateListingDescription } from '@/lib/ai/gemini'
 import { validateBody } from '@/lib/validation/schemas'
 import { createClient } from '@/lib/supabase/server'
 import { checkFeatureAccess } from '@/lib/subscriptions'
+import { runWithAIReservation } from '@/lib/billing/ai-reservation'
 import { z } from 'zod'
 
 const generateDescriptionSchema = z.object({
@@ -40,13 +41,44 @@ export async function POST(request: NextRequest) {
     
     const { title, type, features } = validatedData
 
-    const result = await generateListingDescription(title, type, features)
-    
-    if (!result.success) {
-      return NextResponse.json({ error: result.error || 'Failed to generate description' }, { status: 500 })
+    const aiResult = await runWithAIReservation(
+      { supabase, userId: user.id },
+      {
+        featureKey: "generate_description",
+        operationId: `gen-desc-${user.id}-${Date.now()}`,
+        provider: "gemini",
+      },
+      async () => {
+        const result = await generateListingDescription(title, type, features)
+        if (!result.success) throw new Error(result.error || "Failed to generate description")
+        return result.content
+      }
+    )
+
+    if (aiResult.error) {
+      return NextResponse.json(
+        {
+          error: aiResult.error,
+          credits: {
+            reserved: aiResult.creditsReserved,
+            charged: aiResult.creditsCharged,
+            refunded: aiResult.creditsRefunded,
+            balance: aiResult.availableBalance,
+          },
+        },
+        { status: aiResult.error.includes("Insufficient credits") ? 402 : 500 }
+      )
     }
-    
-    return NextResponse.json({ description: result.content })
+
+    return NextResponse.json({
+      description: aiResult.result,
+      credits: {
+        reserved: aiResult.creditsReserved,
+        charged: aiResult.creditsCharged,
+        refunded: aiResult.creditsRefunded,
+        balance: aiResult.availableBalance,
+      },
+    })
   } catch (error) {
     console.error('[ai/generate-description]', error)
     

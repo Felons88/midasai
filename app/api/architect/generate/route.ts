@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/server"
 import { createClient } from "@/lib/supabase/server"
+import { UsageService } from "@/lib/billing/usage"
+import { createCreditService } from "@/lib/billing/credits"
 
 function normalizeMarkdownFile(name: string): string {
   const base = name.trim().replace(/\s+/g, "_")
@@ -307,6 +309,12 @@ Requirements:
 }
 
 export async function POST(req: Request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const { messages, summary, filesToGenerate, sessionId } = await req.json()
 
   const apiKey = process.env.OPENROUTER_API_KEY
@@ -321,16 +329,30 @@ export async function POST(req: Request) {
     .map((m: any) => `${m.role}: ${m.content}`)
     .join("\n")
 
-  // Get authenticated user for storage upload
-  let userId: string | null = null
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    userId = user?.id ?? null
-  } catch { /* anonymous */ }
+  const userId = user.id
+  const creditService = createCreditService(supabase)
+  const usage = new UsageService(supabase)
+  const operationId = `architect-gen-${userId}-${sessionId ?? Date.now()}`
+  const estimatedCredits = await usage.getEstimatedCredits("architect_generation", files.length)
+
+  const reservation = await creditService.reserveCredits(
+    { userId },
+    operationId,
+    "architect_generation",
+    estimatedCredits,
+    10 * 60 * 1000 // 10 minutes for long generation
+  )
+
+  if (!reservation.allowed) {
+    return NextResponse.json(
+      { error: reservation.message ?? "Insufficient credits", requiredCredits: estimatedCredits },
+      { status: 402 }
+    )
+  }
 
   const encoder = new TextEncoder()
   const generatedFiles: Record<string, string> = {}
+  let captured = false
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -338,6 +360,7 @@ export async function POST(req: Request) {
         controller.enqueue(encoder.encode(JSON.stringify(obj) + "\n"))
       }
 
+      try {
       for (const filename of files) {
         send({ type: "start", filename })
         try {
@@ -382,7 +405,51 @@ export async function POST(req: Request) {
         }
       }
 
+      // Capture credits proportional to successfully generated files
+      if (!captured) {
+        captured = true
+        const successCount = Object.keys(generatedFiles).length
+        const successPct = files.length > 0 ? successCount / files.length : 0
+        const actualAmount = Math.round(estimatedCredits * successPct)
+
+        try {
+          await creditService.captureCredits({ userId }, reservation.reservationId, actualAmount)
+          await usage.recordEvent({
+            userId,
+            featureKey: "ai_architect",
+            operationId,
+            creditsReserved: estimatedCredits,
+            creditsCharged: actualAmount,
+            creditsRefunded: estimatedCredits - actualAmount,
+            status: successPct >= 1 ? "success" : "partial",
+            metadata: { files_total: files.length, files_success: successCount, session_id: sessionId },
+          })
+          send({
+            type: "credits",
+            reserved: estimatedCredits,
+            charged: actualAmount,
+            refunded: estimatedCredits - actualAmount,
+          })
+        } catch (e) {
+          console.error("[architect/generate] credit capture failed:", e)
+          try {
+            await creditService.releaseCredits({ userId }, reservation.reservationId)
+          } catch { /* ignore */ }
+        }
+      }
+
       send({ type: "done", files: generatedFiles })
+      } catch (streamError) {
+        const msg = streamError instanceof Error ? streamError.message : String(streamError)
+        console.error("[architect/generate] stream error:", msg)
+        send({ type: "error", message: msg })
+        if (!captured) {
+          captured = true
+          try {
+            await creditService.releaseCredits({ userId }, reservation.reservationId)
+          } catch { /* ignore */ }
+        }
+      }
       controller.close()
     },
   })
