@@ -447,6 +447,7 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Admin panel foundation: sectioned enterprise sidebar, shared `AdminDataTable`, redesigned executive dashboard
 - ✅ New admin pages: Users, Creators, Categories, Announcements, System Health, Projects
 - ✅ Admin data table: sorting, per-column filters, pagination, CSV export
+- ✅ Admin panel uses only the admin shell; standard authenticated navbar is suppressed for admin routes
 
 ---
 

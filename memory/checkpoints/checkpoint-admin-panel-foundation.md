@@ -40,6 +40,7 @@
 ### Validation
 - Admin route permanently set to `/felon-admin` in `lib/admin-route.ts` (internal routes remain at `/admin`).
 - Middleware now requires authentication before rewriting `/felon-admin` to `/admin`; direct `/admin` URLs return 404.
+- Standard authenticated navbar (`AppSidebar` + `TopBar`) is suppressed for admin routes; only the admin shell remains.
 - Verified: `/felon-admin/dashboard` redirects unauthenticated users to `/auth/login`; `/admin/dashboard` returns 404.
 - `npm run build` passes with the new prefix.
 - `npx playwright test tests/e2e/smoke.spec.ts` — 15 passed, 7 failed.
