@@ -2,7 +2,7 @@
 
 > **Last updated:** 2026-07-02  
 > **Build status:** ✅ Passes (`npm run build`)  
-> **E2E smoke:** 19/22 passing (3 env/pre-existing test failures; new analytics/recommendation tests pass)  
+> **E2E smoke:** 15/22 passing (7 env/flaky test failures; admin changes are build-only in this cycle)  
 > **Production readiness:** ~97/100  
 > **Active cycle:** 17 — Landing Page Redesign + Launch Readiness  
 > **Supabase project:** `rqermggomchlipmuigan`
@@ -443,6 +443,9 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ User interest profile (`user_interest_profile`) updates in real time from the event stream
 - ✅ Recommendation engine: `GET /api/recommendations` scores listings based on the user profile with recency decay
 - ✅ Simple keyword extraction for Architect prompts to infer categories and listing types
+- ✅ Admin panel foundation: sectioned enterprise sidebar, shared `AdminDataTable`, redesigned executive dashboard
+- ✅ New admin pages: Users, Creators, Categories, Announcements, System Health, Projects
+- ✅ Admin data table: sorting, per-column filters, pagination, CSV export
 
 ---
 

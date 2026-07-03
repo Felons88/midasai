@@ -342,6 +342,56 @@ export async function getAnalyticsEventCounts() {
   return { eventCounts: counts, pageViews30d: pageViews ?? 0 }
 }
 
+export async function getAdminCategories(limit = 100) {
+  const db = createServiceClient()
+  const { data } = await db
+    .from("categories")
+    .select("id, name, slug, description, icon, created_at")
+    .order("name", { ascending: true })
+    .limit(limit)
+  return data ?? []
+}
+
+export async function getAdminAnnouncements(limit = 100) {
+  const db = createServiceClient()
+  const { data } = await db
+    .from("platform_announcements")
+    .select("id, title, kind, content, is_active, starts_at, ends_at, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit)
+  return data ?? []
+}
+
+export async function getAdminProjects(limit = 100) {
+  const db = createServiceClient()
+  const [sessions, expansions] = await Promise.all([
+    db
+      .from("architect_sessions")
+      .select("id, session_name, phase, confidence, file_count, created_at, updated_at, user_id")
+      .order("created_at", { ascending: false })
+      .limit(limit),
+    db
+      .from("workflow_expansions")
+      .select("id, title, status, pipeline_progress, file_count, created_at, updated_at, user_id")
+      .order("created_at", { ascending: false })
+      .limit(limit),
+  ])
+  return {
+    sessions: sessions.data ?? [],
+    expansions: expansions.data ?? [],
+  }
+}
+
+export async function getRecentActivity(limit = 15) {
+  const db = createServiceClient()
+  const { data } = await db
+    .from("analytics_events")
+    .select("event, user_id, properties, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit)
+  return data ?? []
+}
+
 export function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`

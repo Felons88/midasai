@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Sparkles, ArrowLeft, Store } from "lucide-react"
-import { getAdminNavItems, type AdminNavItem } from "@/lib/admin/nav"
+import { getAdminNavSections, type AdminNavItem } from "@/lib/admin/nav"
 
 type AdminShellProps = {
   adminPrefix: string
@@ -13,19 +13,19 @@ type AdminShellProps = {
 
 export function AdminShell({ adminPrefix, children, badges }: AdminShellProps) {
   const pathname = usePathname()
-  const nav = getAdminNavItems(adminPrefix, badges)
+  const sections = getAdminNavSections(adminPrefix, badges)
 
   return (
     <div className="flex min-h-screen bg-[#07070b]">
-      <aside className="hidden lg:flex w-56 shrink-0 flex-col border-r border-white/[0.06] bg-[#08080d]">
+      <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-white/[0.06] bg-[#08080d]">
         <div className="px-4 py-4 border-b border-white/[0.06]">
-          <Link href={`${adminPrefix}/dashboard`} className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-black" />
+          <Link href={`${adminPrefix}/dashboard`} className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/10">
+              <Sparkles className="h-5 w-5 text-black" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white leading-tight">Admin</p>
-              <p className="text-[10px] text-white/40">Control center</p>
+              <p className="text-sm font-semibold text-white leading-tight">MidasAI</p>
+              <p className="text-[10px] text-white/40">Admin Control Center</p>
             </div>
           </Link>
         </div>
@@ -40,13 +40,22 @@ export function AdminShell({ adminPrefix, children, badges }: AdminShellProps) {
           </Link>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
-          {nav.map((item) => (
-            <AdminNavLink
-              key={item.href}
-              item={item}
-              active={pathname === item.href || pathname.startsWith(item.href + "/")}
-            />
+        <nav className="flex-1 overflow-y-auto p-3 space-y-5">
+          {sections.map((section) => (
+            <div key={section.label}>
+              <p className="px-3 mb-1 text-[10px] font-semibold text-white/30 uppercase tracking-wider">
+                {section.label}
+              </p>
+              <div className="space-y-0.5">
+                {section.items.map((item) => (
+                  <AdminNavLink
+                    key={item.href}
+                    item={item}
+                    active={pathname === item.href || pathname.startsWith(item.href + "/")}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
       </aside>
@@ -64,7 +73,7 @@ export function AdminShell({ adminPrefix, children, badges }: AdminShellProps) {
         </header>
 
         <div className="lg:hidden flex gap-1 overflow-x-auto p-2 border-b border-white/[0.06] bg-[#08080d]/80">
-          {nav.map((item) => (
+          {sections.flatMap((s) => s.items).map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -79,7 +88,7 @@ export function AdminShell({ adminPrefix, children, badges }: AdminShellProps) {
           ))}
         </div>
 
-        <div className="flex-1 overflow-x-hidden p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">{children}</div>
+        <div className="flex-1 overflow-x-hidden p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto w-full">{children}</div>
       </div>
     </div>
   )
