@@ -455,6 +455,8 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ Suspended users are redirected to `/auth/login?error=suspended`
 - ✅ Middleware preserves `x-pathname` through `/felon-admin` → `/admin` rewrite so the protected layout suppresses the standard shell
 - ✅ Architect enforces markdown-only output; `.ts` filenames from AI are normalized to `.md`
+- ✅ API docs moved from `/api-docs` to `/docs/api`; old `/api-docs` route removed
+- ✅ `docs.midasai.tech` rewrites to `/docs`; production branch updated to `main` on Vercel
 
 ---
 
