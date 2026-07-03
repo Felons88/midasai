@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/server"
 
+function normalizeMarkdownFile(name: string): string {
+  const base = name.trim().replace(/\s+/g, "_")
+  const ext = base.split(".").pop()?.toLowerCase()
+  if (ext === "md") return base
+  const stem = base.includes(".") ? base.slice(0, base.lastIndexOf(".")) : base
+  return `${stem}.md`
+}
+
 function buildSystemPrompt(platformSkills: PlatformSkill[]): string {
   const skillsContext = platformSkills.length > 0
     ? `\n\n## Available Skills on MidasAI Platform\nWhen recommending skills in your summary, PREFER these real skills from our marketplace. Use their exact title as the skill name and include their installCommand and marketplaceUrl in the reason field.\n\n${platformSkills.map(s =>
@@ -40,8 +48,11 @@ The "message" field at ready phase MUST be a detailed, formatted markdown plan i
 3. ## Agents — bullet list, each agent with name, role, key responsibilities
 4. ## Skills — bullet list using REAL skills from the platform above where possible, each with install command or marketplace link
 5. ## Workflows — numbered list of key workflows
-6. ## Files to Generate — list of all files that will be created
+6. ## Files to Generate — list of all markdown files that will be created
 7. A closing line: "I'm now generating all project files automatically — you'll be notified when complete."
+
+## File Format Rule
+All files in the filesToGenerate array MUST end with .md. Architect generates documentation only — never code files like .ts, .tsx, .js, .py, or .json. If you are tempted to create a config or schema example, include it inside a markdown code block instead of as a separate file.
 
 Do NOT put JSON inside the message field. The message is pure markdown prose.
 Do NOT ask more questions. Do NOT say "let me know if you want to proceed". Just deliver the plan.
@@ -328,6 +339,14 @@ export async function POST(req: Request) {
     // Final safety: message must be a non-empty plain string
     if (typeof parsed.message !== "string" || !parsed.message.trim()) {
       parsed.message = "Got it — can you tell me one more thing: what\'s your expected launch timeline or team size?"
+    }
+
+    // Enforce markdown-only file generation
+    if (parsed.summary && Array.isArray(parsed.summary.filesToGenerate)) {
+      const rawFiles = parsed.summary.filesToGenerate as string[]
+      parsed.summary.filesToGenerate = rawFiles
+        .map(normalizeMarkdownFile)
+        .filter((name, idx, arr) => name && arr.indexOf(name) === idx)
     }
 
     return NextResponse.json(parsed)

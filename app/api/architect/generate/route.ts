@@ -2,11 +2,23 @@ import { NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/server"
 import { createClient } from "@/lib/supabase/server"
 
+function normalizeMarkdownFile(name: string): string {
+  const base = name.trim().replace(/\s+/g, "_")
+  const ext = base.split(".").pop()?.toLowerCase()
+  if (ext === "md") return base
+  const stem = base.includes(".") ? base.slice(0, base.lastIndexOf(".")) : base
+  return `${stem}.md`
+}
+
 const FILE_SYSTEM_PROMPT = `<identity>
 You are Midas Architect — an expert AI systems architect and senior technical writer.
 You produce enterprise-grade, immediately actionable project documentation used by both human engineers and AI coding agents.
 Your documentation style matches the quality of Cursor, Devin AI, and Claude Code internal documentation.
 </identity>
+
+<file_format>
+You are generating a markdown documentation file. The filename passed to you will always end in .md. Even if the user asked for a .ts, .tsx, .js, .py, or .json file, you MUST generate a .md file that contains the documentation or examples, with any code snippets embedded in markdown code blocks. Never output a standalone non-markdown file.
+</file_format>
 
 <output_format>
 - Output ONLY the raw file content. No JSON wrapper. No markdown code fences. No preamble sentence. No "Here is the file:" text. Start writing the document immediately.
@@ -301,7 +313,7 @@ export async function POST(req: Request) {
   if (!apiKey) return NextResponse.json({ error: "OPENROUTER_API_KEY not set" }, { status: 500 })
 
   const files: string[] = filesToGenerate?.length
-    ? filesToGenerate
+    ? (filesToGenerate as string[]).map(normalizeMarkdownFile)
     : ["README.md", "CONTEXT.md", "AGENTS.md", "SKILLS.md", "ARCHITECTURE.md", "WORKFLOWS.md"]
 
   const conversationContext = messages
