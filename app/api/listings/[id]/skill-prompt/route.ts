@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { createServiceClient } from "@/lib/supabase/server"
 
 function toSkillMdUrl(githubUrl: string): string {
   // Convert any GitHub tree/blob URL to the raw SKILL.md URL
@@ -198,68 +199,279 @@ Write the COMPLETE prompt. Do not truncate. Output ONLY the text between the ---
   return result
 }
 
+const SSE_HEADERS = {
+  "Content-Type": "text/event-stream",
+  "Cache-Control": "no-cache",
+  Connection: "keep-alive",
+}
+
+function sse(event: string, data: unknown) {
+  return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
+}
+
+const PROMPT_MAX_AGE_DAYS = 4
+const PROMPT_MAX_AGE_MS = PROMPT_MAX_AGE_DAYS * 24 * 60 * 60 * 1000
+
+function isPromptFresh(updatedAt: string | null | undefined): boolean {
+  if (!updatedAt) return false
+  return Date.now() - new Date(updatedAt).getTime() <= PROMPT_MAX_AGE_MS
+}
+
+function buildPromptPayload(
+  row: {
+    github_url: string
+    skill_md_url?: string | null
+    prompt?: string | null
+    skill_md_missing?: boolean | null
+  },
+  cached: boolean,
+  refreshed = false
+) {
+  return {
+    success: true,
+    githubUrl: row.github_url,
+    skillMdUrl: row.skill_md_url ?? null,
+    prompt: row.skill_md_missing ? null : (row.prompt ?? null),
+    skillMdMissing: Boolean(row.skill_md_missing),
+    cached,
+    refreshed,
+  }
+}
+
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id: listingId } = await params
+  const { id: listingId } = await params
+  const supabase = createServiceClient()
+  const encoder = new TextEncoder()
 
-    // Fetch listing github_url from Supabase (public, no auth needed for active listings)
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  // Check cache first
+  const { data: cached } = await supabase
+    .from("listing_prompts")
+    .select("*")
+    .eq("listing_id", listingId)
+    .single()
 
-    const dbRes = await fetch(
-      `${supabaseUrl}/rest/v1/listings?id=eq.${listingId}&status=eq.ACTIVE&select=title,github_url&limit=1`,
-      {
-        headers: {
-          apikey: supabaseAnon,
-          Authorization: `Bearer ${supabaseAnon}`,
-        },
-        signal: AbortSignal.timeout(5000),
-      }
-    )
-
-    if (!dbRes.ok) {
-      return NextResponse.json({ error: "Listing not found" }, { status: 404 })
-    }
-
-    const rows = await dbRes.json()
-    const listing = rows?.[0]
-
-    if (!listing?.github_url) {
-      return NextResponse.json(
-        { error: "No GitHub URL for this listing" },
-        { status: 400 }
-      )
-    }
-
-    const skillMdUrl = toSkillMdUrl(listing.github_url)
-    const skillMd = await fetchSkillMd(listing.github_url)
-
-    if (!skillMd) {
-      // No SKILL.md found — return just the URL so modal can still show
-      return NextResponse.json({
-        success: true,
-        githubUrl: listing.github_url,
-        skillMdUrl,
-        prompt: null,
-        skillMdMissing: true,
-      })
-    }
-
-    const prompt = await generateInstallPrompt(skillMd, listing.title, listing.github_url)
-
-    return NextResponse.json({
-      success: true,
-      githubUrl: listing.github_url,
-      skillMdUrl,
-      prompt,
-      skillMdMissing: false,
+  // Fresh cache — return immediately without opening a long stream
+  if (cached && isPromptFresh(cached.updated_at)) {
+    return new Response(sse("complete", buildPromptPayload(cached, true)), {
+      headers: SSE_HEADERS,
     })
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error)
-    console.error("skill-prompt error:", msg)
-    return NextResponse.json({ error: msg }, { status: 500 })
   }
+
+  // Fetch listing
+  const { data: listing, error: listingError } = await supabase
+    .from("listings")
+    .select("title, github_url")
+    .eq("id", listingId)
+    .eq("status", "ACTIVE")
+    .single()
+
+  if (listingError || !listing?.github_url) {
+    return NextResponse.json(
+      { error: "No GitHub URL for this listing" },
+      { status: 400 }
+    )
+  }
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (event: string, data: unknown) => {
+        try {
+          controller.enqueue(encoder.encode(sse(event, data)))
+        } catch (e) {
+          // Stream may have been closed by the client while a background refresh is finishing
+          console.warn("[skill-prompt] sse send skipped:", e)
+        }
+      }
+
+      const startTime = Date.now()
+      const expectedMs = GENERATION_TIMEOUT_MS
+      const skillMdUrl = toSkillMdUrl(listing.github_url)
+
+      try {
+        if (cached) {
+          // Stale cache — give the user an instant answer, then refresh in the background
+          send("complete", buildPromptPayload(cached, true))
+
+          try {
+            send("progress", {
+              percent: 10,
+              message: "Checking for updated SKILL.md...",
+              eta: Math.ceil(expectedMs / 1000),
+            })
+
+            const skillMd = await fetchSkillMd(listing.github_url)
+
+            if (!skillMd) {
+              await supabase
+                .from("listing_prompts")
+                .update({
+                  github_url: listing.github_url,
+                  prompt: "",
+                  skill_md_missing: true,
+                  skill_md_url: skillMdUrl,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("listing_id", listingId)
+
+              send(
+                "refreshed",
+                buildPromptPayload(
+                  {
+                    github_url: listing.github_url,
+                    prompt: "",
+                    skill_md_missing: true,
+                    skill_md_url: skillMdUrl,
+                  },
+                  false,
+                  true
+                )
+              )
+            } else {
+              send("progress", {
+                percent: 30,
+                message: "Regenerating install prompt...",
+                eta: Math.ceil(expectedMs / 1000),
+              })
+
+              const progressInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime
+                const remaining = Math.max(0, expectedMs - elapsed)
+                const percent = Math.min(95, 30 + Math.round((elapsed / expectedMs) * 65))
+                send("progress", {
+                  percent,
+                  message: "Regenerating install prompt...",
+                  eta: Math.ceil(remaining / 1000),
+                })
+              }, 1000)
+
+              const prompt = await generateInstallPrompt(skillMd, listing.title, listing.github_url)
+              clearInterval(progressInterval)
+
+              await supabase
+                .from("listing_prompts")
+                .update({
+                  github_url: listing.github_url,
+                  prompt,
+                  skill_md_missing: false,
+                  skill_md_url: skillMdUrl,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("listing_id", listingId)
+
+              send(
+                "refreshed",
+                buildPromptPayload(
+                  {
+                    github_url: listing.github_url,
+                    prompt,
+                    skill_md_missing: false,
+                    skill_md_url: skillMdUrl,
+                  },
+                  false,
+                  true
+                )
+              )
+            }
+          } catch (refreshError) {
+            const msg = refreshError instanceof Error ? refreshError.message : String(refreshError)
+            console.error("[skill-prompt] background refresh failed:", msg)
+            send("refresh_error", {
+              error: "Could not refresh prompt; the cached version is still available.",
+            })
+          }
+
+          controller.close()
+          return
+        }
+
+        // No cache — generate for the first time
+        send("progress", {
+          percent: 5,
+          message: "Fetching SKILL.md from GitHub...",
+          eta: Math.ceil(expectedMs / 1000),
+        })
+
+        const skillMd = await fetchSkillMd(listing.github_url)
+
+        if (!skillMd) {
+          const payload = buildPromptPayload(
+            {
+              github_url: listing.github_url,
+              skill_md_url: skillMdUrl,
+              prompt: "",
+              skill_md_missing: true,
+            },
+            false
+          )
+          await supabase.from("listing_prompts").insert({
+            listing_id: listingId,
+            github_url: listing.github_url,
+            prompt: "",
+            skill_md_missing: true,
+            skill_md_url: skillMdUrl,
+          })
+          send("complete", payload)
+          controller.close()
+          return
+        }
+
+        send("progress", {
+          percent: 20,
+          message: "Generating AI install prompt...",
+          eta: Math.ceil(expectedMs / 1000),
+        })
+
+        // Progress heartbeat while AI providers are competing
+        const progressInterval = setInterval(() => {
+          const elapsed = Date.now() - startTime
+          const remaining = Math.max(0, expectedMs - elapsed)
+          const percent = Math.min(95, 20 + Math.round((elapsed / expectedMs) * 75))
+          send("progress", {
+            percent,
+            message: "Generating AI install prompt...",
+            eta: Math.ceil(remaining / 1000),
+          })
+        }, 1000)
+
+        const prompt = await generateInstallPrompt(skillMd, listing.title, listing.github_url)
+        clearInterval(progressInterval)
+
+        await supabase.from("listing_prompts").insert({
+          listing_id: listingId,
+          github_url: listing.github_url,
+          prompt,
+          skill_md_missing: false,
+          skill_md_url: skillMdUrl,
+        })
+
+        send(
+          "complete",
+          buildPromptPayload(
+            {
+              github_url: listing.github_url,
+              skill_md_url: skillMdUrl,
+              prompt,
+              skill_md_missing: false,
+            },
+            false
+          )
+        )
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error)
+        console.error("skill-prompt error:", msg)
+        send("error", { error: msg })
+      } finally {
+        try {
+          controller.close()
+        } catch {
+          // already closed
+        }
+      }
+    },
+  })
+
+  return new Response(stream, { headers: SSE_HEADERS })
 }

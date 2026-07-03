@@ -165,8 +165,8 @@ export function AuthenticatedNavbar({
                     Creator
                   </div>
                   <DropdownMenuItem asChild>
-                    <Link href="/creator/dashboard" className="w-full cursor-pointer">
-                      Creator Studio
+                    <Link href="/dashboard" className="w-full cursor-pointer">
+                      Dashboard
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

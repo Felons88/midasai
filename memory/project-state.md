@@ -2,6 +2,7 @@
 
 > **Last updated:** 2026-07-02  
 > **Build status:** ✅ Passes (`npm run build`)  
+> **E2E smoke:** 19/20 passing (1 env-specific admin-route test fails locally)  
 > **Production readiness:** ~97/100  
 > **Active cycle:** 17 — Landing Page Redesign + Launch Readiness  
 > **Supabase project:** `rqermggomchlipmuigan`
@@ -432,6 +433,12 @@ All in `supabase/migrations/` — from initial schema through cycle 16 additions
 - ✅ 14+ Playwright E2E tests passing
 - ✅ Build passes clean
 - ✅ Public navigation updated with mobile menu and simplified launch links
+- ✅ AI install prompt cache with 4-day staleness refresh and background regeneration
+- ✅ SkillModal shows "Updated just now" indicator when a stale prompt refreshes in the background
+- ✅ GitHub install flow is instant: free/owned listings open the SkillModal immediately, paid listings redirect to Stripe, and download tracking runs in the background
+- ✅ Listing documentation tab fetches the README from the GitHub repo (falls back to `listing.readme`) instead of mirroring the top description
+- ✅ Authenticated navbar uses "Dashboard" instead of "Creator Studio"; public navbar no longer shows a separate "Creator Portal" button
+- ✅ Dashboard notification panel removed
 
 ---
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Star } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createClient, createPublicClient, createServiceClient } from "@/lib/supabase/server"
@@ -19,6 +19,7 @@ import { ListingDocumentation } from "@/components/marketplace/listing/ListingDo
 import { ListingRelatedGrid } from "@/components/marketplace/listing/ListingRelatedGrid"
 import { getListingDelivery } from "@/lib/listings/delivery"
 import { fetchRelatedListings } from "@/lib/listings/related"
+import { fetchGitHubReadme } from "@/lib/github/readme"
 import {
   buildReviewVerificationMaps,
   EMPTY_REVIEW_VERIFICATION_MAPS,
@@ -265,6 +266,10 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
       getCreatorProfile(listing.creator_id),
     ])
 
+  const readme = listing.github_url
+    ? await fetchGitHubReadme(listing.github_url)
+    : listing.readme
+
   const creatorDisplayName =
     creatorProfile?.display_name ?? listing.users?.name ?? "@SYSTEM"
 
@@ -387,7 +392,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                         label: "Documentation",
                         content: (
                           <ListingDocumentation
-                            readme={listing.readme}
+                            readme={readme}
                             githubUrl={listing.github_url}
                           />
                         ),

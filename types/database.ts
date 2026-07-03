@@ -1682,6 +1682,47 @@ export type Database = {
           },
         ]
       }
+      listing_prompts: {
+        Row: {
+          created_at: string | null
+          github_url: string
+          id: string
+          listing_id: string
+          prompt: string
+          skill_md_missing: boolean | null
+          skill_md_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          github_url: string
+          id?: string
+          listing_id: string
+          prompt: string
+          skill_md_missing?: boolean | null
+          skill_md_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          github_url?: string
+          id?: string
+          listing_id?: string
+          prompt?: string
+          skill_md_missing?: boolean | null
+          skill_md_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_prompts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listings: {
         Row: {
           average_rating: number | null

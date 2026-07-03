@@ -38,18 +38,13 @@ export function NavbarSessionActions() {
 
   if (user) {
     return (
-      <>
-        <Button
-          variant="ghost"
-          asChild
-          className="text-text-secondary hover:text-text-primary transition-smooth"
-        >
-          <Link href="/dashboard">Dashboard</Link>
-        </Button>
-        <Button asChild className="shadow-glow">
-          <Link href="/creator/dashboard">Creator Portal</Link>
-        </Button>
-      </>
+      <Button
+        variant="ghost"
+        asChild
+        className="text-text-secondary hover:text-text-primary transition-smooth"
+      >
+        <Link href="/dashboard">Dashboard</Link>
+      </Button>
     )
   }
 

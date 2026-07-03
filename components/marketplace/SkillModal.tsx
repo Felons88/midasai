@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { Github, Copy, Check, ExternalLink, X, FileText, Sparkles, Zap } from "lucide-react"
+import { Github, Copy, Check, ExternalLink, X, FileText, Sparkles, Zap, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -19,54 +19,71 @@ interface SkillPromptData {
   skillMdMissing: boolean
 }
 
-const LOADING_STEPS = [
-  "Fetching SKILL.md from GitHub…",
-  "Translating & analysing skill…",
-  "Generating install prompt…",
-]
+interface ProgressState {
+  percent: number
+  message: string
+  eta: number
+}
 
 export function SkillModal({ listingId, listingTitle, onClose }: SkillModalProps) {
   const [data, setData] = useState<SkillPromptData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [loadingStep, setLoadingStep] = useState(0)
+  const [progress, setProgress] = useState<ProgressState>({ percent: 0, message: "Initializing...", eta: 25 })
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [refreshed, setRefreshed] = useState(false)
   const [mounted, setMounted] = useState(false)
   const overlayRef = useRef<HTMLDivElement>(null)
+  const loadedRef = useRef(false)
 
   useEffect(() => { setMounted(true) }, [])
 
-  // Cycle loading steps while waiting
   useEffect(() => {
-    if (!loading) return
-    const interval = setInterval(() => {
-      setLoadingStep(s => (s + 1) % LOADING_STEPS.length)
-    }, 1800)
-    return () => clearInterval(interval)
-  }, [loading])
+    const es = new EventSource(`/api/listings/${listingId}/skill-prompt`)
 
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      try {
-        const res = await fetch(`/api/listings/${listingId}/skill-prompt`)
-        const json = await res.json()
-        if (!cancelled) {
-          if (!res.ok) {
-            setError(json.error ?? "Failed to load skill info")
-            if (json.githubUrl) setData(json)
-          } else {
-            setData(json)
-          }
-        }
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Could not connect to server")
-      } finally {
-        if (!cancelled) setLoading(false)
+    es.addEventListener("progress", (e: MessageEvent) => {
+      const d = JSON.parse(e.data)
+      setProgress({ percent: d.percent ?? 0, message: d.message ?? "Generating...", eta: d.eta ?? 0 })
+      setLoading(true)
+    })
+
+    es.addEventListener("complete", (e: MessageEvent) => {
+      const d = JSON.parse(e.data)
+      loadedRef.current = true
+      setData(d)
+      setLoading(false)
+      // Keep the connection open for a potential background refresh event.
+    })
+
+    es.addEventListener("refreshed", (e: MessageEvent) => {
+      const d = JSON.parse(e.data)
+      loadedRef.current = true
+      setData(d)
+      setRefreshed(true)
+      setLoading(false)
+      es.close()
+    })
+
+    es.addEventListener("error", (e: MessageEvent) => {
+      const d = JSON.parse(e.data)
+      setError(d.error ?? "Failed to load skill info")
+      setLoading(false)
+      es.close()
+    })
+
+    es.onerror = () => {
+      // A fresh cache response closes the stream immediately, which triggers onerror.
+      // If we already have data, treat it as a normal close instead of an error.
+      if (loadedRef.current) {
+        es.close()
+        return
       }
+      setError("Connection lost. Please try again.")
+      setLoading(false)
+      es.close()
     }
-    load()
-    return () => { cancelled = true }
+
+    return () => es.close()
   }, [listingId])
 
   useEffect(() => {
@@ -135,9 +152,18 @@ export function SkillModal({ listingId, listingTitle, onClose }: SkillModalProps
                 <div className="w-12 h-12 rounded-full border-2 border-cta/20 border-t-cta animate-spin" />
                 <Zap className="absolute inset-0 m-auto h-5 w-5 text-cta" />
               </div>
-              <div className="text-center space-y-1">
-                <p className="text-sm font-medium text-text-primary transition-all">{LOADING_STEPS[loadingStep]}</p>
-                <p className="text-xs text-text-tertiary">Powered by AI • Usually takes 5–10s</p>
+              <div className="text-center space-y-3 w-full max-w-xs">
+                <p className="text-sm font-medium text-text-primary transition-all">{progress.message}</p>
+                <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-cta to-cta-light transition-all duration-700"
+                    style={{ width: `${progress.percent}%` }}
+                  />
+                </div>
+                <p className="text-xs text-text-tertiary">
+                  Generating prompt to install <span className="text-text-primary font-medium">{listingTitle}</span>
+                  {" "}• {progress.percent}% • ETA {progress.eta}s
+                </p>
               </div>
             </div>
           )}
@@ -171,7 +197,14 @@ export function SkillModal({ listingId, listingTitle, onClose }: SkillModalProps
                       <Sparkles className="h-3 w-3 text-cta" />
                     </div>
                     <span className="text-xs font-bold text-cta uppercase tracking-widest">AI Install Prompt</span>
-                    <span className="text-[10px] text-text-tertiary ml-auto">Paste into Claude Code · VS Code · Cursor · Windsurf</span>
+                    {refreshed && (
+                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 ml-auto">
+                        <RefreshCw className="h-3 w-3" /> Updated just now
+                      </span>
+                    )}
+                    <span className={cn("text-[10px] text-text-tertiary", refreshed ? "" : "ml-auto")}>
+                      Paste into Claude Code · VS Code · Cursor · Windsurf
+                    </span>
                   </div>
                   <div
                     className="relative rounded-xl overflow-hidden"

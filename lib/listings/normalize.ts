@@ -23,7 +23,7 @@ export function normalizeReviews(reviews: unknown) {
       : responses && typeof responses === "object"
         ? [responses]
         : []
-    return { ...row, review_responses: normalizedResponses }
+    return { ...row, review_responses: normalizedResponses } as any
   })
 }
 

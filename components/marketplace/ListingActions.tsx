@@ -55,7 +55,7 @@ export function ListingActions({
       return
     }
 
-    // GitHub delivery: record purchase/download then show skill modal
+    // GitHub delivery: record claim, then show the AI install prompt instantly
     if (isGithub) {
       setLoading(true)
       setError("")
@@ -65,17 +65,29 @@ export function ListingActions({
           router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`)
           return
         }
-        // Record the free claim
+
         const purchaseRes = await fetch(`/api/listings/${listingId}/purchase`, { method: "POST" })
         const purchaseData = await purchaseRes.json()
-        if (!purchaseRes.ok && purchaseData.error !== "Failed to record purchase") {
+
+        if (!purchaseRes.ok) {
           setError(purchaseData.error ?? "Could not claim skill")
           return
         }
-        // Record the download event
-        await fetch(`/api/listings/${listingId}/download`, { method: "POST" })
-        trackEvent("listing_github_opened", { listing_id: listingId })
+
+        if (purchaseData.checkoutUrl) {
+          trackEvent("listing_purchased", { listing_id: listingId, method: "stripe" })
+          window.location.href = purchaseData.checkoutUrl
+          return
+        }
+
+        // Free or already owned — open the AI install prompt immediately
         setShowSkillModal(true)
+        trackEvent("listing_github_opened", { listing_id: listingId })
+
+        // Record the download in the background so the UI feels instant
+        fetch(`/api/listings/${listingId}/download`, { method: "POST" }).catch((err) => {
+          console.error("Background download tracking failed:", err)
+        })
       } catch {
         setError("Something went wrong. Please try again.")
       } finally {
@@ -116,9 +128,28 @@ export function ListingActions({
           setError("Purchase could not be completed.")
           return
         }
+
+        const downloadRes = await fetch(`/api/listings/${listingId}/download`, { method: "POST" })
+        const downloadData = await downloadRes.json()
+
+        if (!downloadRes.ok) {
+          setError(getAcquireErrorMessage(downloadData.code, delivery, downloadData.error))
+          return
+        }
+
+        if (downloadData.downloadUrl) {
+          trackEvent("listing_downloaded", { listing_id: listingId })
+          window.open(downloadData.downloadUrl, "_blank", "noopener,noreferrer")
+        }
+
+        router.refresh()
       } else {
-        const purchaseRes = await fetch(`/api/listings/${listingId}/purchase`, { method: "POST" })
+        const [purchaseRes, downloadRes] = await Promise.all([
+          fetch(`/api/listings/${listingId}/purchase`, { method: "POST" }),
+          fetch(`/api/listings/${listingId}/download`, { method: "POST" }),
+        ])
         const purchaseData = await purchaseRes.json()
+        const downloadData = await downloadRes.json()
 
         if (!purchaseRes.ok) {
           setError(purchaseData.error ?? "Could not claim free listing")
@@ -128,24 +159,19 @@ export function ListingActions({
         if (purchaseData.success && !purchaseData.alreadyOwned) {
           trackEvent("listing_purchased", { listing_id: listingId, method: "free" })
         }
+
+        if (!downloadRes.ok) {
+          setError(getAcquireErrorMessage(downloadData.code, delivery, downloadData.error))
+          return
+        }
+
+        if (downloadData.downloadUrl) {
+          trackEvent("listing_downloaded", { listing_id: listingId })
+          window.open(downloadData.downloadUrl, "_blank", "noopener,noreferrer")
+        }
+
+        router.refresh()
       }
-
-      const downloadRes = await fetch(`/api/listings/${listingId}/download`, { method: "POST" })
-      const downloadData = await downloadRes.json()
-
-      if (!downloadRes.ok) {
-        setError(
-          getAcquireErrorMessage(downloadData.code, delivery, downloadData.error)
-        )
-        return
-      }
-
-      if (downloadData.downloadUrl) {
-        trackEvent("listing_downloaded", { listing_id: listingId })
-        window.open(downloadData.downloadUrl, "_blank", "noopener,noreferrer")
-      }
-
-      router.refresh()
     } catch {
       setError("Something went wrong. Please try again.")
     } finally {

@@ -19,7 +19,6 @@ async function getDashboardData(userId: string) {
     { data: sub },
     { data: recentActivity },
     { data: marketplaceListings },
-    { data: notifications },
     { count: apiKeyCount },
     { count: webhookCount },
     { count: mcpCount },
@@ -35,7 +34,6 @@ async function getDashboardData(userId: string) {
     supabase.from('subscriptions').select('tier, status, current_period_start, current_period_end, stripe_price_id').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('activity_feed').select('*').eq('is_public', true).order('created_at', { ascending: false }).limit(10),
     supabase.from('listings').select('id, title, price, downloads, average_rating, rating_count, category, created_at').order('downloads', { ascending: false }).limit(6),
-    supabase.from('notifications').select('id, title, message, type, priority, read_at, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(8),
     supabase.from('api_keys').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'ACTIVE'),
     supabase.from('webhooks').select('id', { count: 'exact', head: true }).eq('user_id', userId),
     supabase.from('mcp_servers').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'ACTIVE'),
@@ -46,7 +44,6 @@ async function getDashboardData(userId: string) {
   const revenueLast30 = txLast30?.reduce((s: number, t: any) => s + (t.amount || 0), 0) || 0
   const tier = (sub?.tier || 'FREE') as string
   const planLimits = getPlanLimits(tier)
-  const unreadCount = notifications?.filter((n: any) => !n.read_at).length || 0
 
   return {
     userName: (userData as any)?.name || '',
@@ -84,8 +81,6 @@ async function getDashboardData(userId: string) {
     },
     recentActivity: recentActivity || [],
     marketplaceListings: marketplaceListings || [],
-    notifications: notifications || [],
-    unreadCount,
   }
 }
 

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import {
   Download, Bookmark, Package, TrendingUp, ArrowUpRight, Sparkles,
-  Bell, Crown, CheckCircle2, DollarSign, Zap, Store, ChevronRight,
+  Crown, CheckCircle2, DollarSign, Zap, Store, ChevronRight,
   Activity, BarChart3, Eye, Users, Key, Webhook,
   Server, Database, Plus, Settings, Star,
   MessageSquare, ShoppingBag
@@ -31,8 +31,6 @@ interface DashboardData {
   }
   recentActivity: any[]
   marketplaceListings: any[]
-  notifications: any[]
-  unreadCount: number
 }
 
 function timeAgo(dateStr: string): string {
@@ -86,7 +84,7 @@ function Sparkline({ positive = true }: { positive?: boolean }) {
 }
 
 export default function DashboardClient({ data }: { data: DashboardData }) {
-  const { userName, userRole, tier, planName, stats, usage, billing, recentActivity, marketplaceListings, notifications, unreadCount } = data
+  const { userName, userRole, tier, planName, stats, usage, billing, recentActivity, marketplaceListings } = data
   const isCreator = ["CREATOR", "ADMIN", "OWNER"].includes(userRole)
   const firstName = userName?.split(" ")[0] || "there"
   const hour = new Date().getHours()
@@ -117,7 +115,6 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
     { label: "Profile Views", value: stats.views.toLocaleString(), sub: "Last 30 days", icon: Eye, color: "text-purple-400", positive: true },
     { label: "Conversion", value: `${stats.conversion}%`, sub: "Downloads / views", icon: TrendingUp, color: "text-cyan-400", positive: true },
     { label: "Bookmarks", value: stats.bookmarks.toLocaleString(), sub: "Saved items", icon: Bookmark, color: "text-pink-400", positive: true },
-    { label: "Notifications", value: unreadCount.toString(), sub: `${unreadCount} unread`, icon: Bell, color: unreadCount > 0 ? "text-amber-400" : "text-white/40", positive: false },
     { label: "Followers", value: stats.followers.toLocaleString(), sub: "Subscribers", icon: Users, color: "text-indigo-400", positive: true },
   ]
 
@@ -125,7 +122,6 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
   const priorities = [
     stats.listings === 0 && isCreator && { icon: Package, text: "Create your first listing", desc: "Start selling to thousands of buyers", href: "/creator/upload", cta: "Create", priority: "high" },
     stats.listings === 0 && !isCreator && { icon: Store, text: "Explore the marketplace", desc: "Find tools and services for your business", href: "/explore", cta: "Explore", priority: "medium" },
-    unreadCount > 0 && { icon: Bell, text: `${unreadCount} unread notification${unreadCount > 1 ? "s" : ""}`, desc: "Stay on top of your account activity", href: "/notifications", cta: "View", priority: "high" },
     tier === "FREE" && { icon: Crown, text: "Upgrade your plan", desc: "Unlock higher limits and advanced features", href: "/developer/billing", cta: "Upgrade", priority: "medium" },
     usage.apiKeys === 0 && { icon: Key, text: "Create an API key", desc: "Start building integrations with MidasAI", href: "/developer/keys", cta: "Create", priority: "low" },
   ].filter(Boolean) as { icon: React.ElementType; text: string; desc: string; href: string; cta: string; priority: string }[]
@@ -344,77 +340,41 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
         </div>
       </div>
 
-      {/* ── ROW 4: ACTIVITY + NOTIFICATIONS ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
-        {/* Activity Feed — 3 cols */}
-        <div className="xl:col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.05]">
-            <div className="flex items-center gap-2">
-              <Activity className="h-3.5 w-3.5 text-white/40" />
-              <h2 className="text-xs font-semibold text-white/70 uppercase tracking-widest">Recent Activity</h2>
-            </div>
-            <Link href="/feed" className="flex items-center gap-0.5 text-[10px] text-amber-400/70 hover:text-amber-400 font-medium transition-colors">
-              View all <ChevronRight className="h-3 w-3" />
-            </Link>
+      {/* ── ROW 4: ACTIVITY FEED ── */}
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.05]">
+          <div className="flex items-center gap-2">
+            <Activity className="h-3.5 w-3.5 text-white/40" />
+            <h2 className="text-xs font-semibold text-white/70 uppercase tracking-widest">Recent Activity</h2>
           </div>
-          <div className="divide-y divide-white/[0.04] max-h-[280px] overflow-y-auto">
-            {recentActivity.length > 0 ? recentActivity.map((item: any) => {
-              const eventType = (item.event_type || item.activity_type || "default").toLowerCase()
-              const Icon = activityIcons[eventType] || activityIcons.default
-              return (
-                <div key={item.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.02] transition-colors">
-                  <div className="h-7 w-7 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center flex-shrink-0">
-                    <Icon className="h-3 w-3 text-amber-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] text-white/70 truncate leading-none mb-0.5">
-                      {item.description || item.entity_title || item.activity_type || "Activity"}
-                    </p>
-                    <p className="text-[10px] text-white/25">{timeAgo(item.created_at)}</p>
-                  </div>
-                </div>
-              )
-            }) : (
-              <div className="flex flex-col items-center justify-center py-12 gap-2">
-                <Activity className="h-8 w-8 text-white/10" />
-                <p className="text-xs text-white/30">No activity yet</p>
-                <Link href="/explore" className="text-[11px] text-amber-400 hover:text-amber-300 transition-colors">Start exploring →</Link>
-              </div>
-            )}
-          </div>
+          <Link href="/feed" className="flex items-center gap-0.5 text-[10px] text-amber-400/70 hover:text-amber-400 font-medium transition-colors">
+            View all <ChevronRight className="h-3 w-3" />
+          </Link>
         </div>
-
-        {/* Notification Center — 2 cols */}
-        <div className="xl:col-span-2 rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.05]">
-            <div className="flex items-center gap-2">
-              <Bell className="h-3.5 w-3.5 text-white/40" />
-              <h2 className="text-xs font-semibold text-white/70 uppercase tracking-widest">Notifications</h2>
-              {unreadCount > 0 && (
-                <span className="h-4 min-w-[16px] px-1 rounded-full bg-amber-500 text-black text-[9px] font-bold flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
-            </div>
-            <Link href="/notifications" className="text-[10px] text-amber-400/70 hover:text-amber-400 font-medium transition-colors">View all</Link>
-          </div>
-          <div className="divide-y divide-white/[0.04] max-h-[280px] overflow-y-auto">
-            {notifications.length > 0 ? notifications.slice(0, 6).map((n: any) => (
-              <div key={n.id} className={`flex items-start gap-3 px-4 py-2.5 hover:bg-white/[0.02] transition-colors ${!n.read_at ? "bg-amber-500/[0.02]" : ""}`}>
-                <div className={`h-1.5 w-1.5 rounded-full mt-1.5 flex-shrink-0 ${!n.read_at ? "bg-amber-400" : "bg-white/20"}`} />
+        <div className="divide-y divide-white/[0.04] max-h-[280px] overflow-y-auto">
+          {recentActivity.length > 0 ? recentActivity.map((item: any) => {
+            const eventType = (item.event_type || item.activity_type || "default").toLowerCase()
+            const Icon = activityIcons[eventType] || activityIcons.default
+            return (
+              <div key={item.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.02] transition-colors">
+                <div className="h-7 w-7 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center flex-shrink-0">
+                  <Icon className="h-3 w-3 text-amber-400" />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[12px] text-white/70 leading-none mb-0.5 truncate">{n.title || n.message || "Notification"}</p>
-                  <p className="text-[10px] text-white/25 truncate">{n.message && n.title ? n.message : ""}</p>
-                  <p className="text-[10px] text-white/20 mt-0.5">{timeAgo(n.created_at)}</p>
+                  <p className="text-[12px] text-white/70 truncate leading-none mb-0.5">
+                    {item.description || item.entity_title || item.activity_type || "Activity"}
+                  </p>
+                  <p className="text-[10px] text-white/25">{timeAgo(item.created_at)}</p>
                 </div>
               </div>
-            )) : (
-              <div className="flex flex-col items-center justify-center py-12 gap-2">
-                <Bell className="h-8 w-8 text-white/10" />
-                <p className="text-xs text-white/30">No notifications</p>
-              </div>
-            )}
-          </div>
+            )
+          }) : (
+            <div className="flex flex-col items-center justify-center py-12 gap-2">
+              <Activity className="h-8 w-8 text-white/10" />
+              <p className="text-xs text-white/30">No activity yet</p>
+              <Link href="/explore" className="text-[11px] text-amber-400 hover:text-amber-300 transition-colors">Start exploring →</Link>
+            </div>
+          )}
         </div>
       </div>
 
