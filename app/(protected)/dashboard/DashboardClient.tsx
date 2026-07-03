@@ -252,15 +252,15 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
       </div>
 
       {/* ── ROW 2: ACTION CENTER ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
-        {/* Today's Priorities — 3 cols */}
-        <div className="xl:col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 items-start">
+        {/* Today's Priorities — 2 cols */}
+        <div className="xl:col-span-2 rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.05]">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-3.5 w-3.5 text-amber-400" />
               <h2 className="text-xs font-semibold text-white/70 uppercase tracking-widest">Today&apos;s Priorities</h2>
             </div>
-            <span className="text-[10px] text-white/30">{priorities.length} / {priorities.length} tasks</span>
+            <span className="text-[10px] text-white/30">{priorities.length} task{priorities.length === 1 ? "" : "s"}</span>
           </div>
           <div className="divide-y divide-white/[0.04]">
             {priorities.length > 0 ? priorities.map((p, i) => {
@@ -290,8 +290,8 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           </div>
         </div>
 
-        {/* AI Recommendations + Credit + Upgrade — 2 cols */}
-        <div className="xl:col-span-2 space-y-4">
+        {/* AI Recommendations + Credit + Upgrade — 3 cols */}
+        <div className="xl:col-span-3 space-y-4">
           <CreditWidget compact={false} />
 
           {credits.recommendation && credits.recommendation.score >= 20 && tier !== credits.recommendation.recommendedTier && (
