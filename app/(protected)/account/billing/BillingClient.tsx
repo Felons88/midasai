@@ -242,9 +242,12 @@ export default function BillingClient({ context, subscription }: BillingClientPr
         window.location.href = data.url
       } else {
         console.error("Checkout failed:", data)
+        alert(`Checkout failed: ${data.error || "Unknown error"}`)
       }
     } catch (e) {
+      const message = e instanceof Error ? e.message : "Unknown error"
       console.error("Upgrade error:", e)
+      alert(`Checkout error: ${message}`)
     } finally {
       setLoadingTier(null)
     }

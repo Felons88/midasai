@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { PLAN_LIMITS, PlanTier } from "@/lib/subscriptions"
+import { getPlanLimits, PlanTier } from "@/lib/subscriptions"
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Stripe is not configured with a real secret key" }, { status: 500 })
     }
 
-    const plan = PLAN_LIMITS[tier]
+    const plan = getPlanLimits(tier)
     if (!plan) return NextResponse.json({ error: "Invalid plan" }, { status: 400 })
 
     const priceId = interval === "yearly" ? plan.stripePriceIdYearly : plan.stripePriceIdMonthly
