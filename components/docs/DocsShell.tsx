@@ -35,7 +35,7 @@ export function DocsShell({ children, title, description }: DocsShellProps) {
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
-            <Link href="/api-docs" className="flex items-center gap-2 font-semibold">
+            <Link href="https://docs.midasai.tech/" className="flex items-center gap-2 font-semibold">
               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-500 text-xs font-bold text-black">
                 M
               </span>
@@ -88,9 +88,13 @@ export function DocsShell({ children, title, description }: DocsShellProps) {
                 </p>
                 <ul className="space-y-0.5">
                   {section.items.map((item) => {
+                    const itemPath = item.href.replace(/^https:\/\/docs\.midasai\.tech/, "") || "/"
+                    const internalPath = itemPath === "/" ? "/docs" : `/docs${itemPath}`
                     const active =
-                      pathname === item.href ||
-                      (item.href !== "/api-docs" && pathname.startsWith(item.href.split("#")[0]))
+                      pathname === itemPath ||
+                      pathname === internalPath ||
+                      (itemPath !== "/" && pathname.startsWith(itemPath.split("#")[0])) ||
+                      (itemPath !== "/" && pathname.startsWith(internalPath.split("#")[0]))
                     return (
                       <li key={item.href}>
                         <Link

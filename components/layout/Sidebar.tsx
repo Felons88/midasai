@@ -88,7 +88,7 @@ const navSections = [
       { href: "/developers/usage", label: "Usage Analytics", icon: BarChart3 },
       { href: "/developers/playground", label: "API Playground", icon: Code },
       { href: "/developers/logs", label: "Logs", icon: Activity },
-      { href: "/api-docs", label: "Documentation", icon: FileTextIcon },
+      { href: "/docs", label: "Documentation", icon: FileTextIcon },
       { href: "/developers/settings", label: "Settings", icon: SettingsIcon },
     ],
   },

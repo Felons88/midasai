@@ -4,11 +4,11 @@ import Link from "next/link"
 
 export default function DocsPage() {
   const sections = [
-    { icon: Book, title: "Getting Started", description: "Quick start guide for new users", href: "/api-docs/getting-started" },
-    { icon: Code, title: "API Reference", description: "Complete API documentation", href: "/api-docs/reference" },
-    { icon: Zap, title: "Integration Guides", description: "Connect with your tools", href: "/api-docs/webhooks" },
+    { icon: Book, title: "API Documentation", description: "Complete API reference and guides", href: "api" },
+    { icon: Code, title: "Getting Started", description: "Quick start guide for new users", href: "api/getting-started" },
+    { icon: Zap, title: "Integration Guides", description: "Connect with your tools", href: "api/webhooks" },
     { icon: Users, title: "Creator Guide", description: "Publish your own tools", href: "/creator/dashboard" },
-    { icon: Shield, title: "Security", description: "Security best practices", href: "/api-docs/authentication" },
+    { icon: Shield, title: "Security", description: "Security best practices", href: "api/authentication" },
     { icon: Settings, title: "Configuration", description: "Setup and configuration", href: "/account/settings" },
   ]
 

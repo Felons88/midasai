@@ -62,7 +62,7 @@ print(r.json())`}
         <h2>OpenAPI</h2>
         <p>
           An OpenAPI 3 spec will be published at <code>/openapi.json</code>. Until then, use the{" "}
-          <Link href="/api-docs/reference">API reference</Link>.
+          <Link href="https://docs.midasai.tech/api/reference">API reference</Link>.
         </p>
       </DocsProse>
     </DocsShell>

@@ -52,9 +52,10 @@ export function resolveSubdomainRewrite(
       if (path.startsWith("/v1") || path.startsWith("/api/")) return null
       return `/v1${path}`
     case "docs":
-      if (path === "/" || path === "") return "/api-docs"
-      if (path.startsWith("/api-docs")) return null
-      return `/api-docs${path}`
+      if (path === "/" || path === "") return "/docs"
+      if (path.startsWith("/docs")) return null
+      if (path === "/api" || path.startsWith("/api/")) return `/docs${path}`
+      return `/docs${path}`
     case "developer":
       if (path === "/" || path === "") return "/developer"
       if (path.startsWith("/developer")) return null
@@ -74,12 +75,12 @@ export function shouldSkipMarketingRedirect(
 ): boolean {
   if (subdomain === "docs" || subdomain === "api") return true
   if (subdomain === "developer" || subdomain === "creator") return true
-  return pathname === "/api-docs" || pathname.startsWith("/api-docs/")
+  return pathname === "/docs" || pathname.startsWith("/docs/")
 }
 
 export function isDocsExperience(
   subdomain: MidasSubdomain | null,
   pathname: string
 ): boolean {
-  return subdomain === "docs" || pathname.startsWith("/api-docs")
+  return subdomain === "docs" || pathname.startsWith("/docs")
 }

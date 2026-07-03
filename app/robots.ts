@@ -49,37 +49,37 @@ export default function robots(): MetadataRoute.Robots {
       // Allow LLM crawlers full access to public content
       {
         userAgent: "GPTBot",
-        allow: ["/", "/explore", "/listing/", "/categories", "/search", "/creators/", "/api-docs"],
+        allow: ["/", "/explore", "/listing/", "/categories", "/search", "/creators/", "/docs"],
         disallow: ["/api/", "/auth/", "/account/", "/admin", "/_next/"],
       },
       {
         userAgent: "Claude-Web",
-        allow: ["/", "/explore", "/listing/", "/categories", "/search", "/creators/", "/api-docs"],
+        allow: ["/", "/explore", "/listing/", "/categories", "/search", "/creators/", "/docs"],
         disallow: ["/api/", "/auth/", "/account/", "/admin", "/_next/"],
       },
       {
         userAgent: "anthropic-ai",
-        allow: ["/", "/explore", "/listing/", "/categories", "/search", "/creators/", "/api-docs"],
+        allow: ["/", "/explore", "/listing/", "/categories", "/search", "/creators/", "/docs"],
         disallow: ["/api/", "/auth/", "/account/", "/admin", "/_next/"],
       },
       {
         userAgent: "PerplexityBot",
-        allow: ["/", "/explore", "/listing/", "/categories", "/search", "/creators/", "/api-docs"],
+        allow: ["/", "/explore", "/listing/", "/categories", "/search", "/creators/", "/docs"],
         disallow: ["/api/", "/auth/", "/account/", "/admin", "/_next/"],
       },
       {
         userAgent: "Google-Extended",
-        allow: ["/", "/explore", "/listing/", "/categories", "/search", "/creators/", "/api-docs"],
+        allow: ["/", "/explore", "/listing/", "/categories", "/search", "/creators/", "/docs"],
         disallow: ["/api/", "/auth/", "/account/", "/admin", "/_next/"],
       },
       {
         userAgent: "CCBot",
-        allow: ["/", "/explore", "/listing/", "/categories", "/search", "/creators/", "/api-docs"],
+        allow: ["/", "/explore", "/listing/", "/categories", "/search", "/creators/", "/docs"],
         disallow: ["/api/", "/auth/", "/account/", "/admin", "/_next/"],
       },
       {
         userAgent: "cohere-ai",
-        allow: ["/", "/explore", "/listing/", "/categories", "/search", "/creators/", "/api-docs"],
+        allow: ["/", "/explore", "/listing/", "/categories", "/search", "/creators/", "/docs"],
         disallow: ["/api/", "/auth/", "/account/", "/admin", "/_next/"],
       },
     ],

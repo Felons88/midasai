@@ -31,34 +31,20 @@ const apiSections = [
     icon: BookOpen,
     color: "blue",
     items: [
-      { title: "Authentication", href: "/docs/api/authentication", description: "API key authentication and OAuth flows" },
-      { title: "Rate Limits", href: "/docs/api/rate-limits", description: "Understanding rate limits and quotas" },
-      { title: "Error Handling", href: "/docs/api/errors", description: "Common error codes and responses" },
-      { title: "SDKs & Libraries", href: "/docs/api/sdks", description: "Official SDKs for popular languages" },
+      { title: "Authentication", href: "https://docs.midasai.tech/api/authentication", description: "API key authentication and OAuth flows" },
+      { title: "Rate Limits", href: "https://docs.midasai.tech/api/rate-limits", description: "Understanding rate limits and quotas" },
+      { title: "Error Handling", href: "https://docs.midasai.tech/api/errors", description: "Common error codes and responses" },
+      { title: "Quickstart", href: "https://docs.midasai.tech/api/getting-started", description: "Make your first API call in minutes" },
     ]
   },
   {
-    title: "Core APIs",
-    description: "Primary REST APIs for platform functionality",
+    title: "Guides",
+    description: "Common integration patterns and tools",
     icon: Code,
     color: "green",
     items: [
-      { title: "Skills API", href: "/docs/api/skills", description: "Browse and manage AI skills" },
-      { title: "Marketplace API", href: "/docs/api/marketplace", description: "Access marketplace listings and transactions" },
-      { title: "Users API", href: "/docs/api/users", description: "User management and profiles" },
-      { title: "Analytics API", href: "/docs/api/analytics", description: "Usage analytics and metrics" },
-    ]
-  },
-  {
-    title: "Developer Tools",
-    description: "Tools and services for developers",
-    icon: Zap,
-    color: "amber",
-    items: [
-      { title: "API Keys", href: "/docs/api/keys", description: "Create and manage API keys" },
-      { title: "Webhooks", href: "/docs/api/webhooks", description: "Configure real-time event notifications" },
-      { title: "OAuth Apps", href: "/docs/api/oauth", description: "Build OAuth applications" },
-      { title: "Integrations", href: "/docs/api/integrations", description: "Connect MidasAI with your stack" },
+      { title: "Webhooks", href: "https://docs.midasai.tech/api/webhooks", description: "Configure real-time event notifications" },
+      { title: "SDKs & Libraries", href: "https://docs.midasai.tech/api/sdks", description: "Official SDKs and code examples" },
     ]
   },
   {
@@ -67,10 +53,7 @@ const apiSections = [
     icon: FileText,
     color: "purple",
     items: [
-      { title: "API Reference", href: "/docs/api/reference", description: "Complete endpoint documentation" },
-      { title: "OpenAPI Spec", href: "/docs/api/openapi", description: "Downloadable OpenAPI specification" },
-      { title: "Code Examples", href: "/docs/api/examples", description: "Ready-to-use code samples" },
-      { title: "Changelog", href: "/docs/api/changelog", description: "API updates and changes" },
+      { title: "API Reference", href: "https://docs.midasai.tech/api/reference", description: "Complete endpoint documentation" },
     ]
   }
 ]
@@ -229,7 +212,7 @@ console.log(skills);`}</code>
                 Go to Developer Portal
               </Button>
             </Link>
-            <Link href="/api-docs">
+            <Link href="https://docs.midasai.tech/api">
               <Button variant="outline" size="lg" className="border-white/20 text-white hover:bg-white/10">
                 <FileText className="h-4 w-4 mr-2" />
                 View Full Reference

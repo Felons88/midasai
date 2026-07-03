@@ -63,7 +63,7 @@ export default function ReferencePage() {
         />
         <p>
           Errors return <code>{`{ "error": "message" }`}</code> with an appropriate HTTP status code. See{" "}
-          <a href="/api-docs/errors">errors</a>.
+          <a href="https://docs.midasai.tech/api/errors">errors</a>.
         </p>
       </DocsProse>
     </DocsShell>

@@ -32,7 +32,7 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: "/pricing", changeFrequency: "monthly", priority: 0.5 },
   { url: "/contact", changeFrequency: "monthly", priority: 0.4 },
   { url: "/docs", changeFrequency: "weekly", priority: 0.6 },
-  { url: "/api-docs", changeFrequency: "weekly", priority: 0.7 },
+  { url: "/docs/api", changeFrequency: "weekly", priority: 0.7 },
   { url: "/blog", changeFrequency: "weekly", priority: 0.6 },
 ]
 
@@ -52,7 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   const apiDocsMirror: MetadataRoute.Sitemap = DOCS_PAGES.map((path) => ({
-    url: `${baseUrl}/api-docs${path}`,
+    url: `${baseUrl}/docs/api${path}`,
     changeFrequency: "weekly" as const,
     priority: 0.5,
   }))

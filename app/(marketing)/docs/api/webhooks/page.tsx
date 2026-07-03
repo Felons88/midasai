@@ -29,7 +29,7 @@ export default function WebhooksPage() {
       <DocsProse>
         <p>
           Manage webhooks via the <Link href="/developer/webhooks">dashboard</Link> or the{" "}
-          <Link href="/api-docs/reference#webhooks">v1 API</Link>.
+          <Link href="https://docs.midasai.tech/api/reference#webhooks">v1 API</Link>.
         </p>
       </DocsProse>
 

@@ -68,7 +68,7 @@ export function AuthenticatedNavbar({
                 <Link href="/architect" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
                   Architect
                 </Link>
-                <Link href="/api-docs" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
+                <Link href="/docs" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-smooth">
                   API Docs
                 </Link>
               </div>
