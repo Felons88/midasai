@@ -23,11 +23,17 @@ export function getDocsUrl(): string {
 }
 
 export function getSiteUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "") ||
-    process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "") ||
-    PRODUCTION_SITE_URL
-  )
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "")
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "")
+  
+  // Filter out template strings like {{NEXT_PUBLIC_APP_URL}}
+  const isTemplate = (url: string) => url.startsWith("{{") && url.endsWith("}}")
+  
+  if (appUrl && !isTemplate(appUrl)) return appUrl
+  if (siteUrl && !isTemplate(siteUrl)) return siteUrl
+  
+  // Default to localhost for development
+  return "http://localhost:3000"
 }
 
 export function getAuthLoginUrl(redirectTarget = "/explore"): string {
