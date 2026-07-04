@@ -1,9 +1,11 @@
 {
   "name": "@midasai/bridge",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Connect your local IDE to MidasAI Nexus canvas",
   "main": "bin/midas-bridge.js",
-  "bin": "bin/midas-bridge.js",
+  "bin": {
+    "bridge": "bin/midas-bridge.js"
+  },
   "files": [
     "bin/",
     "README.md"
