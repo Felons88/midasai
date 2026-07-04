@@ -1115,7 +1115,7 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
 
           {/* Minimap */}
           {showMinimap && (
-            <CanvasMinimap nodes={nodes} pan={pan} zoom={zoom} canvasRef={canvasRef} />
+            <CanvasMinimap nodes={nodes} edges={edges} pan={pan} zoom={zoom} canvasRef={canvasRef} onPan={setPan} />
           )}
 
           {/* Node count badge */}
@@ -1474,67 +1474,160 @@ function KeyboardShortcutsModal({ onClose }: { onClose: () => void }) {
 }
 
 // ─── Canvas Minimap ───────────────────────────────────────────────────────────
-const MINIMAP_W = 160
-const MINIMAP_H = 100
-const MINIMAP_PADDING = 20
+const MM_W = 200
+const MM_H = 140
+const MM_PAD = 32
 
-function CanvasMinimap({ nodes, pan, zoom, canvasRef }: {
+function CanvasMinimap({ nodes, edges, pan, zoom, canvasRef, onPan }: {
   nodes: CanvasNode[]
+  edges: WorkflowEdge[]
   pan: { x: number; y: number }
   zoom: number
   canvasRef: React.RefObject<HTMLDivElement | null>
+  onPan: (pan: { x: number; y: number }) => void
 }) {
-  if (nodes.length === 0) return null
+  const mmRef = useRef<SVGSVGElement>(null)
 
-  const xs = nodes.map(n => n.position.x)
-  const ys = nodes.map(n => n.position.y)
-  const minX = Math.min(...xs) - MINIMAP_PADDING
-  const minY = Math.min(...ys) - MINIMAP_PADDING
-  const maxX = Math.max(...xs) + NODE_WIDTH + MINIMAP_PADDING
-  const maxY = Math.max(...ys) + 80 + MINIMAP_PADDING
-  const contentW = maxX - minX
-  const contentH = maxY - minY
-  const scaleX = MINIMAP_W / contentW
-  const scaleY = MINIMAP_H / contentH
-  const scale = Math.min(scaleX, scaleY)
+  // World bounds — fallback to a default region when no nodes
+  const allX = nodes.length ? nodes.map(n => n.position.x) : [0]
+  const allY = nodes.length ? nodes.map(n => n.position.y) : [0]
+  const worldMinX = Math.min(...allX) - MM_PAD
+  const worldMinY = Math.min(...allY) - MM_PAD
+  const worldMaxX = Math.max(...allX) + NODE_WIDTH + MM_PAD
+  const worldMaxY = Math.max(...allY) + 100 + MM_PAD
+  const worldW = Math.max(worldMaxX - worldMinX, 400)
+  const worldH = Math.max(worldMaxY - worldMinY, 300)
 
+  // Scale to fit minimap
+  const scaleX = MM_W / worldW
+  const scaleY = MM_H / worldH
+  const scale = Math.min(scaleX, scaleY, 0.18) // cap so tiny canvases don't over-scale
+
+  // Offset to center content in minimap
+  const renderedW = worldW * scale
+  const renderedH = worldH * scale
+  const offsetX = (MM_W - renderedW) / 2
+  const offsetY = (MM_H - renderedH) / 2
+
+  const toMM = (wx: number, wy: number) => ({
+    x: offsetX + (wx - worldMinX) * scale,
+    y: offsetY + (wy - worldMinY) * scale,
+  })
+
+  // Viewport rect in minimap coords
   const canvasW = canvasRef.current?.clientWidth ?? 1200
   const canvasH = canvasRef.current?.clientHeight ?? 800
+  const vpWorldX = -pan.x / zoom
+  const vpWorldY = -pan.y / zoom
+  const vpWorldW = canvasW / zoom
+  const vpWorldH = canvasH / zoom
+  const vp = toMM(vpWorldX, vpWorldY)
+  const vpW = vpWorldW * scale
+  const vpH = vpWorldH * scale
 
-  // Viewport rect in world coords
-  const vpX = (-pan.x / zoom - minX) * scale
-  const vpY = (-pan.y / zoom - minY) * scale
-  const vpW = (canvasW / zoom) * scale
-  const vpH = (canvasH / zoom) * scale
+  // Click-to-pan: clicking minimap pans canvas to that world position
+  const handleClick = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
+    const rect = mmRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const mx = e.clientX - rect.left
+    const my = e.clientY - rect.top
+    // Convert minimap px → world coords
+    const wx = (mx - offsetX) / scale + worldMinX
+    const wy = (my - offsetY) / scale + worldMinY
+    // Center viewport on that world point
+    const cw = canvasRef.current?.clientWidth ?? 1200
+    const ch = canvasRef.current?.clientHeight ?? 800
+    onPan({ x: -(wx * zoom - cw / 2), y: -(wy * zoom - ch / 2) })
+  }, [offsetX, offsetY, scale, worldMinX, worldMinY, zoom, canvasRef, onPan])
 
   return (
     <div
-      className="absolute bottom-4 right-4 z-10 rounded-xl border border-white/[0.08] bg-[#0a0a14]/90 backdrop-blur-sm overflow-hidden"
-      style={{ width: MINIMAP_W, height: MINIMAP_H }}
+      className="absolute bottom-14 right-3 z-10 select-none"
+      style={{ width: MM_W + 2, filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.5))" }}
     >
-      <svg width={MINIMAP_W} height={MINIMAP_H}>
-        {/* Nodes */}
-        {nodes.map(n => {
-          const nx = (n.position.x - minX) * scale
-          const ny = (n.position.y - minY) * scale
-          const nw = NODE_WIDTH * scale
-          const nh = Math.max(4, 30 * scale)
-          const color = n.status === "running" ? "#f59e0b"
-            : n.status === "success" ? "#10b981"
-            : n.status === "error" ? "#ef4444"
-            : "#6d28d9"
-          return (
-            <rect key={n.id} x={nx} y={ny} width={nw} height={nh}
-              rx={2} fill={color} fillOpacity={0.35} stroke={color} strokeOpacity={0.5} strokeWidth={0.5}
-            />
-          )
-        })}
-        {/* Viewport rect */}
-        <rect x={vpX} y={vpY} width={Math.min(vpW, MINIMAP_W)} height={Math.min(vpH, MINIMAP_H)}
-          rx={2} fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.25)" strokeWidth={1}
-        />
-      </svg>
-      <div className="absolute bottom-1 right-1.5 text-[8px] text-white/20">map</div>
+      {/* Header bar — Supabase-style */}
+      <div className="flex items-center justify-between px-2.5 py-1 rounded-t-xl bg-[#111118] border border-b-0 border-white/[0.08]">
+        <span className="text-[9px] font-semibold text-white/30 tracking-widest uppercase">Minimap</span>
+        <span className="text-[9px] text-white/20">{nodes.length} nodes</span>
+      </div>
+
+      {/* Map body */}
+      <div className="rounded-b-xl overflow-hidden border border-white/[0.08] bg-[#0d0d1a]">
+        <svg
+          ref={mmRef}
+          width={MM_W}
+          height={MM_H}
+          className="cursor-crosshair block"
+          onClick={handleClick}
+        >
+          {/* Subtle grid */}
+          <defs>
+            <pattern id="mm-grid" width={10 * scale} height={10 * scale} patternUnits="userSpaceOnUse"
+              patternTransform={`translate(${offsetX % (10 * scale)},${offsetY % (10 * scale)})`}>
+              <path d={`M ${10 * scale} 0 L 0 0 0 ${10 * scale}`} fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth={0.5} />
+            </pattern>
+          </defs>
+          <rect width={MM_W} height={MM_H} fill="url(#mm-grid)" />
+
+          {/* Edges */}
+          {edges.map(edge => {
+            const src = nodes.find(n => n.id === edge.sourceNodeId)
+            const tgt = nodes.find(n => n.id === edge.targetNodeId)
+            if (!src || !tgt) return null
+            const s = toMM(src.position.x + NODE_WIDTH, src.position.y + 20)
+            const t = toMM(tgt.position.x, tgt.position.y + 20)
+            return (
+              <line key={edge.id}
+                x1={s.x} y1={s.y} x2={t.x} y2={t.y}
+                stroke="rgba(139,92,246,0.2)" strokeWidth={0.8}
+              />
+            )
+          })}
+
+          {/* Node blocks */}
+          {nodes.map(n => {
+            const { x, y } = toMM(n.position.x, n.position.y)
+            const nw = Math.max(NODE_WIDTH * scale, 6)
+            const nh = Math.max(5, 80 * scale)
+            const color = n.status === "running" ? "#f59e0b"
+              : n.status === "success" ? "#10b981"
+              : n.status === "error" ? "#ef4444"
+              : "#7c3aed"
+            return (
+              <g key={n.id}>
+                {/* Shadow */}
+                <rect x={x + 0.5} y={y + 0.5} width={nw} height={nh} rx={1.5}
+                  fill="rgba(0,0,0,0.4)" />
+                {/* Body */}
+                <rect x={x} y={y} width={nw} height={nh} rx={1.5}
+                  fill={color} fillOpacity={0.18}
+                  stroke={color} strokeOpacity={0.6} strokeWidth={0.75}
+                />
+                {/* Top accent line */}
+                <rect x={x} y={y} width={nw} height={Math.max(1.5, nh * 0.12)} rx={1.5}
+                  fill={color} fillOpacity={0.7}
+                />
+              </g>
+            )
+          })}
+
+          {/* Viewport rect */}
+          <rect
+            x={vp.x} y={vp.y}
+            width={Math.max(vpW, 4)} height={Math.max(vpH, 4)}
+            rx={2}
+            fill="rgba(139,92,246,0.07)"
+            stroke="rgba(139,92,246,0.5)"
+            strokeWidth={1}
+          />
+        </svg>
+
+        {/* Zoom label */}
+        <div className="flex items-center justify-between px-2.5 py-0.5 bg-[#111118] border-t border-white/[0.04]">
+          <span className="text-[8px] text-white/20 font-mono">{Math.round(zoom * 100)}%</span>
+          <span className="text-[8px] text-white/15">click to pan</span>
+        </div>
+      </div>
     </div>
   )
 }
