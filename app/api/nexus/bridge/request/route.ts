@@ -7,6 +7,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { randomBytes } from "crypto"
+import { getSiteUrl } from "@/lib/site-url"
 
 export async function POST(request: Request) {
   try {
@@ -47,8 +48,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to create auth request" }, { status: 500 })
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-    const authUrl = `${baseUrl}/nexus/bridge/authorize/${token}`
+    const siteUrl = getSiteUrl()
+    const authUrl = `${siteUrl}/nexus/bridge/authorize/${token}`
 
     return NextResponse.json({ token, authUrl, id: data.id })
   } catch (e) {
