@@ -8,9 +8,11 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { getNodeById, type NodeDefinition, type NodePort } from "@/lib/nexus/node-registry"
+import { getIntegration, CREDENTIAL_TO_INTEGRATION } from "@/lib/nexus/integration-registry"
 import { BrandIcon } from "./BrandIcon"
 import { NodeSidebar } from "./NodeSidebar"
 import { NodeConfigPanel, type NodeConfigValues, type ValidationState } from "./NodeConfigPanel"
+import { NodeAuthPopup, getMissingIntegrations } from "./NodeAuthPopup"
 import type { NexusWorkflow, WorkflowDefinition } from "@/lib/nexus/types"
 
 // Canvas node instance
@@ -199,6 +201,14 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle")
   const [execError, setExecError] = useState<string | null>(null)
   const [showDeploy, setShowDeploy] = useState(false)
+  // Pending auth popup — queued node awaiting connection
+  const [pendingAuth, setPendingAuth] = useState<{
+    def: NodeDefinition
+    pos: { x: number; y: number }
+    screenX: number
+    screenY: number
+    integrationId: string
+  } | null>(null)
   // Undo/redo
   const history = useRef<HistoryEntry[]>([])
   const historyIdx = useRef(-1)
@@ -281,8 +291,8 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
     return () => window.removeEventListener("keydown", handler)
   }, [selectedNodeId, nodes, edges])
 
-  // ─── Add node ────────────────────────────────────────────────────────────────
-  const addNodeFromDef = useCallback((def: NodeDefinition, pos?: { x: number; y: number }) => {
+  // ─── Add node (internal — no auth check) ───────────────────────────────────
+  const placeNode = useCallback((def: NodeDefinition, pos?: { x: number; y: number }) => {
     const centerX = (-pan.x + (canvasRef.current?.clientWidth ?? 800) / 2) / zoom
     const centerY = (-pan.y + (canvasRef.current?.clientHeight ?? 600) / 2) / zoom
     const position = pos ?? { x: snapToGrid(centerX - 100), y: snapToGrid(centerY - 40) }
@@ -303,7 +313,30 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
     setSelectedNodeId(newNode.id)
   }, [pan, zoom, edges, pushHistory])
 
-  const handleSidebarAdd = useCallback((def: NodeDefinition) => addNodeFromDef(def), [addNodeFromDef])
+  // ─── Add node — with auth check ───────────────────────────────────────────
+  const addNodeFromDef = useCallback(async (def: NodeDefinition, pos?: { x: number; y: number }, screenPos?: { x: number; y: number }) => {
+    const creds = def.credentials ?? []
+    if (creds.length > 0) {
+      const missing = await getMissingIntegrations(creds)
+      if (missing.length > 0) {
+        const integrationId = CREDENTIAL_TO_INTEGRATION[missing[0]] ?? missing[0]
+        const integration = getIntegration(integrationId)
+        if (integration) {
+          const centerX = (-pan.x + (canvasRef.current?.clientWidth ?? 800) / 2) / zoom
+          const centerY = (-pan.y + (canvasRef.current?.clientHeight ?? 600) / 2) / zoom
+          const position = pos ?? { x: snapToGrid(centerX - 100), y: snapToGrid(centerY - 40) }
+          const rect = canvasRef.current?.getBoundingClientRect()
+          const sx = screenPos?.x ?? (rect ? rect.left + rect.width / 2 : window.innerWidth / 2)
+          const sy = screenPos?.y ?? (rect ? rect.top + rect.height / 2 : window.innerHeight / 2)
+          setPendingAuth({ def, pos: position, screenX: sx, screenY: sy, integrationId })
+          return
+        }
+      }
+    }
+    placeNode(def, pos)
+  }, [pan, zoom, placeNode])
+
+  const handleSidebarAdd = useCallback((def: NodeDefinition) => { addNodeFromDef(def) }, [addNodeFromDef])
 
   const handleSidebarDragStart = useCallback((def: NodeDefinition, e: React.DragEvent) => {
     e.dataTransfer.setData("nodeId", def.id)
@@ -320,7 +353,7 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
     if (!rect) return
     const x = snapToGrid((e.clientX - rect.left - pan.x) / zoom)
     const y = snapToGrid((e.clientY - rect.top - pan.y) / zoom)
-    addNodeFromDef(def, { x, y })
+    addNodeFromDef(def, { x, y }, { x: e.clientX, y: e.clientY })
   }, [pan, zoom, addNodeFromDef])
 
   // ─── Delete ──────────────────────────────────────────────────────────────────
@@ -583,6 +616,24 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
       {showDeploy && (
         <DeployAnimationModal workflowName={workflow.name} onClose={() => setShowDeploy(false)} />
       )}
+
+      {/* ─── Node auth popup ─────────────────────────────────────────────────── */}
+      {pendingAuth && (() => {
+        const integration = getIntegration(pendingAuth.integrationId)
+        if (!integration) return null
+        return (
+          <NodeAuthPopup
+            screenX={pendingAuth.screenX}
+            screenY={pendingAuth.screenY}
+            integration={integration}
+            onComplete={() => {
+              placeNode(pendingAuth.def, pendingAuth.pos)
+              setPendingAuth(null)
+            }}
+            onCancel={() => setPendingAuth(null)}
+          />
+        )
+      })()}
 
       {/* ─── Body ─────────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">

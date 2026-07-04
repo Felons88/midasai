@@ -635,7 +635,7 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#5865f2",
     inputs: [D("trigger", "Trigger", "trigger"), D("message", "Message", "string")],
     outputs: [D("message_id", "Message ID", "string")],
-    credentials: ["discord"],
+    credentials: ["discord_bot"],
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "send_message", options: [
         { label: "Send Message", value: "send_message" },
@@ -1966,6 +1966,197 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     ],
     executor: "railway",
     tags: ["railway", "deploy", "hosting"],
+  },
+
+
+  // ─── Telegram ──────────────────────────────────────────────────────────────────────────
+
+  {
+    id: "comm.telegram",
+    name: "Telegram",
+    description: "Send and receive Telegram messages via Bot API.",
+    category: "communication",
+    icon: "telegram",
+    color: "#2ca5e0",
+    inputs: [D("trigger", "Trigger", "trigger"), D("text_in", "Text", "string")],
+    outputs: [D("message_id", "Message ID", "number"), D("result", "Result", "object")],
+    credentials: ["telegram"],
+    fields: [
+      { key: "operation", label: "Operation", type: "select", required: true, default: "send_message", options: [
+        { label: "Send Message", value: "send_message" },
+        { label: "Send Photo", value: "send_photo" },
+        { label: "Send Document", value: "send_document" },
+        { label: "Send Inline Keyboard", value: "send_keyboard" },
+        { label: "Edit Message", value: "edit_message" },
+        { label: "Delete Message", value: "delete_message" },
+        { label: "Get Updates", value: "get_updates" },
+        { label: "Answer Callback Query", value: "answer_callback" },
+      ]},
+      { key: "chat_id", label: "Chat ID", type: "string", required: true, placeholder: "@channel or 123456789" },
+      { key: "text", label: "Message Text", type: "textarea", placeholder: "Hello {{$input.name}}!" },
+      { key: "parse_mode", label: "Parse Mode", type: "select", default: "HTML", options: [{ label: "HTML", value: "HTML" }, { label: "Markdown", value: "Markdown" }, { label: "Plain", value: "" }] },
+      { key: "photo_url", label: "Photo URL", type: "string", showIf: { operation: ["send_photo"] } },
+      { key: "document_url", label: "Document URL", type: "string", showIf: { operation: ["send_document"] } },
+      { key: "keyboard", label: "Inline Keyboard (JSON)", type: "json", showIf: { operation: ["send_keyboard"] }, placeholder: '[[{"text": "Yes", "callback_data": "yes"}]]' },
+      { key: "message_id", label: "Message ID", type: "string", showIf: { operation: ["edit_message", "delete_message"] } },
+      { key: "disable_preview", label: "Disable Link Preview", type: "boolean", default: false, group: "Advanced" },
+    ],
+    executor: "telegram",
+    tags: ["telegram", "bot", "message", "notification"],
+  },
+
+  // ─── Supabase ───────────────────────────────────────────────────────────────────────
+
+  {
+    id: "db.supabase",
+    name: "Supabase",
+    description: "Query Supabase tables, auth, storage, and realtime from your own project.",
+    category: "database",
+    icon: "supabase",
+    color: "#3ecf8e",
+    inputs: [D("trigger", "Trigger", "trigger"), D("data_in", "Data", "any")],
+    outputs: [D("data", "Data", "any"), D("count", "Count", "number"), D("error", "Error", "string")],
+    credentials: ["supabase"],
+    fields: [
+      { key: "operation", label: "Operation", type: "select", required: true, default: "select", options: [
+        { label: "Select Rows", value: "select" },
+        { label: "Insert Row", value: "insert" },
+        { label: "Update Rows", value: "update" },
+        { label: "Delete Rows", value: "delete" },
+        { label: "Upsert", value: "upsert" },
+        { label: "RPC (Function Call)", value: "rpc" },
+        { label: "Upload File (Storage)", value: "storage_upload" },
+        { label: "Get File URL (Storage)", value: "storage_url" },
+        { label: "Create User (Auth)", value: "auth_create_user" },
+        { label: "List Users (Auth)", value: "auth_list_users" },
+      ]},
+      { key: "table", label: "Table Name", type: "string", placeholder: "profiles", showIf: { operation: ["select", "insert", "update", "delete", "upsert"] } },
+      { key: "columns", label: "Columns", type: "string", default: "*", placeholder: "id, name, email", showIf: { operation: ["select"] } },
+      { key: "filter", label: "Filter (JSON)", type: "json", placeholder: '{"id": {"eq": "{{$input.id}}"}  }', showIf: { operation: ["select", "update", "delete"] } },
+      { key: "data", label: "Row Data (JSON)", type: "json", showIf: { operation: ["insert", "update", "upsert"] } },
+      { key: "rpc_function", label: "Function Name", type: "string", showIf: { operation: ["rpc"] } },
+      { key: "rpc_params", label: "Function Params (JSON)", type: "json", showIf: { operation: ["rpc"] } },
+      { key: "bucket", label: "Storage Bucket", type: "string", showIf: { operation: ["storage_upload", "storage_url"] } },
+      { key: "path", label: "File Path", type: "string", showIf: { operation: ["storage_upload", "storage_url"] } },
+      { key: "limit", label: "Limit", type: "number", default: 100, group: "Advanced", showIf: { operation: ["select"] } },
+      { key: "order_by", label: "Order By", type: "string", group: "Advanced", showIf: { operation: ["select"] } },
+    ],
+    executor: "supabase_query",
+    tags: ["supabase", "database", "postgres", "sql", "storage"],
+  },
+
+  // ─── WhatsApp ───────────────────────────────────────────────────────────────────
+
+  {
+    id: "comm.whatsapp",
+    name: "WhatsApp",
+    description: "Send WhatsApp messages via Twilio or Meta Cloud API.",
+    category: "communication",
+    icon: "whatsapp",
+    color: "#25d366",
+    inputs: [D("trigger", "Trigger", "trigger"), D("text_in", "Text", "string")],
+    outputs: [D("message_id", "Message ID", "string"), D("success", "Success", "boolean")],
+    credentials: ["twilio"],
+    fields: [
+      { key: "provider", label: "Provider", type: "select", required: true, default: "twilio", options: [{ label: "Twilio", value: "twilio" }, { label: "Meta Cloud API", value: "meta" }] },
+      { key: "to", label: "To Number", type: "string", required: true, placeholder: "+1234567890" },
+      { key: "body", label: "Message Body", type: "textarea", required: true, placeholder: "Hello {{$input.name}}!" },
+      { key: "media_url", label: "Media URL (optional)", type: "string", group: "Advanced" },
+    ],
+    executor: "whatsapp",
+    tags: ["whatsapp", "sms", "message", "twilio"],
+  },
+
+  // ─── GitHub Actions / CI ────────────────────────────────────────────────────────
+
+  {
+    id: "devops.github_actions",
+    name: "GitHub Actions",
+    description: "Trigger workflow dispatches and check run statuses on GitHub.",
+    category: "devops",
+    icon: "github",
+    color: "#ffffff",
+    inputs: [D("trigger", "Trigger", "trigger")],
+    outputs: [D("run", "Run", "object"), D("run_id", "Run ID", "number"), D("status", "Status", "string")],
+    credentials: ["github"],
+    fields: [
+      { key: "operation", label: "Operation", type: "select", required: true, default: "trigger_dispatch", options: [
+        { label: "Trigger Workflow Dispatch", value: "trigger_dispatch" },
+        { label: "Get Workflow Run", value: "get_run" },
+        { label: "List Workflow Runs", value: "list_runs" },
+        { label: "Cancel Run", value: "cancel_run" },
+      ]},
+      { key: "owner", label: "Owner", type: "string", required: true, placeholder: "myorg" },
+      { key: "repo", label: "Repository", type: "string", required: true, placeholder: "my-repo" },
+      { key: "workflow_id", label: "Workflow File", type: "string", placeholder: "deploy.yml", showIf: { operation: ["trigger_dispatch", "list_runs"] } },
+      { key: "ref", label: "Branch / Tag", type: "string", default: "main", showIf: { operation: ["trigger_dispatch"] } },
+      { key: "inputs", label: "Workflow Inputs (JSON)", type: "json", showIf: { operation: ["trigger_dispatch"] } },
+      { key: "run_id", label: "Run ID", type: "string", showIf: { operation: ["get_run", "cancel_run"] } },
+    ],
+    executor: "github_actions",
+    tags: ["github", "ci", "actions", "devops"],
+  },
+
+  // ─── Google Sheets ───────────────────────────────────────────────────────────
+
+  {
+    id: "data.google_sheets",
+    name: "Google Sheets",
+    description: "Read and write data in Google Sheets spreadsheets.",
+    category: "data",
+    icon: "google",
+    color: "#0f9d58",
+    inputs: [D("trigger", "Trigger", "trigger"), D("rows_in", "Rows", "array")],
+    outputs: [D("rows", "Rows", "array"), D("count", "Count", "number")],
+    credentials: ["google"],
+    fields: [
+      { key: "operation", label: "Operation", type: "select", required: true, default: "read", options: [
+        { label: "Read Rows", value: "read" },
+        { label: "Append Rows", value: "append" },
+        { label: "Update Row", value: "update" },
+        { label: "Clear Range", value: "clear" },
+        { label: "Create Spreadsheet", value: "create" },
+      ]},
+      { key: "spreadsheet_id", label: "Spreadsheet ID", type: "string", required: true, placeholder: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" },
+      { key: "range", label: "Range", type: "string", default: "Sheet1", placeholder: "Sheet1!A1:Z" },
+      { key: "value_input", label: "Value Input Option", type: "select", default: "USER_ENTERED", options: [{ label: "User Entered", value: "USER_ENTERED" }, { label: "Raw", value: "RAW" }] },
+      { key: "row_data", label: "Row Data (JSON array)", type: "json", showIf: { operation: ["append", "update"] } },
+    ],
+    executor: "google_sheets",
+    tags: ["google", "sheets", "spreadsheet", "data"],
+  },
+
+  // ─── Gmail ────────────────────────────────────────────────────────────────────────
+
+  {
+    id: "comm.gmail",
+    name: "Gmail",
+    description: "Send and read Gmail emails via Google OAuth.",
+    category: "communication",
+    icon: "google",
+    color: "#ea4335",
+    inputs: [D("trigger", "Trigger", "trigger"), D("data_in", "Data", "object")],
+    outputs: [D("message_id", "Message ID", "string"), D("messages", "Messages", "array")],
+    credentials: ["google"],
+    fields: [
+      { key: "operation", label: "Operation", type: "select", required: true, default: "send", options: [
+        { label: "Send Email", value: "send" },
+        { label: "Read Inbox", value: "read_inbox" },
+        { label: "Search Emails", value: "search" },
+        { label: "Get Email", value: "get_email" },
+        { label: "Reply to Email", value: "reply" },
+        { label: "Move to Trash", value: "trash" },
+        { label: "Add Label", value: "add_label" },
+      ]},
+      { key: "to", label: "To", type: "string", placeholder: "user@example.com", showIf: { operation: ["send", "reply"] } },
+      { key: "subject", label: "Subject", type: "string", showIf: { operation: ["send", "reply"] } },
+      { key: "body", label: "Body (HTML or plain)", type: "textarea", showIf: { operation: ["send", "reply"] } },
+      { key: "query", label: "Search Query", type: "string", placeholder: "from:boss@company.com is:unread", showIf: { operation: ["search", "read_inbox"] } },
+      { key: "max_results", label: "Max Results", type: "number", default: 10, showIf: { operation: ["search", "read_inbox"] } },
+      { key: "message_id", label: "Message ID", type: "string", showIf: { operation: ["get_email", "reply", "trash", "add_label"] } },
+    ],
+    executor: "gmail",
+    tags: ["gmail", "email", "google", "inbox"],
   },
 
 ]
