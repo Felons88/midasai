@@ -43,7 +43,22 @@ export async function POST(request: Request) {
       case "execute_workflow":
         // Execute workflow and return results
         const { executeWorkflow } = await import("@/lib/nexus/executor")
-        const result = await executeWorkflow(commandData.workflow_id, commandData.input_data, device.user_id)
+        const { data: workflowData } = await supabase
+          .from("nexus_workflows")
+          .select("*")
+          .eq("id", commandData.workflow_id)
+          .single()
+        if (!workflowData) {
+          return NextResponse.json({ error: "Workflow not found" }, { status: 404 })
+        }
+        const result = await executeWorkflow(
+          workflowData.definition,
+          { id: workflowData.id, name: workflowData.name },
+          commandData.input_data,
+          undefined,
+          {},
+          device.id // Pass deviceId for bridge push
+        )
         return NextResponse.json({ success: true, result })
 
       case "create_workflow":

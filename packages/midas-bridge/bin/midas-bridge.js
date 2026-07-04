@@ -353,6 +353,32 @@ function startBridgeServer(port, ideName, deviceToken) {
       return
     }
 
+    // Push endpoint - MidasAI pushes events to IDEs
+    if (req.url === "/midas-bridge/push" && req.method === "POST") {
+      let body = ""
+      req.on("data", chunk => { body += chunk })
+      req.on("end", () => {
+        try {
+          const { event } = JSON.parse(body)
+          // Broadcast to all SSE clients
+          eventClients.forEach(client => {
+            try {
+              client.write(`data: ${JSON.stringify(event)}\n\n`)
+            } catch (err) {
+              // Client disconnected, remove from set
+              eventClients.delete(client)
+            }
+          })
+          res.writeHead(200, { "Content-Type": "application/json" })
+          res.end(JSON.stringify({ success: true, clients: eventClients.size }))
+        } catch (err) {
+          res.writeHead(400, { "Content-Type": "application/json" })
+          res.end(JSON.stringify({ error: err.message }))
+        }
+      })
+      return
+    }
+
     res.writeHead(404)
     res.end()
   })

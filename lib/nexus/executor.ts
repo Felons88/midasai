@@ -965,6 +965,35 @@ function getExecutor(executorKey: string): NodeExecutorFn {
   return NODE_EXECUTORS[executorKey] ?? NODE_EXECUTORS.default
 }
 
+// ─── Bridge push helper ─────────────────────────────────────────────────────────
+
+async function pushToBridge(deviceId: string, event: Record<string, unknown>): Promise<void> {
+  try {
+    const { createClient } = await import("@/lib/supabase/server")
+    const supabase = await createClient()
+
+    // Get device info
+    const { data: device } = await supabase
+      .from("bridge_devices")
+      .select("*")
+      .eq("id", deviceId)
+      .single()
+
+    if (!device) return
+
+    // Push to bridge server
+    const bridgeUrl = `http://localhost:${device.bridge_port}/midas-bridge/push`
+    await fetch(bridgeUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event }),
+    })
+  } catch (err) {
+    // Silently fail - bridge may not be running
+    console.error("Bridge push failed:", err)
+  }
+}
+
 // ─── Retry helper ─────────────────────────────────────────────────────────────
 
 async function withRetry<T>(fn: () => Promise<T>, retries: number, delayMs = 500): Promise<T> {
@@ -988,6 +1017,7 @@ export async function executeWorkflow(
   inputData: Record<string, unknown> = {},
   onProgress?: ProgressCallback,
   credentials: Record<string, string> = {},
+  deviceId?: string,
 ): Promise<ExecutionResult> {
   const startTime = Date.now()
   const nodeResults: NodeResult[] = []
@@ -1063,11 +1093,26 @@ export async function executeWorkflow(
   const totalDuration = Date.now() - startTime
   const hasErrors = nodeResults.some(r => r.status === "error")
 
-  return {
+  const result: ExecutionResult = {
     status: hasErrors ? "failed" : "completed",
     node_results: nodeResults,
     output: ctx.$node,
     duration_ms: totalDuration,
     error: hasErrors ? `${nodeResults.filter(r => r.status === "error").length} node(s) failed` : undefined,
   }
+
+  // Push result to connected IDE via bridge
+  if (deviceId) {
+    await pushToBridge(deviceId, {
+      type: "workflow_result",
+      execution_id: workflowMeta.id,
+      workflow_name: workflowMeta.name,
+      status: result.status,
+      node_results: result.node_results,
+      output: result.output,
+      duration_ms: result.duration_ms,
+    })
+  }
+
+  return result
 }
