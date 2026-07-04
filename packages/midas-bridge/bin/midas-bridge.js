@@ -24,7 +24,7 @@ const { createServer } = require("http")
 
 // ─── Config ────────────────────────────────────────────────────────────────
 const VERSION = "1.0.0"
-const MIDAS_API = process.env.MIDAS_API_URL || "http://localhost:3000"
+const MIDAS_API = process.env.MIDAS_API_URL || "https://midasai.tech"
 const CONFIG_DIR = join(os.homedir(), ".midas-bridge")
 const TOKEN_FILE = join(CONFIG_DIR, "token.json")
 const AUTH_FILE = join(CONFIG_DIR, "auth.json")
