@@ -2,7 +2,7 @@
 /**
  * midas-bridge — Connect your local IDE to MidasAI Nexus
  *
- * Usage: npx midas-bridge [--port <port>] [--host <host>]
+ * Usage: npx @midasai/bridge [--port <port>] [--host <host>]
  *
  * What this does:
  *  1. Detects which IDE is running (Windsurf, Cursor, VS Code)

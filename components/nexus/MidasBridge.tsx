@@ -22,24 +22,24 @@ const IDE_PORTS: Record<string, number> = {
 const IDE_SETUP: Record<string, { install: string; start: string; docs: string; note?: string }> = {
   "VS Code": {
     install: "code --install-extension midasai.midas-bridge",
-    start: "npx midas-bridge --port 40001",
+    start: "npx @midasai/bridge --port 40001",
     docs: "https://marketplace.visualstudio.com/items?itemName=midasai.midas-bridge",
   },
   "Cursor": {
     install: "cursor --install-extension midasai.midas-bridge",
-    start: "npx midas-bridge --port 40002",
+    start: "npx @midasai/bridge --port 40002",
     docs: "https://docs.midasai.com/bridge/cursor",
   },
   "Windsurf": {
     install: "windsurf --install-extension midasai.midas-bridge",
-    start: "npx midas-bridge --port 40003",
+    start: "npx @midasai/bridge --port 40003",
     docs: "https://docs.midasai.com/bridge/windsurf",
   },
   "Claude Code": {
-    install: "npx midas-bridge",
-    start: "npx midas-bridge --port 40004",
+    install: "npx @midasai/bridge",
+    start: "npx @midasai/bridge --port 40004",
     docs: "https://docs.midasai.com/bridge/claude-code",
-    note: "Claude Code detects MidasAI automatically via MCP. Run npx midas-bridge in your project directory.",
+    note: "Claude Code detects MidasAI automatically via MCP. Run npx @midasai/bridge in your project directory.",
   },
 }
 
@@ -449,8 +449,8 @@ export function MidasBridge() {
         </div>
         <div className="flex items-center gap-2 rounded-lg bg-black/50 px-3 py-2.5 font-mono text-[12px] text-emerald-300/90 border border-white/[0.05]">
           <span className="text-white/20 select-none">$</span>
-          <span className="flex-1">npx midas-bridge</span>
-          <CopyBtn text="npx midas-bridge" />
+          <span className="flex-1">npx @midasai/bridge</span>
+          <CopyBtn text="npx @midasai/bridge" />
         </div>
         <p className="text-[10px] text-white/25 leading-relaxed">
           Detects your IDE automatically · Opens this browser to approve · Saves device to your account · Starts the bridge server

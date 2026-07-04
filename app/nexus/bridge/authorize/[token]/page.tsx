@@ -1,7 +1,7 @@
 /**
  * /nexus/bridge/authorize/[token]
  * Public page — no layout wrapper needed.
- * The CLI opens this in the user's browser after `npx midas-bridge`.
+ * The CLI opens this in the user's browser after `npx @midasai/bridge`.
  */
 import { BridgeAuthorizePage } from "@/components/nexus/BridgeAuthorizePage"
 

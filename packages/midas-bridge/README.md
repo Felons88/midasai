@@ -5,7 +5,7 @@ Connect your local IDE to [MidasAI](https://midasai.com) Nexus canvas.
 ## Usage
 
 ```bash
-npx midas-bridge
+npx @midasai/bridge
 ```
 
 That's it. The CLI will:
@@ -19,7 +19,7 @@ That's it. The CLI will:
 ## How it works
 
 ```
-Your IDE  →  npx midas-bridge  →  Opens browser auth page
+Your IDE  →  npx @midasai/bridge  →  Opens browser auth page
                                          ↓
                               You click "Authorize Windsurf"
                                          ↓

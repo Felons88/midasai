@@ -133,8 +133,8 @@ export function IntegrationsClient({ bridgeDevices: initialDevices, mcpServers, 
           </div>
           <div className="flex items-center gap-2 rounded-xl bg-black/50 border border-white/[0.06] px-4 py-2.5 font-mono text-sm text-emerald-300/90">
             <span className="text-white/20">$</span>
-            <span>npx midas-bridge</span>
-            <CopyBtn text="npx midas-bridge" />
+            <span>npx @midasai/bridge</span>
+            <CopyBtn text="npx @midasai/bridge" />
           </div>
         </div>
       </div>
@@ -155,7 +155,7 @@ export function IntegrationsClient({ bridgeDevices: initialDevices, mcpServers, 
           <div className="rounded-2xl border border-dashed border-white/[0.07] py-12 text-center">
             <MonitorCog className="h-10 w-10 text-white/10 mx-auto mb-3" />
             <p className="text-sm text-white/30 mb-1">No devices connected</p>
-            <p className="text-xs text-white/20">Run <code className="font-mono bg-white/[0.06] px-1 rounded">npx midas-bridge</code> in your IDE terminal</p>
+            <p className="text-xs text-white/20">Run <code className="font-mono bg-white/[0.06] px-1 rounded">npx @midasai/bridge</code> in your IDE terminal</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

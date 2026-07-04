@@ -150,7 +150,7 @@ export function BridgeAuthorizePage({ paramsPromise }: { paramsPromise: Promise<
           <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-8 text-center">
             <Clock className="h-10 w-10 text-amber-400 mx-auto mb-3" />
             <p className="text-white font-semibold mb-1">Link expired</p>
-            <p className="text-sm text-white/40">This authorization link has expired. Run <code className="font-mono bg-white/10 px-1 rounded">npx midas-bridge</code> again to get a new link.</p>
+            <p className="text-sm text-white/40">This authorization link has expired. Run <code className="font-mono bg-white/10 px-1 rounded">npx @midasai/bridge</code> again to get a new link.</p>
           </div>
         )}
 
@@ -198,7 +198,7 @@ export function BridgeAuthorizePage({ paramsPromise }: { paramsPromise: Promise<
             <p className="text-white text-xl font-semibold mb-2">Connection denied</p>
             <p className="text-sm text-white/50 leading-relaxed">
               The bridge connection was rejected. The IDE session will be closed.<br />
-              If this was a mistake, run <code className="font-mono bg-white/10 px-1 rounded">npx midas-bridge</code> again.
+              If this was a mistake, run <code className="font-mono bg-white/10 px-1 rounded">npx @midasai/bridge</code> again.
             </p>
           </div>
         )}
@@ -291,7 +291,7 @@ export function BridgeAuthorizePage({ paramsPromise }: { paramsPromise: Promise<
             {/* Footer */}
             <div className="px-6 py-3 bg-white/[0.01] border-t border-white/[0.04] text-center">
               <p className="text-[10px] text-white/20">
-                Only approve if you just ran <span className="font-mono text-white/30">npx midas-bridge</span> on this device.
+                Only approve if you just ran <span className="font-mono text-white/30">npx @midasai/bridge</span> on this device.
                 You can revoke access anytime from Nexus → Bridge settings.
               </p>
             </div>
