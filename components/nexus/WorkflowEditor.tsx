@@ -945,6 +945,36 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
                       className="pointer-events-none"
                       style={isRunning ? { strokeDasharray: "8 4", animation: "dash 0.8s linear infinite" } : undefined}
                     />
+                    {/* Edge midpoint label */}
+                    {(() => {
+                      const midX = (sp.x + tp.x) / 2
+                      const midY = (sp.y + tp.y) / 2
+                      const srcOutput = srcNode.output?.[edge.sourcePort]
+                      const hasData = srcNode.status === "success" && srcOutput !== undefined
+                      const label = hasData
+                        ? (typeof srcOutput === "object" ? "{…}" : String(srcOutput).slice(0, 18))
+                        : edge.sourcePort !== "output" ? edge.sourcePort : null
+                      if (!label) return null
+                      return (
+                        <g className="pointer-events-none">
+                          <rect
+                            x={midX - 28} y={midY - 8} width={56} height={16} rx={4}
+                            fill={hasData ? "rgba(16,185,129,0.12)" : "rgba(139,92,246,0.1)"}
+                            stroke={hasData ? "rgba(16,185,129,0.25)" : "rgba(139,92,246,0.2)"}
+                            strokeWidth={0.5}
+                          />
+                          <text
+                            x={midX} y={midY + 4}
+                            textAnchor="middle"
+                            fontSize={8}
+                            fill={hasData ? "rgba(110,231,183,0.8)" : "rgba(167,139,250,0.6)"}
+                            fontFamily="monospace"
+                          >
+                            {label.length > 12 ? label.slice(0, 12) + "…" : label}
+                          </text>
+                        </g>
+                      )
+                    })()}
                   </g>
                 )
               })}
@@ -958,6 +988,60 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
               const def = getNodeById(node.definitionId)
               if (!def) return null
               const isSelected = node.id === selectedNodeId
+
+              // Sticky note: special render
+              if (def.id === "utility.sticky_note") {
+                const noteColor = node.config.color as string ?? "amber"
+                const colorMap: Record<string, { bg: string; border: string; text: string }> = {
+                  amber:  { bg: "rgba(251,191,36,0.08)",  border: "rgba(251,191,36,0.25)",  text: "rgba(251,191,36,0.9)" },
+                  blue:   { bg: "rgba(59,130,246,0.08)",  border: "rgba(59,130,246,0.25)",  text: "rgba(147,197,253,0.9)" },
+                  green:  { bg: "rgba(16,185,129,0.08)",  border: "rgba(16,185,129,0.25)",  text: "rgba(110,231,183,0.9)" },
+                  red:    { bg: "rgba(239,68,68,0.08)",   border: "rgba(239,68,68,0.25)",   text: "rgba(252,165,165,0.9)" },
+                  purple: { bg: "rgba(139,92,246,0.08)",  border: "rgba(139,92,246,0.25)",  text: "rgba(196,181,253,0.9)" },
+                }
+                const c = colorMap[noteColor] ?? colorMap.amber
+                return (
+                  <div
+                    key={node.id}
+                    style={{ position: "absolute", left: node.position.x, top: node.position.y, width: 200, minHeight: 80, userSelect: "none" }}
+                    className="cursor-grab active:cursor-grabbing"
+                    onMouseDown={(e) => {
+                      if ((e.target as HTMLElement).tagName === "TEXTAREA") return
+                      e.stopPropagation()
+                      setSelectedNodeId(node.id)
+                      draggingNodeId.current = node.id
+                      const cr = canvasRef.current?.getBoundingClientRect()
+                      if (cr) dragOffset.current = { x: (e.clientX - cr.left - pan.x) / zoom - node.position.x, y: (e.clientY - cr.top - pan.y) / zoom - node.position.y }
+                    }}
+                  >
+                    <div
+                      className="rounded-xl p-3 relative group"
+                      style={{ background: c.bg, border: `1px solid ${c.border}`, boxShadow: isSelected ? `0 0 0 2px ${c.border}` : "none" }}
+                    >
+                      <div className="text-[9px] font-semibold mb-1.5 flex items-center gap-1" style={{ color: c.text }}>
+                        📝 Note
+                        <button
+                          onClick={e => { e.stopPropagation(); deleteNode(node.id) }}
+                          className="ml-auto opacity-0 group-hover:opacity-100 text-white/30 hover:text-red-400 transition-all"
+                          onMouseDown={e => e.stopPropagation()}
+                        >
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                      </div>
+                      <textarea
+                        value={String(node.config.text ?? "")}
+                        onChange={e => updateNodeConfig(node.id, "text", e.target.value)}
+                        placeholder="Add a note…"
+                        rows={3}
+                        className="w-full bg-transparent text-[10px] resize-none outline-none leading-relaxed placeholder:text-white/20"
+                        style={{ color: c.text }}
+                        onMouseDown={e => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
+                )
+              }
+
               const isRenaming = node.id === renamingNodeId
               return (
                 <CanvasNodeCard
@@ -1237,7 +1321,7 @@ function CanvasNodeCard({
       )}
       {node.status === "error" && node.output?.error && (
         <div className="mx-3 mb-2 px-2 py-1 rounded-md bg-red-500/8 border border-red-500/15 text-[9px] text-red-300/70 truncate">
-          ✗ {String(node.output.error).slice(0, 60)}
+          {`✗ ${String(node.output.error).slice(0, 60)}`}
         </div>
       )}
     </div>

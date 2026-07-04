@@ -4,7 +4,7 @@
 export type NodeCategory =
   | "ai" | "llm" | "image" | "audio" | "developer" | "database"
   | "cloud" | "logic" | "files" | "midas" | "analytics" | "browser"
-  | "ide" | "communication" | "data" | "devops" | "finance" | "crm"
+  | "ide" | "communication" | "data" | "devops" | "finance" | "crm" | "utility"
 
 export type FieldType =
   | "string" | "number" | "boolean" | "select" | "multiselect"
@@ -2891,6 +2891,34 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     tags: ["browser", "links", "extract", "scrape"],
   },
 
+
+  // ─── Utility / Canvas ────────────────────────────────────────────────────────
+
+  {
+    id: "utility.sticky_note",
+    name: "Sticky Note",
+    description: "Add an annotation or comment to the canvas.",
+    category: "utility",
+    icon: "📝",
+    color: "#f59e0b",
+    inputs: [],
+    outputs: [],
+    fields: [
+      { key: "text", label: "Note text", type: "textarea", required: false, placeholder: "Add a note…", default: "" },
+      { key: "color", label: "Color", type: "select", required: false, default: "amber",
+        options: [
+          { label: "Amber", value: "amber" },
+          { label: "Blue", value: "blue" },
+          { label: "Green", value: "green" },
+          { label: "Red", value: "red" },
+          { label: "Purple", value: "purple" },
+        ]
+      },
+    ],
+    executor: "passthrough",
+    tags: ["note", "annotation", "comment", "canvas"],
+  },
+
 ]
 
 // Category metadata
@@ -2913,6 +2941,7 @@ export const CATEGORY_META: Record<NodeCategory, { label: string; color: string;
   crm:           { label: "CRM",            color: "#8b5cf6", description: "Project management and CRM tools" },
   devops:        { label: "DevOps",         color: "#14b8a6", description: "CI/CD, containers, and deployment" },
   finance:       { label: "Finance",        color: "#22c55e", description: "Payments and financial APIs" },
+  utility:       { label: "Utility",        color: "#a3a3a3", description: "Canvas annotations and utilities" },
 }
 
 export function getNodeById(id: string): NodeDefinition | undefined {

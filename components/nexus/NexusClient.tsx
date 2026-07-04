@@ -286,7 +286,7 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
                 <h2 className="text-base font-semibold text-white">Execution History</h2>
                 <span className="text-xs text-white/40">{executions.length} runs</span>
               </div>
-              <ExecutionHistory executions={executions} />
+              <ExecutionHistory executions={executions} onReplay={(workflowId) => handleExecuteWorkflow(workflowId)} />
             </div>
             <div className="rounded-2xl border border-white/[0.06] bg-white/[0.01] overflow-hidden" style={{ minHeight: 400 }}>
               <WorkflowInspector executions={executions} />
