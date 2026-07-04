@@ -38,9 +38,21 @@ export async function GET(_req: Request, { params }: Params) {
       .limit(1)
       .single()
 
+    // Fetch the latest MCP token for the bridge MCP server (auto-created on approval)
+    const { data: mcpServer } = await supabase
+      .from("mcp_servers")
+      .select("id, name, endpoint")
+      .eq("user_id", data.user_id)
+      .ilike("name", `% Bridge (%`)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single()
+
     return NextResponse.json({
       status: "approved",
       device_token: device?.device_token ?? null,
+      mcp_server_id: mcpServer?.id ?? null,
+      mcp_endpoint: mcpServer?.endpoint ?? null,
     })
   }
 

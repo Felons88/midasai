@@ -6,6 +6,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { randomBytes } from "crypto"
+import { createMcpConnection } from "@/lib/mcp/create-connection"
 
 type Params = { params: Promise<{ token: string }> }
 
@@ -101,7 +102,7 @@ export async function POST(request: Request, { params }: Params) {
     })
     .eq("token", token)
 
-  // Also upsert into nexus_connections so bridge shows as connected
+  // Upsert into nexus_connections so bridge shows as connected in Nexus
   await supabase
     .from("nexus_connections")
     .upsert({
@@ -119,5 +120,30 @@ export async function POST(request: Request, { params }: Params) {
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id,name" })
 
-  return NextResponse.json({ success: true, status: "approved", device_token: deviceToken })
+  // Auto-create an MCP connection so the agent shows up in Developer → MCP
+  // Only create if one with this name doesn't already exist
+  const mcpName = `${authReq.ide_name} Bridge (${authReq.device_name})`
+  const { count: existingMcp } = await supabase
+    .from("mcp_servers")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("name", mcpName)
+
+  let mcpToken: string | null = null
+  if (!existingMcp || existingMcp === 0) {
+    const mcpResult = await createMcpConnection(supabase, user.id, {
+      name: mcpName,
+      description: `Auto-created by Midas Bridge on ${authReq.device_name} via ${authReq.ide_name}`,
+    })
+    if (mcpResult.ok) {
+      mcpToken = mcpResult.token
+    }
+  }
+
+  return NextResponse.json({
+    success: true,
+    status: "approved",
+    device_token: deviceToken,
+    mcp_token: mcpToken,  // returned to CLI for optional MCP setup
+  })
 }

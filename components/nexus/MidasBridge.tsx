@@ -12,13 +12,14 @@ import type { NexusConnection, ConnectionType, ConnectionStatus } from "@/lib/ne
 
 // ─── Bridge port per IDE (must match local extension server) ─────────────────
 const IDE_PORTS: Record<string, number> = {
-  "VS Code":  40001,
-  "Cursor":   40002,
-  "Windsurf": 40003,
+  "VS Code":     40001,
+  "Cursor":      40002,
+  "Windsurf":   40003,
+  "Claude Code": 40004,
 }
 
 // ─── Setup commands per IDE ───────────────────────────────────────────────────
-const IDE_SETUP: Record<string, { install: string; start: string; docs: string }> = {
+const IDE_SETUP: Record<string, { install: string; start: string; docs: string; note?: string }> = {
   "VS Code": {
     install: "code --install-extension midasai.midas-bridge",
     start: "npx midas-bridge --port 40001",
@@ -34,6 +35,12 @@ const IDE_SETUP: Record<string, { install: string; start: string; docs: string }
     start: "npx midas-bridge --port 40003",
     docs: "https://docs.midasai.com/bridge/windsurf",
   },
+  "Claude Code": {
+    install: "npx midas-bridge",
+    start: "npx midas-bridge --port 40004",
+    docs: "https://docs.midasai.com/bridge/claude-code",
+    note: "Claude Code detects MidasAI automatically via MCP. Run npx midas-bridge in your project directory.",
+  },
 }
 
 const TYPE_ICONS: Record<ConnectionType, React.ElementType> = {
@@ -43,9 +50,10 @@ const TYPE_ICONS: Record<ConnectionType, React.ElementType> = {
 }
 
 const PRESET_CONNECTIONS: { name: string; type: ConnectionType }[] = [
-  { name: "VS Code",  type: "IDE" },
-  { name: "Cursor",   type: "IDE" },
-  { name: "Windsurf", type: "IDE" },
+  { name: "VS Code",     type: "IDE" },
+  { name: "Cursor",      type: "IDE" },
+  { name: "Windsurf",   type: "IDE" },
+  { name: "Claude Code", type: "IDE" },
   { name: "Chrome Extension", type: "Browser" },
   { name: "Desktop Bridge",   type: "Desktop" },
 ]
@@ -117,6 +125,11 @@ function SetupPanel({ name, onClose }: { name: string; onClose: () => void }) {
           <CopyBtn text={setup.start} />
         </div>
       </div>
+      {setup.note && (
+        <p className="text-[11px] text-sky-300/60 bg-sky-500/5 border border-sky-500/15 rounded-lg px-3 py-2 leading-relaxed">
+          {setup.note}
+        </p>
+      )}
       <div className="flex items-center gap-3 pt-1">
         <a href={setup.docs} target="_blank" rel="noreferrer"
           className="text-[11px] text-violet-400 hover:text-violet-300 underline underline-offset-2">

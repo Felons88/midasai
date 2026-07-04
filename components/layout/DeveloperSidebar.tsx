@@ -20,6 +20,7 @@ import {
   User,
   ChevronLeft,
   ChevronRight,
+  Link2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
@@ -40,6 +41,7 @@ const developerNav = [
   { href: "/developer/keys", label: "API Keys", icon: Key },
   { href: "/developer/webhooks", label: "Webhooks", icon: Bell },
   { href: "/developer/mcp", label: "MCP Connections", icon: Server },
+  { href: "/developer/integrations", label: "Integrations", icon: Link2 },
   { href: "/developer/usage", label: "Analytics", icon: BarChart3 },
   { href: "/developer/billing", label: "Billing", icon: FileText },
   { href: "/developer/logs", label: "Logs", icon: Activity },

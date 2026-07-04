@@ -2,6 +2,7 @@ export type McpClientTool =
   | "cursor"
   | "copilot"
   | "claude-code"
+  | "claude-code-bridge"
   | "claude-desktop"
   | "windsurf"
   | "devin"
@@ -45,6 +46,14 @@ export const MCP_CLIENT_TOOLS: McpToolSetup[] = [
     description: "CLI or project MCP settings",
     configLabel: "Shell command",
     configPath: "Terminal or .claude/settings.json",
+    format: "shell",
+  },
+  {
+    id: "claude-code-bridge",
+    label: "Claude Code + Bridge",
+    description: "Full bridge: MCP + local connection + persistent system prompt",
+    configLabel: "CLAUDE.md + settings.json",
+    configPath: ".claude/settings.json + CLAUDE.md",
     format: "shell",
   },
   {
@@ -99,18 +108,67 @@ export function getMcpToolConfig(tool: McpClientTool, ctx: McpSetupContext): str
       return httpMcpJson(ctx)
     case "claude-code":
       return [
-        `# Add MidasAI MCP (${ctx.connectionName})`,
+        `# 1. Register MidasAI MCP server`,
         `claude mcp add --transport http midasai ${ctx.endpoint} \\`,
         `  --header "X-MCP-Token: ${ctx.token}"`,
-        "",
-        `# Or merge into .claude/settings.json:`,
+        ``,
+        `# 2. Or merge into .claude/settings.json:`,
         httpMcpJson(ctx, "midasai"),
       ].join("\n")
+    case "claude-code-bridge":
+      return getClaudeCodeBridgeConfig(ctx)
     case "devin":
       return getMcpSetupPrompt("devin", ctx)
     default:
       return httpMcpJson(ctx)
   }
+}
+
+function getClaudeCodeBridgeConfig(ctx: McpSetupContext): string {
+  const claudeMd = [
+    `# MidasAI Bridge`,
+    ``,
+    `You are connected to MidasAI via MCP and the local Midas Bridge.`,
+    ``,
+    `## MCP Connection`,
+    `- Endpoint: ${ctx.endpoint}`,
+    `- Auth: send header \`X-MCP-Token: ${ctx.token}\` on every request`,
+    `- Connection: ${ctx.connectionName}`,
+    ``,
+    `## Rules`,
+    `- ALWAYS use the MidasAI MCP server when working on this project`,
+    `- Before starting any task, call \`mcp__midasai__getContext\` to load workspace context`,
+    `- After completing work, call \`mcp__midasai__syncWorkspace\` to push results back`,
+    `- Never expose the MCP token in code, commits, or chat`,
+    ``,
+    `## Bridge`,
+    `The Midas Bridge (localhost:40004) provides real-time IDE ↔ Nexus canvas sync.`,
+    `Run \`npx midas-bridge\` in a separate terminal to activate it.`,
+  ].join("\n")
+
+  const settingsJson = JSON.stringify({
+    mcpServers: {
+      midasai: {
+        url: ctx.endpoint,
+        headers: { "X-MCP-Token": ctx.token },
+      },
+    },
+  }, null, 2)
+
+  return [
+    `# ── Step 1: Register MidasAI MCP ───────────────────────────────────────`,
+    `claude mcp add --transport http midasai ${ctx.endpoint} \\`,
+    `  --header "X-MCP-Token: ${ctx.token}"`,
+    ``,
+    `# ── Step 2: Start the bridge (keep terminal open) ───────────────────────`,
+    `npx midas-bridge --ide "Claude Code"`,
+    ``,
+    `# ── Step 3: Paste into .claude/settings.json ────────────────────────────`,
+    settingsJson,
+    ``,
+    `# ── Step 4: Create CLAUDE.md in your project root ───────────────────────`,
+    claudeMd,
+  ].join("\n")
 }
 
 export function getMcpSetupPrompt(tool: McpClientTool, ctx: McpSetupContext): string {
@@ -157,6 +215,20 @@ export function getMcpSetupPrompt(tool: McpClientTool, ctx: McpSetupContext): st
         `Or add to .claude/settings.json:`,
         ``,
         httpMcpJson(ctx),
+      ].join("\n")
+    case "claude-code-bridge":
+      return [
+        `You are a Claude Code agent connected to MidasAI via MCP and local Midas Bridge.`,
+        ``,
+        `Connection: ${ctx.connectionName}`,
+        `MCP Endpoint: ${ctx.endpoint}`,
+        `Auth: X-MCP-Token: ${ctx.token}`,
+        `Bridge: localhost:40004`,
+        ``,
+        `ALWAYS use the MidasAI MCP server on every task in this project.`,
+        `Use mcp__midasai__* tools to read context, search listings, and sync work.`,
+        `Run: npx midas-bridge --ide "Claude Code" in a separate terminal.`,
+        `Never expose the token.`,
       ].join("\n")
     case "claude-desktop":
       return [

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, use } from "react"
-import { MonitorCog, ShieldCheck, ShieldX, Loader2, CheckCircle2, XCircle, Clock, Cpu, Monitor, Globe2 } from "lucide-react"
+import { MonitorCog, ShieldCheck, ShieldX, Loader2, CheckCircle2, XCircle, Clock, Cpu, Monitor, Globe2, Server, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -23,15 +23,17 @@ interface BridgeRequest {
 type State = "loading" | "ready" | "approving" | "approved" | "denied" | "expired" | "error"
 
 const IDE_COLORS: Record<string, string> = {
-  "Windsurf": "from-sky-500/20 to-blue-600/10",
-  "Cursor":   "from-violet-500/20 to-purple-600/10",
-  "VS Code":  "from-blue-500/20 to-blue-700/10",
+  "Windsurf":    "from-sky-500/20 to-blue-600/10",
+  "Cursor":      "from-violet-500/20 to-purple-600/10",
+  "VS Code":     "from-blue-500/20 to-blue-700/10",
+  "Claude Code": "from-amber-500/20 to-orange-600/10",
 }
 
 const IDE_ACCENT: Record<string, string> = {
-  "Windsurf": "text-sky-400",
-  "Cursor":   "text-violet-400",
-  "VS Code":  "text-blue-400",
+  "Windsurf":    "text-sky-400",
+  "Cursor":      "text-violet-400",
+  "VS Code":     "text-blue-400",
+  "Claude Code": "text-amber-400",
 }
 
 function Pill({ label, value, icon: Icon }: { label: string; value: string; icon: React.ElementType }) {
@@ -73,6 +75,7 @@ export function BridgeAuthorizePage({ paramsPromise }: { paramsPromise: Promise<
   const [state, setState] = useState<State>("loading")
   const [req, setReq] = useState<BridgeRequest | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [mcpToken, setMcpToken] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`/api/nexus/bridge/authorize/${token}`)
@@ -100,6 +103,9 @@ export function BridgeAuthorizePage({ paramsPromise }: { paramsPromise: Promise<
       setState("error")
       setError(data.error ?? "Something went wrong")
       return
+    }
+    if (action === "approve" && data.mcp_token) {
+      setMcpToken(data.mcp_token)
     }
     setState(action === "approve" ? "approved" : "denied")
   }
@@ -150,13 +156,38 @@ export function BridgeAuthorizePage({ paramsPromise }: { paramsPromise: Promise<
 
         {/* Approved */}
         {state === "approved" && (
-          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-8 text-center">
-            <CheckCircle2 className="h-12 w-12 text-emerald-400 mx-auto mb-4" />
-            <p className="text-white text-xl font-semibold mb-2">Connection approved</p>
-            <p className="text-sm text-white/50 leading-relaxed">
-              {req?.ide_name ?? "Your IDE"} is now authorized to connect to MidasAI.<br />
-              You can close this window — the bridge will start automatically.
-            </p>
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 overflow-hidden">
+            <div className="p-8 text-center border-b border-emerald-500/10">
+              <CheckCircle2 className="h-12 w-12 text-emerald-400 mx-auto mb-4" />
+              <p className="text-white text-xl font-semibold mb-2">Connection approved</p>
+              <p className="text-sm text-white/50 leading-relaxed">
+                {req?.ide_name ?? "Your IDE"} is now authorized to connect to MidasAI.<br />
+                The bridge server is starting — you can close this window.
+              </p>
+            </div>
+            <div className="px-6 py-5 space-y-3">
+              {mcpToken && (
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Server className="h-4 w-4 text-amber-400" />
+                    <p className="text-sm font-semibold text-amber-300">MCP Agent registered</p>
+                  </div>
+                  <p className="text-[11px] text-white/50 mb-2">
+                    An MCP connection was auto-created in your developer account.
+                    Copy the token below — it won&apos;t be shown again.
+                  </p>
+                  <div className="flex items-center gap-2 font-mono text-[11px] bg-black/40 rounded-lg px-3 py-2">
+                    <span className="text-amber-300/80 break-all flex-1">{mcpToken}</span>
+                  </div>
+                </div>
+              )}
+              <a
+                href="/developer/integrations"
+                className="flex items-center justify-center gap-2 w-full h-9 rounded-xl border border-white/[0.08] text-xs text-white/50 hover:text-white hover:border-white/20 transition-colors"
+              >
+                View all integrations <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
           </div>
         )}
 

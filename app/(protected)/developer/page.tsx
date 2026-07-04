@@ -17,7 +17,8 @@ import {
   ArrowUpRight,
   Users,
   Server,
-  CheckCircle
+  CheckCircle,
+  Link2,
 } from "lucide-react"
 import Link from "next/link"
 import { DeveloperConversionBanners } from "@/components/ui/DeveloperConversionBanners"
@@ -233,6 +234,7 @@ export default async function DeveloperDashboardPage() {
     { title: 'Webhooks', desc: 'Configure real-time event notifications', icon: Bell, href: '/developer/webhooks', count: stats.webhooks },
     { title: 'Usage Analytics', desc: 'Monitor API performance and usage patterns', icon: BarChart3, href: '/developer/usage', count: stats.requestsToday },
     { title: 'MCP Connections', desc: 'Let AI assistants access your account via MCP protocol', icon: Server, href: '/developer/mcp', count: stats.mcpServers },
+    { title: 'Integrations', desc: 'Bridge devices, MCP agents, and Nexus connections in one hub', icon: Link2, href: '/developer/integrations', count: null },
     { title: 'API Playground', desc: 'Test API endpoints with interactive tools', icon: Code, href: '/developer/playground', count: null },
     { title: 'Documentation', desc: 'Comprehensive API documentation and guides', icon: FileText, href: '/api-docs', count: null },
     { title: 'Logs', desc: 'View detailed API logs and error tracking', icon: Activity, href: '/developer/logs', count: null },

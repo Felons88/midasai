@@ -32,14 +32,24 @@ const AUTH_TIMEOUT_MS = 10 * 60 * 1000 // 10 min
 
 // IDE port assignments — must match MidasBridge.tsx IDE_PORTS
 const IDE_PORTS = {
-  "Windsurf": 40003,
-  "Cursor":   40002,
-  "VS Code":  40001,
+  "Windsurf":    40003,
+  "Cursor":      40002,
+  "VS Code":     40001,
+  "Claude Code": 40004,
 }
 
 // ─── Detect IDE ─────────────────────────────────────────────────────────────
 function detectIDE() {
+  // Allow manual override via --ide flag
+  const ideFlag = process.argv.find((_, i) => process.argv[i - 1] === "--ide")
+  if (ideFlag && IDE_PORTS[ideFlag]) {
+    return { name: ideFlag, version: null }
+  }
+
   // Check env variables set by each IDE
+  if (process.env.CLAUDE_CODE_SESSION || process.env.CLAUDE_API_KEY_HELPER_TTY || process.env.CLAUDE_CODE_ENTRYPOINT) {
+    return { name: "Claude Code", version: process.env.CLAUDE_CODE_VERSION || null }
+  }
   if (process.env.WINDSURF_APP_NAME || process.env.WINDSURF_REMOTE_CONTAINERS_IPC) {
     return { name: "Windsurf", version: process.env.WINDSURF_APP_VERSION || null }
   }
@@ -56,9 +66,10 @@ function detectIDE() {
       ? execSync("tasklist /FO CSV /NH 2>NUL", { timeout: 3000 }).toString()
       : execSync("ps aux 2>/dev/null", { timeout: 3000 }).toString()
     const lower = ps.toLowerCase()
-    if (lower.includes("windsurf")) return { name: "Windsurf", version: null }
-    if (lower.includes("cursor"))   return { name: "Cursor",   version: null }
-    if (lower.includes("code"))     return { name: "VS Code",  version: null }
+    if (lower.includes("claude"))   return { name: "Claude Code", version: null }
+    if (lower.includes("windsurf")) return { name: "Windsurf",    version: null }
+    if (lower.includes("cursor"))   return { name: "Cursor",      version: null }
+    if (lower.includes("code"))     return { name: "VS Code",     version: null }
   } catch (_) {}
 
   return { name: "VS Code", version: null } // default fallback
@@ -316,7 +327,21 @@ async function main() {
     const status = pollResult.body?.status
     if (status === "approved") {
       deviceToken = pollResult.body.device_token
+      const mcpEndpoint = pollResult.body.mcp_endpoint
       console.log(`\n\n  ✓ Authorized!\n`)
+      if (mcpEndpoint) {
+        console.log(`  ┌─ MCP Connection Created ───────────────────────────────┐`)
+        console.log(`  │                                                        │`)
+        console.log(`  │  Your IDE is now registered as an MCP agent.           │`)
+        console.log(`  │  Add MidasAI to Claude Code:                           │`)
+        console.log(`  │                                                        │`)
+        console.log(`  │  claude mcp add --transport http midasai \\             │`)
+        console.log(`  │    ${mcpEndpoint.padEnd(48)}  │`)
+        console.log(`  │                                                        │`)
+        console.log(`  │  Find your MCP token at:                               │`)
+        console.log(`  │  ${MIDAS_API}/developer/mcp`.padEnd(58) + `  │`)
+        console.log(`  └────────────────────────────────────────────────────────┘\n`)
+      }
       break
     }
     if (status === "denied") {
