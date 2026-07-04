@@ -305,6 +305,7 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
       if (e.key === "m" && !e.metaKey && !e.ctrlKey) { setShowMinimap(prev => !prev) }
       if ((e.metaKey || e.ctrlKey) && e.key === "a") { e.preventDefault(); setSelectedNodeIds(new Set(nodes.map(n => n.id))) }
       if (e.key === "/" || ((e.metaKey || e.ctrlKey) && e.key === "k")) { e.preventDefault(); setShowPalette(prev => !prev) }
+      if (e.key === "l" && !e.metaKey && !e.ctrlKey) { e.preventDefault(); handleAutoLayout() }
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
@@ -512,6 +513,64 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
       setSelectionBox(null)
       // selectedNodeIds already set during mousemove
     }
+  }, [nodes, edges, pushHistory])
+
+  // ─── Auto-layout (topological rank) ──────────────────────────────────────────
+  const handleAutoLayout = useCallback(() => {
+    if (nodes.length === 0) return
+    const H_GAP = 220   // horizontal spacing between ranks
+    const V_GAP = 120   // vertical spacing within a rank
+
+    // Build adjacency: in-degree + successors
+    const inDeg: Record<string, number> = {}
+    const succ: Record<string, string[]> = {}
+    nodes.forEach(n => { inDeg[n.id] = 0; succ[n.id] = [] })
+    edges.forEach(e => {
+      inDeg[e.targetNodeId] = (inDeg[e.targetNodeId] ?? 0) + 1
+      succ[e.sourceNodeId] = [...(succ[e.sourceNodeId] ?? []), e.targetNodeId]
+    })
+
+    // Kahn's BFS topological sort → assign rank (column)
+    const rank: Record<string, number> = {}
+    const queue = nodes.filter(n => (inDeg[n.id] ?? 0) === 0).map(n => n.id)
+    queue.forEach(id => { rank[id] = 0 })
+    let head = 0
+    while (head < queue.length) {
+      const cur = queue[head++]
+      for (const next of succ[cur] ?? []) {
+        rank[next] = Math.max(rank[next] ?? 0, (rank[cur] ?? 0) + 1)
+        inDeg[next]--
+        if (inDeg[next] === 0) queue.push(next)
+      }
+    }
+    // Nodes not reached (cycles) get rank = max+1
+    const maxRank = Math.max(0, ...Object.values(rank))
+    nodes.forEach(n => { if (rank[n.id] === undefined) rank[n.id] = maxRank + 1 })
+
+    // Group by rank, sort within rank by existing y position
+    const byRank: Record<number, string[]> = {}
+    nodes.forEach(n => {
+      const r = rank[n.id] ?? 0
+      byRank[r] = [...(byRank[r] ?? []), n.id]
+    })
+    Object.values(byRank).forEach(ids =>
+      ids.sort((a, b) => (nodes.find(n => n.id === a)?.position.y ?? 0) - (nodes.find(n => n.id === b)?.position.y ?? 0))
+    )
+
+    // Assign positions
+    const posMap: Record<string, { x: number; y: number }> = {}
+    Object.entries(byRank).forEach(([rankStr, ids]) => {
+      const r = Number(rankStr)
+      const totalH = (ids.length - 1) * V_GAP
+      ids.forEach((id, i) => {
+        posMap[id] = { x: snapToGrid(80 + r * H_GAP), y: snapToGrid(80 + i * V_GAP - totalH / 2 + 300) }
+      })
+    })
+
+    pushHistory(nodes, edges)
+    setNodes(prev => prev.map(n => ({ ...n, position: posMap[n.id] ?? n.position })))
+    // Reset zoom/pan to fit
+    setTimeout(() => { setZoom(1); setPan({ x: 0, y: 0 }) }, 0)
   }, [nodes, edges, pushHistory])
 
   // ─── Edge drawing port handlers ──────────────────────────────────────────────
@@ -744,6 +803,7 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
           <span className="text-xs text-white/30 w-10 text-center tabular-nums">{Math.round(zoom * 100)}%</span>
           <ToolbarBtn onClick={zoomIn} title="Zoom In"><ZoomIn className="h-3.5 w-3.5" /></ToolbarBtn>
           <ToolbarBtn onClick={fitView} title="Fit View"><Maximize2 className="h-3.5 w-3.5" /></ToolbarBtn>
+          <ToolbarBtn onClick={handleAutoLayout} title="Auto-Layout (L)"><GitBranch className="h-3.5 w-3.5" /></ToolbarBtn>
           <ToolbarBtn onClick={() => setShowMinimap(p => !p)} title={showMinimap ? "Hide Minimap (M)" : "Show Minimap (M)"}>
             <Map className={cn("h-3.5 w-3.5", showMinimap ? "text-violet-400" : "")} />
           </ToolbarBtn>
@@ -1206,6 +1266,8 @@ const SHORTCUTS = [
   ]},
   { group: "View", items: [
     { keys: ["M"], label: "Toggle minimap" },
+    { keys: ["L"], label: "Auto-layout nodes" },
+    { keys: ["/", "or", "⌘K"], label: "Open node palette" },
     { keys: ["?"], label: "Toggle keyboard shortcuts" },
     { keys: ["F"], label: "Fit view" },
     { keys: ["Space", "+", "drag"], label: "Pan canvas" },
