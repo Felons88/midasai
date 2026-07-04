@@ -38,10 +38,10 @@ export default function LoginPage() {
       setError(error.message)
       setLoading(false)
     } else {
-      // Get redirect parameter from URL
-      const redirectTo = searchParams.get('redirect')
+      // Get redirect or returnTo parameter from URL
+      const redirectTo = searchParams.get('redirect') || searchParams.get('returnTo')
       
-      // Priority 1: Use redirect parameter if exists
+      // Priority 1: Use redirect/returnTo parameter if exists
       if (redirectTo) {
         router.push(redirectTo)
       } else {
