@@ -1478,15 +1478,17 @@ const MM_W = 200
 const MM_H = 140
 const MM_PAD = 32
 
-function CanvasMinimap({ nodes, edges, pan, zoom, canvasRef, onPan }: {
+function CanvasMinimap({ nodes: nodesProp, edges: edgesProp, pan, zoom, canvasRef, onPan }: {
   nodes: CanvasNode[]
-  edges: WorkflowEdge[]
+  edges: CanvasEdge[]
   pan: { x: number; y: number }
   zoom: number
   canvasRef: React.RefObject<HTMLDivElement | null>
   onPan: (pan: { x: number; y: number }) => void
 }) {
   const mmRef = useRef<SVGSVGElement>(null)
+  const nodes = nodesProp ?? []
+  const edges = edgesProp ?? []
 
   // World bounds — fallback to a default region when no nodes
   const allX = nodes.length ? nodes.map(n => n.position.x) : [0]
