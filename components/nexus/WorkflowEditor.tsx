@@ -1231,10 +1231,81 @@ function CanvasNodeCard({
         </div>
       )}
 
-      {/* Output value badge (shown after execution) */}
+      {/* Output value badge (shown after execution) — click to inspect */}
       {node.status === "success" && node.output && (
-        <div className="mx-3 mb-2 px-2 py-1 rounded-md bg-emerald-500/8 border border-emerald-500/15 text-[9px] text-emerald-300/70 truncate">
-          ✓ {Object.keys(node.output).slice(0, 3).join(", ")}
+        <OutputInspector output={node.output} nodeLabel={node.label ?? def.name} />
+      )}
+      {node.status === "error" && node.output?.error && (
+        <div className="mx-3 mb-2 px-2 py-1 rounded-md bg-red-500/8 border border-red-500/15 text-[9px] text-red-300/70 truncate">
+          ✗ {String(node.output.error).slice(0, 60)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Output Inspector Popover ─────────────────────────────────────────────────
+function OutputInspector({ output, nodeLabel }: { output: Record<string, unknown>; nodeLabel: string }) {
+  const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const json = JSON.stringify(output, null, 2)
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    navigator.clipboard.writeText(json).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    })
+  }
+
+  return (
+    <div className="mx-3 mb-2 relative">
+      <button
+        onMouseDown={e => e.stopPropagation()}
+        onClick={e => { e.stopPropagation(); setOpen(v => !v) }}
+        className="w-full px-2 py-1 rounded-md bg-emerald-500/8 border border-emerald-500/15 text-[9px] text-emerald-300/70 truncate text-left hover:bg-emerald-500/15 transition-colors flex items-center gap-1"
+      >
+        <span className="text-emerald-400">✓</span>
+        <span className="truncate">{Object.keys(output).slice(0, 4).join(", ")}</span>
+        <span className="ml-auto opacity-50">{open ? "▲" : "▼"}</span>
+      </button>
+
+      {open && (
+        <div
+          className="absolute bottom-full mb-1 left-0 right-0 z-50 rounded-xl border border-white/[0.12] bg-[#0b0b18] shadow-2xl overflow-hidden"
+          style={{ minWidth: 240, maxWidth: 320 }}
+          onMouseDown={e => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.06]">
+            <span className="text-[10px] font-semibold text-white/60 truncate">{nodeLabel} output</span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleCopy}
+                className="text-[10px] text-white/30 hover:text-white/70 transition-colors px-1.5 py-0.5 rounded hover:bg-white/[0.06]"
+              >
+                {copied ? "✓ copied" : "copy"}
+              </button>
+              <button
+                onClick={e => { e.stopPropagation(); setOpen(false) }}
+                className="text-white/20 hover:text-white/60 transition-colors"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+          <div className="max-h-48 overflow-y-auto p-3">
+            <pre className="text-[9px] text-emerald-300/80 font-mono whitespace-pre-wrap break-all leading-relaxed">
+              {json}
+            </pre>
+          </div>
+          <div className="px-3 py-1.5 border-t border-white/[0.04] flex items-center gap-2 flex-wrap">
+            {Object.entries(output).slice(0, 6).map(([k, v]) => (
+              <span key={k} className="text-[8px] bg-white/[0.04] border border-white/[0.06] rounded px-1 py-0.5 text-white/40">
+                <span className="text-violet-400">{k}</span>: {typeof v === "object" ? "{…}" : String(v).slice(0, 20)}
+              </span>
+            ))}
+          </div>
         </div>
       )}
     </div>
