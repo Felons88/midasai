@@ -54,17 +54,42 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       duration_ms: r.duration_ms,
     }))
 
-    const output = {
-      node_results: nodeResults,
+    const outputData = {
       summary: `Executed ${nodeResults.length} nodes in ${result.duration_ms}ms`,
       status: result.status,
+      output: result.output,
     }
 
     const finalStatus = result.status === "completed" ? "completed" : "failed"
-    const completed = await svc.updateExecutionStatus(execution.id, finalStatus, output)
 
-    // Update last execution timestamp
-    await svc.updateWorkflow(id, { last_execution_at: new Date().toISOString() })
+    // Save execution with all fields: output_data, node_results, duration_ms, completed_at
+    const { data: completedExec, error: updateErr } = await supabase
+      .from("nexus_workflow_executions")
+      .update({
+        status: finalStatus,
+        output_data: outputData,
+        node_results: nodeResults,
+        duration_ms: result.duration_ms,
+        completed_at: new Date().toISOString(),
+        error_message: result.error ?? null,
+      })
+      .eq("id", execution.id)
+      .eq("user_id", user.id)
+      .select()
+      .single()
+    if (updateErr) console.error("Failed to update execution", updateErr)
+    const completed = completedExec ?? execution
+
+    // Update workflow: last_execution_at + increment execution_count
+    await supabase
+      .from("nexus_workflows")
+      .update({
+        last_execution_at: new Date().toISOString(),
+        execution_count: (workflow.execution_count ?? 0) + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .eq("user_id", user.id)
 
     return NextResponse.json({ execution: completed, result })
   } catch (e) {

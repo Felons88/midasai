@@ -540,6 +540,8 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
     setExecuting(true)
     try {
       await onExecute()
+    } catch (err) {
+      setExecError(err instanceof Error ? err.message : "Execution failed")
     } finally {
       setExecuting(false)
     }

@@ -154,8 +154,8 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
       })
-      if (!res.ok) throw new Error("Execution failed")
       const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? data.details ?? "Execution failed")
       setExecutions((prev) => [data.execution, ...prev])
       // Update workflow execution_count
       const wfRes = await fetch(`/api/nexus/workflows/${id}`)

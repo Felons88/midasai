@@ -187,7 +187,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Triggers
-CREATE TRIGGER update_nexus_files_updated_at BEFORE UPDATE ON nexus_files
+CREATE TRIGGER update_nexus_directories_updated_at BEFORE UPDATE ON nexus_directories
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_nexus_nodes_updated_at BEFORE UPDATE ON nexus_nodes
