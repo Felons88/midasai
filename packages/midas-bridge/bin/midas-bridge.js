@@ -39,6 +39,28 @@ const IDE_PORTS = {
   "Claude Code": 40004,
 }
 
+// IDE extension installation commands
+const IDE_EXTENSIONS = {
+  "VS Code": {
+    check: "code --list-extensions | findstr midasai.midas-bridge",
+    install: "code --install-extension midasai.midas-bridge",
+    hasExtension: true,
+  },
+  "Cursor": {
+    check: "cursor --list-extensions | findstr midasai.midas-bridge",
+    install: "cursor --install-extension midasai.midas-bridge",
+    hasExtension: true,
+  },
+  "Windsurf": {
+    check: "windsurf --list-extensions | findstr midasai.midas-bridge",
+    install: "windsurf --install-extension midasai.midas-bridge",
+    hasExtension: true,
+  },
+  "Claude Code": {
+    hasExtension: false, // Uses MCP, no extension needed
+  },
+}
+
 // ─── Detect IDE ─────────────────────────────────────────────────────────────
 function detectIDE() {
   // Allow manual override via --ide flag
@@ -130,6 +152,37 @@ function saveAuth(authToken, userId, email) {
   writeFileSync(AUTH_FILE, JSON.stringify({ token: authToken, userId, email }, null, 2), "utf-8")
 }
 
+// ─── Extension installation ─────────────────────────────────────────────────────
+function checkAndInstallExtension(ideName) {
+  const extConfig = IDE_EXTENSIONS[ideName]
+  if (!extConfig || !extConfig.hasExtension) {
+    return // No extension needed for this IDE
+  }
+
+  console.log(`  Checking for Midas extension in ${ideName}...`)
+
+  try {
+    const checkCmd = os.platform() === "win32" ? extConfig.check.replace("findstr", "findstr") : extConfig.check.replace("findstr", "grep")
+    const result = execSync(checkCmd, { timeout: 5000, stdio: "pipe" }).toString()
+    
+    if (result.includes("midasai.midas-bridge")) {
+      console.log(`  ✓ Midas extension already installed\n`)
+      return
+    }
+  } catch (_) {
+    // Extension not found, proceed to install
+  }
+
+  console.log(`  Installing Midas extension for ${ideName}...`)
+  try {
+    execSync(extConfig.install, { timeout: 60000, stdio: "inherit" })
+    console.log(`  ✓ Extension installed successfully\n`)
+  } catch (err) {
+    console.log(`  ⚠ Could not auto-install extension. Please run manually:\n`)
+    console.log(`    ${extConfig.install}\n`)
+  }
+}
+
 // ─── HTTP helpers ─────────────────────────────────────────────────────────────
 function apiPost(path, body, authToken = null) {
   return new Promise((resolve, reject) => {
@@ -203,10 +256,13 @@ function openBrowser(url) {
 
 // ─── Bridge HTTP server ───────────────────────────────────────────────────────
 function startBridgeServer(port, ideName, deviceToken) {
+  // Event clients for SSE
+  const eventClients = new Set()
+
   const server = createServer((req, res) => {
     // CORS headers so browser can fetch from localhost
     res.setHeader("Access-Control-Allow-Origin", "*")
-    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS")
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
     if (req.method === "OPTIONS") {
@@ -237,6 +293,63 @@ function startBridgeServer(port, ideName, deviceToken) {
         res.writeHead(401, { "Content-Type": "application/json" })
         res.end(JSON.stringify({ authorized: false }))
       }
+      return
+    }
+
+    // Command endpoint - IDE sends commands to MidasAI
+    if (req.url === "/midas-bridge/command" && req.method === "POST") {
+      let body = ""
+      req.on("data", chunk => { body += chunk })
+      req.on("end", async () => {
+        try {
+          const command = JSON.parse(body)
+          // Forward command to MidasAI API
+          const result = await apiPost("/api/nexus/bridge/command", command, deviceToken)
+          res.writeHead(200, { "Content-Type": "application/json" })
+          res.end(JSON.stringify(result.body))
+        } catch (err) {
+          res.writeHead(500, { "Content-Type": "application/json" })
+          res.end(JSON.stringify({ error: err.message }))
+        }
+      })
+      return
+    }
+
+    // Sync endpoint - IDE pushes workspace context
+    if (req.url === "/midas-bridge/sync" && req.method === "POST") {
+      let body = ""
+      req.on("data", chunk => { body += chunk })
+      req.on("end", async () => {
+        try {
+          const syncData = JSON.parse(body)
+          // Forward to MidasAI API
+          const result = await apiPost("/api/nexus/bridge/sync", syncData, deviceToken)
+          res.writeHead(200, { "Content-Type": "application/json" })
+          res.end(JSON.stringify(result.body))
+        } catch (err) {
+          res.writeHead(500, { "Content-Type": "application/json" })
+          res.end(JSON.stringify({ error: err.message }))
+        }
+      })
+      return
+    }
+
+    // SSE events endpoint - IDE subscribes to real-time updates
+    if (req.url === "/midas-bridge/events") {
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+      })
+
+      eventClients.add(res)
+
+      req.on("close", () => {
+        eventClients.delete(res)
+      })
+
+      // Send initial connection event
+      res.write(`data: ${JSON.stringify({ type: "connected", ide: ideName })}\n\n`)
       return
     }
 
@@ -383,6 +496,9 @@ async function main() {
   }
 
   console.log(`  ✓ Logged in as ${auth.email}\n`)
+
+  // Check and install IDE extension if needed
+  checkAndInstallExtension(ide.name)
 
   // Check for existing stored device token
   const existingToken = loadToken(ide.name)

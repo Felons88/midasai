@@ -142,7 +142,7 @@ function getClaudeCodeBridgeConfig(ctx: McpSetupContext): string {
     `- Never expose the MCP token in code, commits, or chat`,
     ``,
     `## Bridge`,
-    `The Midas Bridge (localhost:40004) provides real-time IDE ↔ Nexus canvas sync.`,
+    `The Midas Bridge provides real-time IDE ↔ MidasAI sync for workflow results, file operations, and agent execution.`,
     `Run \`npx @midasai/bridge\` in a separate terminal to activate it.`,
   ].join("\n")
 
@@ -161,7 +161,7 @@ function getClaudeCodeBridgeConfig(ctx: McpSetupContext): string {
     `  --header "X-MCP-Token: ${ctx.token}"`,
     ``,
     `# ── Step 2: Start the bridge (keep terminal open) ───────────────────────`,
-    `npx @midasai/bridge --ide "Claude Code"`,
+    `npx @midasai/bridge`,
     ``,
     `# ── Step 3: Paste into .claude/settings.json ────────────────────────────`,
     settingsJson,
@@ -218,16 +218,16 @@ export function getMcpSetupPrompt(tool: McpClientTool, ctx: McpSetupContext): st
       ].join("\n")
     case "claude-code-bridge":
       return [
-        `You are a Claude Code agent connected to MidasAI via MCP and local Midas Bridge.`,
+        `You are an AI agent connected to MidasAI via MCP and local Midas Bridge.`,
         ``,
         `Connection: ${ctx.connectionName}`,
         `MCP Endpoint: ${ctx.endpoint}`,
         `Auth: X-MCP-Token: ${ctx.token}`,
-        `Bridge: localhost:40004`,
+        `Bridge: localhost (auto-detected port)`,
         ``,
         `ALWAYS use the MidasAI MCP server on every task in this project.`,
         `Use mcp__midasai__* tools to read context, search listings, and sync work.`,
-        `Run: npx @midasai/bridge --ide "Claude Code" in a separate terminal.`,
+        `Run: npx @midasai/bridge in a separate terminal.`,
         `Never expose the token.`,
       ].join("\n")
     case "claude-desktop":

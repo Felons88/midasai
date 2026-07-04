@@ -39,7 +39,7 @@ const IDE_SETUP: Record<string, { install: string; start: string; docs: string; 
     install: "npx @midasai/bridge",
     start: "npx @midasai/bridge --port 40004",
     docs: "https://docs.midasai.com/bridge/claude-code",
-    note: "Claude Code detects MidasAI automatically via MCP. Run npx @midasai/bridge in your project directory.",
+    note: "Your IDE will automatically detect MidasAI via the bridge connection.",
   },
 }
 
