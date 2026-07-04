@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import {
-  Link2, RefreshCw, Plus, Trash2,
-  Loader2, MonitorCog, Globe, Monitor, Copy, Check, ChevronDown, ChevronUp, Terminal
+  Link2, RefreshCw, Trash2,
+  Loader2, MonitorCog, Globe, Monitor, Copy, Check, ChevronDown, ChevronUp, Terminal,
+  ShieldCheck, Clock
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -294,11 +295,87 @@ function ConnectionCard({
   )
 }
 
+interface BridgeDevice {
+  id: string
+  ide_name: string
+  ide_version?: string | null
+  device_name: string
+  device_os?: string | null
+  device_arch?: string | null
+  bridge_port: number
+  last_seen_at?: string | null
+  created_at: string
+}
+
+function formatAgo(iso?: string | null) {
+  if (!iso) return "Never"
+  const diff = Date.now() - new Date(iso).getTime()
+  if (diff < 60000) return "Just now"
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
+  return `${Math.floor(diff / 86400000)}d ago`
+}
+
+// ─── DevicesPanel ─────────────────────────────────────────────────────────────
+function DevicesPanel() {
+  const [devices, setDevices] = useState<BridgeDevice[]>([])
+  const [loading, setLoading] = useState(true)
+  const [revoking, setRevoking] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    const res = await fetch("/api/nexus/bridge/devices")
+    if (res.ok) { const d = await res.json(); setDevices(d.devices ?? []) }
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  const revoke = async (id: string) => {
+    setRevoking(id)
+    await fetch(`/api/nexus/bridge/devices?id=${id}`, { method: "DELETE" })
+    setDevices(prev => prev.filter(d => d.id !== id))
+    setRevoking(null)
+  }
+
+  if (loading) return <div className="py-4 flex justify-center"><Loader2 className="h-4 w-4 animate-spin text-white/20" /></div>
+  if (devices.length === 0) return null
+
+  return (
+    <div className="space-y-2">
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-white/25">Authorized devices</p>
+      {devices.map(d => (
+        <div key={d.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-white/[0.05] bg-white/[0.01]">
+          <ShieldCheck className="h-4 w-4 text-emerald-400/50 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-white/70 truncate">
+              {d.device_name} <span className="text-white/30">·</span> {d.ide_name}
+              {d.ide_version && <span className="text-white/25 text-[10px]"> {d.ide_version}</span>}
+            </p>
+            <p className="text-[10px] text-white/25">
+              {d.device_os}{d.device_arch ? ` · ${d.device_arch}` : ""}
+              {" · "}
+              <Clock className="h-2.5 w-2.5 inline mr-0.5" />
+              {formatAgo(d.last_seen_at)}
+            </p>
+          </div>
+          <button
+            onClick={() => revoke(d.id)}
+            disabled={revoking === d.id}
+            className="text-white/20 hover:text-red-400 transition-colors text-[10px]"
+            title="Revoke"
+          >
+            {revoking === d.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // ─── MidasBridge ─────────────────────────────────────────────────────────────
 export function MidasBridge() {
   const [connections, setConnections] = useState<NexusConnection[]>([])
   const [loading, setLoading] = useState(true)
-  const [showAdd, setShowAdd] = useState(false)
 
   const fetchConnections = useCallback(async () => {
     const res = await fetch("/api/nexus/connections")
@@ -311,7 +388,6 @@ export function MidasBridge() {
 
   useEffect(() => { fetchConnections() }, [fetchConnections])
 
-  // Update status in DB + local state
   const handleStatusChange = useCallback(async (
     id: string, status: ConnectionStatus, lastSync?: string
   ) => {
@@ -326,23 +402,6 @@ export function MidasBridge() {
       body: JSON.stringify({ name: conn.name, type: conn.type, status }),
     }).catch(() => {})
   }, [connections])
-
-  const addPreset = useCallback(async (preset: { name: string; type: ConnectionType }) => {
-    const res = await fetch("/api/nexus/connections", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: preset.name, type: preset.type, status: "disconnected" }),
-    })
-    if (res.ok) {
-      const data = await res.json()
-      setConnections(prev => {
-        const exists = prev.find(c => c.name === data.connection.name)
-        if (exists) return prev.map(c => c.name === data.connection.name ? data.connection : c)
-        return [...prev, data.connection]
-      })
-    }
-    setShowAdd(false)
-  }, [])
 
   const deleteConnection = useCallback(async (id: string) => {
     setConnections(prev => prev.filter(c => c.id !== id))
@@ -364,45 +423,35 @@ export function MidasBridge() {
             }
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={fetchConnections}>
-            <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
-          </Button>
-          <Button size="sm" onClick={() => setShowAdd(true)}>
-            <Plus className="h-3.5 w-3.5 mr-1.5" />
-            Add IDE
-          </Button>
-        </div>
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={fetchConnections}>
+          <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
+        </Button>
       </div>
 
-      {/* How it works */}
-      <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] px-4 py-3">
-        <p className="text-[11px] text-white/30 leading-relaxed">
-          <span className="text-white/50 font-medium">How it works:</span> Click{" "}
-          <span className="font-mono text-white/40">Connect</span> next to your IDE.
-          The bridge probes <span className="font-mono text-white/40">localhost</span> directly from your browser
-          to detect a running Midas Bridge server. If not found, setup instructions appear automatically.
-          Status auto-refreshes every 10 seconds.
+      {/* Install instructions */}
+      <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Terminal className="h-3.5 w-3.5 text-violet-400/70" />
+          <p className="text-xs font-semibold text-white/60">Connect your IDE in one command</p>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-black/50 px-3 py-2.5 font-mono text-[12px] text-emerald-300/90 border border-white/[0.05]">
+          <span className="text-white/20 select-none">$</span>
+          <span className="flex-1">npx midas-bridge</span>
+          <CopyBtn text="npx midas-bridge" />
+        </div>
+        <p className="text-[10px] text-white/25 leading-relaxed">
+          Detects your IDE automatically · Opens this browser to approve · Saves device to your account · Starts the bridge server
         </p>
       </div>
 
-      {/* Connection list */}
+      {/* Active connections */}
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-white/30" />
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-5 w-5 animate-spin text-white/30" />
         </div>
-      ) : connections.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-white/[0.08] py-16 text-center">
-          <MonitorCog className="h-10 w-10 text-white/10 mx-auto mb-3" />
-          <p className="text-sm text-white/30 mb-1">No IDE connections</p>
-          <p className="text-xs text-white/20 mb-5">Add VS Code, Cursor, or Windsurf to get started</p>
-          <Button size="sm" onClick={() => setShowAdd(true)}>
-            <Plus className="h-3.5 w-3.5 mr-1.5" />
-            Add Connection
-          </Button>
-        </div>
-      ) : (
+      ) : connections.length > 0 ? (
         <div className="space-y-2">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/25">Active connections</p>
           {connections.map(conn => (
             <ConnectionCard
               key={conn.id}
@@ -412,51 +461,20 @@ export function MidasBridge() {
             />
           ))}
         </div>
-      )}
+      ) : null}
 
-      {/* Add modal */}
-      {showAdd && (
-        <>
-          <div className="fixed inset-0 bg-black/60 z-40" onClick={() => setShowAdd(false)} />
-          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[400px] rounded-2xl border border-white/[0.08] bg-[#0e0e18] shadow-2xl p-5">
-            <p className="text-sm font-semibold text-white mb-1">Add Connection</p>
-            <p className="text-xs text-white/30 mb-4">Select your IDE. The bridge will probe localhost to verify it&apos;s running.</p>
-            <div className="space-y-2">
-              {PRESET_CONNECTIONS.map(preset => {
-                const already = connections.some(c => c.name === preset.name)
-                const Icon = TYPE_ICONS[preset.type]
-                const port = IDE_PORTS[preset.name]
-                return (
-                  <button
-                    key={preset.name}
-                    disabled={already}
-                    onClick={() => addPreset(preset)}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left",
-                      already
-                        ? "border-white/[0.04] opacity-40 cursor-not-allowed"
-                        : "border-white/[0.06] hover:border-violet-500/30 hover:bg-white/[0.03]"
-                    )}
-                  >
-                    <Icon className="h-5 w-5 text-white/50" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-white">{preset.name}</p>
-                      <p className="text-xs text-white/30">
-                        {preset.type}{port ? ` · port ${port}` : ""}
-                      </p>
-                    </div>
-                    {already
-                      ? <span className="text-xs text-white/30">Added</span>
-                      : <span className="text-xs text-white/20">→</span>
-                    }
-                  </button>
-                )
-              })}
-            </div>
-            <Button variant="outline" size="sm" className="w-full mt-4" onClick={() => setShowAdd(false)}>Cancel</Button>
-          </div>
-        </>
-      )}
+      {/* Approved devices */}
+      <DevicesPanel />
+
+      {/* Footer note */}
+      <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] px-4 py-3 flex items-start gap-2">
+        <ShieldCheck className="h-3.5 w-3.5 text-emerald-400/40 flex-shrink-0 mt-0.5" />
+        <p className="text-[10px] text-white/25 leading-relaxed">
+          The bridge runs entirely on <span className="text-white/40 font-mono">localhost</span>. No code or file contents
+          leave your machine. Device tokens are stored encrypted in your account.
+          You can revoke any device at any time.
+        </p>
+      </div>
     </div>
   )
 }

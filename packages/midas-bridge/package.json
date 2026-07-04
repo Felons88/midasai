@@ -1,0 +1,16 @@
+{
+  "name": "midas-bridge",
+  "version": "1.0.0",
+  "description": "Connect your local IDE to MidasAI Nexus canvas",
+  "bin": {
+    "midas-bridge": "./bin/midas-bridge.js"
+  },
+  "scripts": {
+    "start": "node bin/midas-bridge.js"
+  },
+  "keywords": ["midasai", "bridge", "ide", "nexus", "windsurf", "cursor", "vscode"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
