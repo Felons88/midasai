@@ -2008,8 +2008,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
   // ─── Supabase ───────────────────────────────────────────────────────────────────────
 
   {
-    id: "db.supabase",
-    name: "Supabase",
+    id: "db.supabase_advanced",
+    name: "Supabase (Advanced)",
     description: "Query Supabase tables, auth, storage, and realtime from your own project.",
     category: "database",
     icon: "supabase",
@@ -2163,8 +2163,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
   // ─── AI Utilities (new) ──────────────────────────────────────────────────────
 
   {
-    id: "ai.summarize",
-    name: "Summarize",
+    id: "ai.summarize_v2",
+    name: "AI Summarize",
     description: "Summarize long text into a concise summary using AI.",
     category: "ai",
     icon: "✦",
@@ -2184,8 +2184,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
   },
 
   {
-    id: "ai.translate",
-    name: "Translate",
+    id: "ai.translate_v2",
+    name: "AI Translate",
     description: "Translate text between any languages using AI.",
     category: "ai",
     icon: "✦",
@@ -2254,8 +2254,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
   },
 
   {
-    id: "ai.vision",
-    name: "Vision / Analyze Image",
+    id: "ai.vision_v2",
+    name: "AI Vision (Advanced)",
     description: "Analyze and describe images using GPT-4 Vision or Gemini.",
     category: "ai",
     icon: "✦",
@@ -2824,8 +2824,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
   },
 
   {
-    id: "comm.twilio",
-    name: "Twilio SMS / Voice",
+    id: "comm.twilio_advanced",
+    name: "Twilio (Advanced)",
     description: "Send SMS messages and make voice calls via Twilio.",
     category: "communication",
     icon: "twilio",

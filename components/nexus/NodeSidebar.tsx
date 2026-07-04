@@ -173,7 +173,12 @@ function NodeItem({ node, isFavorite, onToggleFavorite, onAdd, onDragStart }: No
   return (
     <div
       draggable
-      onDragStart={e => onDragStart(node, e)}
+      onDragStart={e => {
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+        e.dataTransfer.setData("dragOffsetX", String(e.clientX - rect.left))
+        e.dataTransfer.setData("dragOffsetY", String(e.clientY - rect.top))
+        onDragStart(node, e)
+      }}
       onClick={() => onAdd(node)}
       className="group mx-2 mb-0.5 flex items-center gap-2.5 px-2 py-2 rounded-lg cursor-grab active:cursor-grabbing hover:bg-white/[0.05] transition-colors"
       title={node.description}

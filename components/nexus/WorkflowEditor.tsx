@@ -371,8 +371,10 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
     if (!def) return
     const rect = canvasRef.current?.getBoundingClientRect()
     if (!rect) return
-    const x = snapToGrid((e.clientX - rect.left - pan.x) / zoom)
-    const y = snapToGrid((e.clientY - rect.top - pan.y) / zoom)
+    const offsetX = parseFloat(e.dataTransfer.getData("dragOffsetX") || "0")
+    const offsetY = parseFloat(e.dataTransfer.getData("dragOffsetY") || "0")
+    const x = snapToGrid((e.clientX - rect.left - pan.x - offsetX) / zoom)
+    const y = snapToGrid((e.clientY - rect.top - pan.y - offsetY) / zoom)
     addNodeFromDef(def, { x, y }, { x: e.clientX, y: e.clientY })
   }, [pan, zoom, addNodeFromDef])
 
