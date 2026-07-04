@@ -23,7 +23,7 @@ const { join } = require("path")
 const { createServer } = require("http")
 
 // ─── Config ────────────────────────────────────────────────────────────────
-const VERSION = "1.0.0"
+const VERSION = "1.0.3"
 const MIDAS_API = process.env.MIDAS_API_URL || "https://midasai.tech"
 const CONFIG_DIR = join(os.homedir(), ".midas-bridge")
 const TOKEN_FILE = join(CONFIG_DIR, "token.json")
@@ -83,19 +83,25 @@ function detectIDE() {
     return { name: "VS Code", version: process.env.VSCODE_APP_VERSION || null }
   }
 
-  // Check running processes as fallback
+  // Check running processes as fallback - detect ALL running IDEs
+  const runningIDEs = []
   try {
     const ps = os.platform() === "win32"
       ? execSync("tasklist /FO CSV /NH 2>NUL", { timeout: 3000 }).toString()
       : execSync("ps aux 2>/dev/null", { timeout: 3000 }).toString()
     const lower = ps.toLowerCase()
-    if (lower.includes("claude"))   return { name: "Claude Code", version: null }
-    if (lower.includes("windsurf")) return { name: "Windsurf",    version: null }
-    if (lower.includes("cursor"))   return { name: "Cursor",      version: null }
-    if (lower.includes("code"))     return { name: "VS Code",     version: null }
+    if (lower.includes("claude"))   runningIDEs.push({ name: "Claude Code", version: null })
+    if (lower.includes("windsurf")) runningIDEs.push({ name: "Windsurf",    version: null })
+    if (lower.includes("cursor"))   runningIDEs.push({ name: "Cursor",      version: null })
+    if (lower.includes("code"))     runningIDEs.push({ name: "VS Code",     version: null })
   } catch (_) {}
 
-  return { name: "VS Code", version: null } // default fallback
+  // If multiple IDEs detected, return all for selection
+  if (runningIDEs.length > 0) {
+    return { runningIDEs, multiple: true }
+  }
+
+  return { name: "VS Code", version: null, multiple: false } // default fallback
 }
 
 // ─── Device info ─────────────────────────────────────────────────────────────
@@ -505,11 +511,47 @@ async function main() {
   console.log(`  ║  Connect your IDE to MidasAI      ║`)
   console.log(`  ╚═══════════════════════════════════╝\n`)
 
-  const ide = detectIDE()
-  const device = getDeviceInfo()
-  const port = IDE_PORTS[ide.name] || 40001
+  const ideResult = detectIDE()
+  let ide
+  let device
+  let port
 
-  console.log(`  Detected IDE:    ${ide.name}${ide.version ? ` ${ide.version}` : ""}`)
+  // Handle multiple IDEs detection
+  if (ideResult.multiple && ideResult.runningIDEs.length > 1) {
+    console.log(`  Multiple IDEs detected:\n`)
+    ideResult.runningIDEs.forEach((ide, i) => {
+      console.log(`  [${i + 1}] ${ide.name}`)
+    })
+    console.log(`\n  Select IDE to connect (1-${ideResult.runningIDEs.length}): `)
+    
+    // Simple readline for selection
+    const readline = require('readline')
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    })
+    
+    const selection = await new Promise(resolve => {
+      rl.question('', (answer) => {
+        rl.close()
+        resolve(parseInt(answer) - 1)
+      })
+    })
+    
+    if (isNaN(selection) || selection < 0 || selection >= ideResult.runningIDEs.length) {
+      console.log(`\n  ✗ Invalid selection. Using first IDE.\n`)
+      ide = ideResult.runningIDEs[0]
+    } else {
+      ide = ideResult.runningIDEs[selection]
+    }
+  } else {
+    ide = ideResult.multiple ? ideResult.runningIDEs[0] : ideResult
+  }
+
+  device = getDeviceInfo()
+  port = IDE_PORTS[ide.name] || 40001
+
+  console.log(`  Selected IDE:    ${ide.name}${ide.version ? ` ${ide.version}` : ""}`)
   console.log(`  Device:          ${device.device_name}`)
   console.log(`  OS:              ${device.device_os} (${device.device_arch})`)
   console.log(`  Bridge port:     ${port}`)

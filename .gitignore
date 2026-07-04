@@ -51,3 +51,6 @@ supabase/.temp
 # Archives
 *.zip
 *.tar.gz
+
+.vercel
+.env*.local
