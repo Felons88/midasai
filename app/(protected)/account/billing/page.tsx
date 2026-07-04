@@ -25,6 +25,7 @@ export default async function BillingPage() {
     <BillingClient
       context={billing}
       subscription={subscription}
+      userId={user.id}
     />
   )
 }

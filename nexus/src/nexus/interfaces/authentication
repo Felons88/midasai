@@ -1,0 +1,17 @@
+// src/nexus/interfaces/authentication.ts
+export interface JWTUser {
+  id: string;
+  role: 'user' | 'admin';
+  email: string;
+}
+
+export interface AuthToken {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: Date;
+}
+
+export interface Session {
+  user: JWTUser;
+  token: AuthToken;
+}

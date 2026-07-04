@@ -415,6 +415,74 @@ export async function getRecentActivity(limit = 15) {
   return data ?? []
 }
 
+export async function getAILearningMetrics() {
+  const db = createServiceClient()
+  const [architectSessions, workflowExpansions, userInteractions, modelPerformance] = await Promise.all([
+    db
+      .from("architect_sessions")
+      .select("id, phase, confidence, file_count, created_at, user_id, input_tokens, output_tokens")
+      .order("created_at", { ascending: false })
+      .limit(100),
+    db
+      .from("workflow_expansions")
+      .select("id, status, pipeline_progress, file_count, created_at, user_id")
+      .order("created_at", { ascending: false })
+      .limit(100),
+    db
+      .from("analytics_events")
+      .select("event, properties, created_at")
+      .in("event", ["architect_session_start", "architect_session_complete", "workshop_expand", "workshop_feedback"])
+      .order("created_at", { ascending: false })
+      .limit(200),
+    db
+      .from("model_performance")
+      .select("*")
+      .order("recorded_at", { ascending: false })
+      .limit(1),
+  ])
+
+  const totalArchitectSessions = architectSessions.data?.length ?? 0
+  const completedArchitectSessions = architectSessions.data?.filter(s => s.phase === "COMPLETE").length ?? 0
+  const avgConfidence = architectSessions.data?.length
+    ? architectSessions.data.reduce((sum, s) => sum + (s.confidence ?? 0), 0) / architectSessions.data.length
+    : 0
+
+  const totalWorkshopExpansions = workflowExpansions.data?.length ?? 0
+  const completedWorkshops = workflowExpansions.data?.filter(w => w.status === "COMPLETE").length ?? 0
+
+  const userInteractionCount = userInteractions.data?.length ?? 0
+  const feedbackPositive = userInteractions.data?.filter(i => i.properties?.feedback === "positive").length ?? 0
+  const feedbackNegative = userInteractions.data?.filter(i => i.properties?.feedback === "negative").length ?? 0
+
+  const latestModel = modelPerformance.data?.[0]
+
+  return {
+    architect: {
+      totalSessions: totalArchitectSessions,
+      completedSessions: completedArchitectSessions,
+      completionRate: totalArchitectSessions > 0 ? (completedArchitectSessions / totalArchitectSessions) * 100 : 0,
+      avgConfidence: Math.round(avgConfidence * 100) / 100,
+    },
+    workshop: {
+      totalExpansions: totalWorkshopExpansions,
+      completedExpansions: completedWorkshops,
+      completionRate: totalWorkshopExpansions > 0 ? (completedWorkshops / totalWorkshopExpansions) * 100 : 0,
+    },
+    interactions: {
+      totalEvents: userInteractionCount,
+      positiveFeedback: feedbackPositive,
+      negativeFeedback: feedbackNegative,
+      satisfactionRate: userInteractionCount > 0 ? (feedbackPositive / userInteractionCount) * 100 : 0,
+    },
+    model: latestModel ? {
+      modelName: latestModel.model_name,
+      accuracy: latestModel.accuracy,
+      loss: latestModel.loss,
+      lastUpdated: latestModel.recorded_at,
+    } : null,
+  }
+}
+
 export async function getAdminUserAuditLogs(userId: string, limit = 50) {
   const db = createServiceClient()
   const { data } = await db

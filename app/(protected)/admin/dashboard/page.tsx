@@ -9,16 +9,17 @@ import {
   getAnalyticsEventCounts,
   getRecentActivity,
   formatBytes,
+  getAILearningMetrics,
 } from "@/lib/admin/queries"
 import { AdminPageHeader, StatCard, TrendBars } from "@/components/admin/AdminUi"
 import { RefundTransactionButton } from "@/components/admin/RefundTransactionButton"
 import { StatusBadge } from "@/components/admin/AdminUi"
 import { BarChart } from "@/components/analytics/BarChart"
-import { ArrowRight, AlertTriangle } from "lucide-react"
+import { ArrowRight, AlertTriangle, Activity } from "lucide-react"
 
 export default async function AdminDashboardPage() {
   const adminPrefix = getAdminRoutePrefix()
-  const [overview, revenueTrend, signups, eventCounts, recentTx, topListings, activity] = await Promise.all([
+  const [overview, revenueTrend, signups, eventCounts, recentTx, topListings, activity, aiLearning] = await Promise.all([
     getAdminOverview(),
     getRevenueTrend(14),
     getSignupTrend(14),
@@ -26,6 +27,7 @@ export default async function AdminDashboardPage() {
     getRecentTransactions(8),
     getTopListings(5),
     getRecentActivity(12),
+    getAILearningMetrics(),
   ])
 
   const revenueData = revenueTrend.map((d) => ({ date: d.date.slice(5), value: d.revenue }))
@@ -88,6 +90,59 @@ export default async function AdminDashboardPage() {
               <span className="text-white font-medium">${overview.totalPayouts.toFixed(0)}</span>
             </li>
           </ul>
+        </div>
+
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+          <h2 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+            <Activity className="h-4 w-4 text-blue-400" />
+            AI Learning Activity
+          </h2>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-white/70">Architect sessions today</span>
+              <span className="font-medium text-blue-400">{aiLearning.architect.totalSessions}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-white/70">Completion rate</span>
+              <span className="font-medium text-blue-400">{aiLearning.architect.completionRate.toFixed(1)}%</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-white/70">Avg confidence</span>
+              <span className="font-medium text-blue-400">{aiLearning.architect.avgConfidence}%</span>
+            </div>
+            <div className="border-t border-white/[0.06] pt-3 mt-3 space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/70">Workshop expansions</span>
+                <span className="font-medium text-purple-400">{aiLearning.workshop.totalExpansions}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/70">Completion rate</span>
+                <span className="font-medium text-purple-400">{aiLearning.workshop.completionRate.toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/70">User interactions</span>
+                <span className="font-medium text-green-400">{aiLearning.interactions.totalEvents}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/70">Satisfaction rate</span>
+                <span className="font-medium text-green-400">{aiLearning.interactions.satisfactionRate.toFixed(1)}%</span>
+              </div>
+            </div>
+            {aiLearning.model && (
+              <div className="border-t border-white/[0.06] pt-3 mt-3 space-y-2">
+                <div className="text-xs text-white/50">Latest model: {aiLearning.model.modelName}</div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/70">Accuracy</span>
+                  <span className="font-medium text-green-400">{aiLearning.model.accuracy}%</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/70">Loss</span>
+                  <span className="font-medium text-orange-400">{aiLearning.model.loss}</span>
+                </div>
+                <div className="text-xs text-white/40">Updated: {new Date(aiLearning.model.lastUpdated).toLocaleString()}</div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

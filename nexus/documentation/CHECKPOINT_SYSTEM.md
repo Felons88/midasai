@@ -1,0 +1,3 @@
+# CHECKPOINT SYSTEM
+
+Engineering specification.

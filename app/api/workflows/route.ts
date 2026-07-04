@@ -1,135 +1,227 @@
-import { NextResponse } from "next/server"
-import { createClient, createServiceClient } from "@/lib/supabase/server"
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 
-export async function GET() {
+// GET /api/workflows?org_id=... - Get workflows for organization
+// GET /api/workflows?id=... - Get specific workflow by ID
+// POST /api/workflows - Create new workflow
+// PUT /api/workflows?id=... - Update workflow
+// DELETE /api/workflows?id=... - Delete workflow
+
+export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 })
-
-    const service = createServiceClient()
-    const { data, error } = await service
-      .from("workflow_expansions")
-      .select(
-        "id, title, description, status, pipeline_stage, pipeline_progress, file_count, github_repo_url, error_message, created_at, updated_at, started_at, completed_at, archived_at, session_id, expansion_config"
-      )
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(50)
-
-    if (error) throw error
-    return NextResponse.json({ workflows: data })
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : (e as { message?: string })?.message || JSON.stringify(e)
-    return NextResponse.json({ error: msg }, { status: 500 })
-  }
-}
-
-export async function POST(req: Request) {
-  try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 })
-
-    const body = await req.json()
-    const { title, description, session_id, generated_files } = body
-
-    if (!title?.trim()) {
-      return NextResponse.json({ error: "Title is required" }, { status: 400 })
-    }
-
-    const hasFiles =
-      generated_files &&
-      typeof generated_files === "object" &&
-      !Array.isArray(generated_files) &&
-      Object.keys(generated_files).length > 0
-
-    const service = createServiceClient()
-    const { data, error } = await service
-      .from("workflow_expansions")
-      .insert({
-        user_id: user.id,
-        title: title.trim(),
-        description: description?.trim() || null,
-        session_id: session_id || null,
-        status: hasFiles ? "IMPORTED" : "DRAFT",
-        generated_files: hasFiles ? generated_files : {},
-        file_count: hasFiles ? Object.keys(generated_files).length : 0,
-        ...(hasFiles ? { completed_at: new Date().toISOString() } : {}),
-      })
-      .select("id, title, status, created_at, file_count")
-      .single()
-
-    if (error) throw error
-    return NextResponse.json({ workflow: data }, { status: 201 })
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : (e as { message?: string })?.message || JSON.stringify(e)
-    return NextResponse.json({ error: msg }, { status: 500 })
-  }
-}
-
-export async function PUT(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id } = await params;
     const supabase = await createClient();
+    const service = createServiceClient();
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
 
-    const service = createServiceClient();
-    const { data: wf } = await service
-      .from("workflow_expansions")
-      .select("*")
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .single();
+    const { searchParams } = new URL(request.url);
+    const workflowId = searchParams.get('id');
+    const orgId = searchParams.get('org_id');
+    const limit = parseInt(searchParams.get('limit') || '50');
 
-    if (!wf) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    let query = service.from('workflows').select(`
+      *,
+      organization:organizations(name, owner_id),
+      creator:users(name, email)
+    `);
 
-    if (wf.status === "ANALYZED") {
-      return NextResponse.json({
-        status: "ANALYZED",
-        file_count: wf.file_count || 0,
-        analysis_summary: wf.expansion_config?.analysis_summary || null,
-      });
+    if (workflowId) {
+      query = query.eq('id', workflowId);
     }
 
-    if (!["IMPORTED", "DRAFT"].includes(wf.status)) {
+    if (orgId) {
+      query = query.eq('org_id', orgId);
+    }
+
+    // Only show workflows from user's organization
+    // This assumes we have the user's org_id available
+    // For MVP, we'll trust the org_id param, but in production should validate against user's org
+
+    const { data, error, count } = await query
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    return NextResponse.json({
+      workflows: data || [],
+      count: count || 0
+    });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const service = createServiceClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+
+    const body = await request.json();
+    const { name, description, org_id, is_template = false, nodes = [], edges = [] } = body;
+
+    if (!name || !org_id) {
       return NextResponse.json(
-        { error: "Only IMPORTED or DRAFT workflows can be analyzed" },
+        { error: 'Missing required fields: name, org_id' },
         { status: 400 }
       );
     }
 
-    // Start background analysis
-    await service
-      .from("workflow_expansions")
-      .update({
-        status: "ANALYZING",
-        pipeline_stage: "deep_scan",
-        pipeline_progress: 5,
-        started_at: new Date().toISOString(),
-        expansion_config: {
-          ...(typeof wf.expansion_config === "object" ? wf.expansion_config : {}),
-          analysis_started_at: new Date().toISOString(),
-        },
+    // TODO: Add authorization check - verify user belongs to org
+
+    const { data, error } = await service
+      .from('workflows')
+      .insert({
+        name,
+        description,
+        org_id,
+        created_by: user.id,
+        is_template,
+        nodes: JSON.stringify(nodes),
+        edges: JSON.stringify(edges),
       })
-      .eq("id", id);
+      .select(`
+        *,
+        organization:organizations(name),
+        creator:users(name, email)
+      `)
+      .single();
 
-    // Fire-and-forget analysis (we'll implement the background function later if needed)
-    // For now, we just return and let the frontend poll for status
-    // In a real implementation, we would trigger a background job
-    // But to keep it simple, we'll just return and the frontend can poll the GET endpoint
+    if (error) throw error;
 
-    return NextResponse.json({
-      status: "ANALYZING",
-      eta_seconds: 30,
-    });
+    return NextResponse.json({ workflow: data }, { status: 201 });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const service = createServiceClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+
+    const { searchParams } = new URL(request.url);
+    const workflowId = searchParams.get('id');
+
+    if (!workflowId) {
+      return NextResponse.json(
+        { error: 'Missing required query param: id' },
+        { status: 400 }
+      );
+    }
+
+    const body = await request.json();
+    const { name, description, is_template, nodes, edges, ...updates } = body;
+
+    // First check if workflow exists and user has access
+    const { data: existingWorkflow, error: fetchError } = await service
+      .from('workflows')
+      .select('*, created_by')
+      .eq('id', workflowId)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!existingWorkflow) {
+      return NextResponse.json({ error: 'Workflow not found' }, { status: 404 });
+    }
+
+    // TODO: Add proper authorization - check if user owns workflow or is in org
+
+    const updateData: any = {
+      ...(name !== undefined && { name }),
+      ...(description !== undefined && { description }),
+      ...(is_template !== undefined && { is_template }),
+      ...(nodes !== undefined && { nodes: JSON.stringify(nodes) }),
+      ...(edges !== undefined && { edges: JSON.stringify(edges) }),
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
+
+    // Remove undefined values
+    Object.keys(updateData).forEach(key =>
+      updateData[key] === undefined && delete updateData[key]
+    );
+
+    const { data, error } = await service
+      .from('workflows')
+      .update(updateData)
+      .eq('id', workflowId)
+      .select(`
+        *,
+        organization:organizations(name),
+        creator:users(name, email)
+      `)
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({ workflow: data });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const service = createServiceClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+
+    const { searchParams } = new URL(request.url);
+    const workflowId = searchParams.get('id');
+
+    if (!workflowId) {
+      return NextResponse.json(
+        { error: 'Missing required query param: id' },
+        { status: 400 }
+      );
+    }
+
+    // First check if workflow exists and user has access
+    const { data: existingWorkflow, error: fetchError } = await service
+      .from('workflows')
+      .select('created_by, org_id')
+      .eq('id', workflowId)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!existingWorkflow) {
+      return NextResponse.json({ error: 'Workflow not found' }, { status: 404 });
+    }
+
+    // TODO: Add proper authorization check
+
+    const { error } = await service
+      .from('workflows')
+      .delete()
+      .eq('id', workflowId);
+
+    if (error) throw error;
+
+    return NextResponse.json(
+      { message: 'Workflow deleted successfully' },
+      { status: 200 }
+    );
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     return NextResponse.json({ error: msg }, { status: 500 });

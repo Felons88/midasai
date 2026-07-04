@@ -1,0 +1,3 @@
+# AI PROVIDERS
+
+Engineering specification.

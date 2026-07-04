@@ -10,6 +10,10 @@ import {
 } from "lucide-react"
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { UpgradeButton } from "@/components/billing/UpgradeButton"
+import { SavedPaymentMethods } from "@/components/billing/SavedPaymentMethods"
+import { SubscriptionManagement } from "@/components/billing/SubscriptionManagement"
+import { InvoiceHistory } from "@/components/billing/InvoiceHistory"
+import { RealtimeCreditBalance } from "@/components/billing/RealtimeCreditBalance"
 import { getPlanLimits, PLAN_LIMITS, type PlanTier } from "@/lib/subscriptions"
 import type { BillingContext } from "@/lib/billing/entitlements"
 
@@ -23,6 +27,7 @@ interface BillingClientProps {
     cancel_at_period_end: boolean | null
     stripe_subscription_id: string | null
   } | null
+  userId: string
 }
 
 const TIER_CONFIG: Record<PlanTier, { icon: React.ElementType; color: string; bg: string; gradient: string; border: string }> = {
@@ -316,7 +321,7 @@ function WelcomeModal({
   )
 }
 
-export default function BillingClient({ context, subscription }: BillingClientProps) {
+export default function BillingClient({ context, subscription, userId }: BillingClientProps) {
   const { limits, usage } = context
   const [liveSubscription, setLiveSubscription] = useState<Subscription>(subscription)
 
@@ -415,9 +420,12 @@ export default function BillingClient({ context, subscription }: BillingClientPr
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white mb-1">Billing</h1>
-        <p className="text-sm text-white/40">Manage your plan, usage, and payment settings</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white mb-1">Billing</h1>
+          <p className="text-sm text-white/40">Manage your plan, usage, and payment settings</p>
+        </div>
+        <RealtimeCreditBalance userId={userId} />
       </div>
 
       {/* Current plan highlight */}
@@ -561,34 +569,36 @@ export default function BillingClient({ context, subscription }: BillingClientPr
         </div>
       </div>
 
-      {/* Payment + invoices */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Payment methods, subscription management, invoices */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
           <div className="flex items-center gap-2 mb-4">
             <CreditCard className="h-4 w-4 text-white/40" />
             <h3 className="text-sm font-semibold text-white">Payment Methods</h3>
           </div>
-          <div className="flex items-center gap-3 p-3 rounded-lg border border-white/[0.06] bg-white/[0.02]">
-            <div className="h-10 w-10 rounded-lg bg-white/[0.04] flex items-center justify-center">
-              <CreditCard className="h-5 w-5 text-white/30" />
-            </div>
-            <div>
-              <p className="text-sm text-white/70">Stripe Checkout</p>
-              <p className="text-xs text-white/40">Secure payments handled by Stripe. Manage cards in the Stripe customer portal.</p>
-            </div>
+          <SavedPaymentMethods />
+        </div>
+
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <RefreshCw className="h-4 w-4 text-white/40" />
+            <h3 className="text-sm font-semibold text-white">Subscription</h3>
           </div>
+          <SubscriptionManagement
+            currentTier={tier}
+            subscriptionId={subscriptionId ?? null}
+            cancelAtPeriodEnd={willCancel ?? null}
+            periodEnd={periodEnd ?? null}
+            onRefresh={refreshSubscription}
+          />
         </div>
 
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
           <div className="flex items-center gap-2 mb-4">
             <Receipt className="h-4 w-4 text-white/40" />
-            <h3 className="text-sm font-semibold text-white">Invoices</h3>
+            <h3 className="text-sm font-semibold text-white">Invoice History</h3>
           </div>
-          <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
-            <Receipt className="h-8 w-8 text-white/10" />
-            <p className="text-sm text-white/40">Purchase receipts are emailed by Stripe after checkout.</p>
-            <p className="text-xs text-white/30">Subscription invoices will appear here once billing is active.</p>
-          </div>
+          <InvoiceHistory />
         </div>
       </div>
 

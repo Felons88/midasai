@@ -185,6 +185,11 @@ export function AuthenticatedNavbar({
                       Developer Portal
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/nexus" className="w-full cursor-pointer">
+                      Nexus Studio
+                    </Link>
+                  </DropdownMenuItem>
 
                   {/* Settings Section */}
                   <DropdownMenuSeparator />

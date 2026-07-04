@@ -1,0 +1,3 @@
+# AI ASSISTANT
+
+Engineering specification.

@@ -9,7 +9,7 @@ import {
   UserCheck, Package, Server, Sparkles, Bot, Zap, Star,
   LayoutGrid, DollarSign, BarChart3, Plug2, Settings,
   ChevronLeft, ChevronRight, Crown, Database, LogOut, LifeBuoy,
-  ChevronDown,
+  ChevronDown, Workflow,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
@@ -57,6 +57,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "AI TOOLS",
     items: [
       { href: "/architect", label: "Architect", icon: Sparkles },
+      { href: "/nexus", label: "Nexus Studio", icon: Workflow },
       { href: "/ai/automations", label: "AI Automations", icon: Zap, badge: "Soon" },
       { href: "/ai/assistant", label: "AI Assistant", icon: Bot, badge: "Soon" },
     ],

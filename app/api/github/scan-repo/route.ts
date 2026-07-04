@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { runWithAIReservation } from '@/lib/billing/ai-reservation'
 
 const FREE_MODELS = [
   'meta-llama/llama-3.1-8b-instruct:free',
@@ -269,27 +270,63 @@ Write a marketplace listing. Rules:
 Reply with ONLY this JSON, no markdown, no explanation:
 {"title":"...","description":"...","type":"...","tags":["...","..."],"price":0,"github_url":"${repoData.html_url}"}`
 
-    const aiText = await tryOpenRouter(openrouterKey, prompt)
+    const aiResult = await runWithAIReservation(
+      { supabase, userId: user.id },
+      {
+        featureKey: "github_repository_analysis",
+        operationId: `github-scan-${user.id}-${Date.now()}`,
+        provider: "openrouter",
+      },
+      async () => {
+        const aiText = await tryOpenRouter(openrouterKey, prompt)
+        if (!aiText) throw new Error("AI generation failed")
+        
+        const match = aiText.match(/\{[\s\S]*?\}(?=\s*$|\s*```)/)?.[0] || aiText.match(/\{[\s\S]*\}/)?.[0]
+        if (!match) throw new Error("Failed to parse AI response")
+        
+        try {
+          const result = JSON.parse(match)
+          return {
+            title: result.title || fallback.title,
+            description: result.description || fallback.description,
+            type: ['SKILL','WORKFLOW','TEMPLATE','PLUGIN'].includes(result.type) ? result.type : fallback.type,
+            tags: Array.isArray(result.tags) && result.tags.length > 0 ? result.tags : fallback.tags,
+            price: 0,
+            github_url: repoData.html_url,
+            readme: readme.substring(0, 5000),
+          }
+        } catch {
+          throw new Error("Failed to parse JSON from AI response")
+        }
+      }
+    )
 
-    if (!aiText) return NextResponse.json(fallback)
-
-    const match = aiText.match(/\{[\s\S]*?\}(?=\s*$|\s*```)/)?.[0] || aiText.match(/\{[\s\S]*\}/)?.[0]
-    if (!match) return NextResponse.json(fallback)
-
-    try {
-      const result = JSON.parse(match)
-      return NextResponse.json({
-        title: result.title || fallback.title,
-        description: result.description || fallback.description,
-        type: ['SKILL','WORKFLOW','TEMPLATE','PLUGIN'].includes(result.type) ? result.type : fallback.type,
-        tags: Array.isArray(result.tags) && result.tags.length > 0 ? result.tags : fallback.tags,
-        price: 0,
-        github_url: repoData.html_url,
-        readme: readme.substring(0, 5000),
-      })
-    } catch {
-      return NextResponse.json(fallback)
+    if (aiResult.error) {
+      return NextResponse.json(
+        {
+          error: aiResult.error,
+          credits: {
+            reserved: aiResult.creditsReserved,
+            charged: aiResult.creditsCharged,
+            refunded: aiResult.creditsRefunded,
+            balance: aiResult.availableBalance,
+          },
+        },
+        { status: aiResult.error.includes("Insufficient credits") ? 402 : 500 }
+      )
     }
+
+    if (!aiResult.result) return NextResponse.json(fallback)
+
+    return NextResponse.json({
+      ...aiResult.result,
+      credits: {
+        reserved: aiResult.creditsReserved,
+        charged: aiResult.creditsCharged,
+        refunded: aiResult.creditsRefunded,
+        balance: aiResult.availableBalance,
+      },
+    })
 
   } catch (error) {
     console.error('scan-repo error:', error)

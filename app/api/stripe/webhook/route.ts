@@ -107,6 +107,11 @@ export async function POST(request: Request) {
 
     if (session.mode === "subscription") {
       await handleSubscriptionCheckout(session)
+      const origin = request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const redirectUrl = new URL(`${origin}/account/billing`);
+      redirectUrl.searchParams.set("success", "1");
+      redirectUrl.searchParams.set("tier", session.metadata?.tier ?? "FREE");
+      return NextResponse.redirect(redirectUrl, { status: 302 });
     } else {
       const listingId = session.metadata?.listing_id
       const userId = session.metadata?.user_id
