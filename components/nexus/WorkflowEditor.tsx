@@ -4,10 +4,10 @@ import { useState, useRef, useCallback, useEffect } from "react"
 import {
   Play, Save, Undo2, Redo2, ZoomIn, ZoomOut, Maximize2,
   ChevronLeft, Loader2, CheckCircle2, AlertCircle,
-  Trash2, Copy, GitBranch
+  Trash2, Copy, GitBranch, X
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { getNodeById, type NodeDefinition } from "@/lib/nexus/node-registry"
+import { getNodeById, type NodeDefinition, type NodePort } from "@/lib/nexus/node-registry"
 import { BrandIcon } from "./BrandIcon"
 import { NodeSidebar } from "./NodeSidebar"
 import { NodeConfigPanel, type NodeConfigValues, type ValidationState } from "./NodeConfigPanel"
@@ -21,6 +21,7 @@ interface CanvasNode {
   config: NodeConfigValues
   label?: string
   status?: "idle" | "running" | "success" | "error"
+  output?: Record<string, unknown>
 }
 
 // Canvas edge
@@ -31,6 +32,25 @@ interface CanvasEdge {
   targetNodeId: string
   targetPort: string
 }
+
+// Undo/redo history entry
+interface HistoryEntry {
+  nodes: CanvasNode[]
+  edges: CanvasEdge[]
+}
+
+// Port coordinates helper (used for edge drawing)
+function portPos(node: CanvasNode, portId: string, side: "input" | "output", def: NodeDefinition) {
+  const ports = side === "input" ? def.inputs : def.outputs
+  const idx = ports.findIndex(p => p.id === portId)
+  const x = side === "input" ? node.position.x : node.position.x + NODE_WIDTH
+  const y = node.position.y + NODE_HEADER_H + idx * PORT_ROW_H + PORT_ROW_H / 2
+  return { x, y }
+}
+
+const NODE_WIDTH = 220
+const NODE_HEADER_H = 44
+const PORT_ROW_H = 22
 
 interface WorkflowEditorProps {
   workflow: NexusWorkflow
@@ -71,37 +91,95 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
   const [nodes, setNodes] = useState<CanvasNode[]>(initNodes)
   const [edges, setEdges] = useState<CanvasEdge[]>(initEdges)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
+  const [renamingNodeId, setRenamingNodeId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState("")
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [saving, setSaving] = useState(false)
   const [executing, setExecuting] = useState(false)
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle")
-
+  const [execError, setExecError] = useState<string | null>(null)
+  // Undo/redo
+  const history = useRef<HistoryEntry[]>([])
+  const historyIdx = useRef(-1)
+  const [canUndo, setCanUndo] = useState(false)
+  const [canRedo, setCanRedo] = useState(false)
   // Drag/pan state
   const isDraggingCanvas = useRef(false)
   const lastPanPos = useRef({ x: 0, y: 0 })
   const draggingNodeId = useRef<string | null>(null)
   const dragOffset = useRef({ x: 0, y: 0 })
-  // Edge drawing
-  const drawingEdge = useRef<{ sourceNodeId: string; sourcePort: string; x: number; y: number } | null>(null)
+  // Edge drawing from output port
+  const drawingEdge = useRef<{ sourceNodeId: string; sourcePort: string; x1: number; y1: number } | null>(null)
   const [ghostEdge, setGhostEdge] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null)
+  const [highlightPort, setHighlightPort] = useState<{ nodeId: string; portId: string } | null>(null)
 
   const canvasRef = useRef<HTMLDivElement>(null)
+  const renameInputRef = useRef<HTMLInputElement>(null)
 
   const selectedNode = nodes.find(n => n.id === selectedNodeId) ?? null
   const selectedDef = selectedNode ? getNodeById(selectedNode.definitionId) : null
+
+  // ─── History helpers ─────────────────────────────────────────────────────────
+  const pushHistory = useCallback((n: CanvasNode[], e: CanvasEdge[]) => {
+    const entry: HistoryEntry = { nodes: JSON.parse(JSON.stringify(n)), edges: JSON.parse(JSON.stringify(e)) }
+    const truncated = history.current.slice(0, historyIdx.current + 1)
+    truncated.push(entry)
+    history.current = truncated.slice(-50) // keep 50 steps
+    historyIdx.current = history.current.length - 1
+    setCanUndo(historyIdx.current > 0)
+    setCanRedo(false)
+  }, [])
+
+  const undo = useCallback(() => {
+    if (historyIdx.current <= 0) return
+    historyIdx.current--
+    const entry = history.current[historyIdx.current]
+    setNodes(entry.nodes)
+    setEdges(entry.edges)
+    setCanUndo(historyIdx.current > 0)
+    setCanRedo(true)
+  }, [])
+
+  const redo = useCallback(() => {
+    if (historyIdx.current >= history.current.length - 1) return
+    historyIdx.current++
+    const entry = history.current[historyIdx.current]
+    setNodes(entry.nodes)
+    setEdges(entry.edges)
+    setCanUndo(true)
+    setCanRedo(historyIdx.current < history.current.length - 1)
+  }, [])
+
+  // Initialize history on mount
+  useEffect(() => { pushHistory(initNodes(), initEdges()) }, [])
 
   // ─── Keyboard shortcuts ──────────────────────────────────────────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
       if ((e.metaKey || e.ctrlKey) && e.key === "s") { e.preventDefault(); handleSave() }
+      if ((e.metaKey || e.ctrlKey) && e.key === "z") { e.preventDefault(); if (e.shiftKey) redo(); else undo() }
+      if ((e.metaKey || e.ctrlKey) && e.key === "y") { e.preventDefault(); redo() }
+      if ((e.metaKey || e.ctrlKey) && e.key === "d") {
+        e.preventDefault()
+        if (selectedNodeId) {
+          const node = nodes.find(n => n.id === selectedNodeId)
+          if (node) {
+            const copy: CanvasNode = { ...JSON.parse(JSON.stringify(node)), id: uid(), position: { x: node.position.x + 40, y: node.position.y + 40 } }
+            const next = [...nodes, copy]
+            setNodes(next)
+            setSelectedNodeId(copy.id)
+            pushHistory(next, edges)
+          }
+        }
+      }
       if (e.key === "Delete" || e.key === "Backspace") { if (selectedNodeId) deleteNode(selectedNodeId) }
-      if (e.key === "Escape") setSelectedNodeId(null)
+      if (e.key === "Escape") { setSelectedNodeId(null); setRenamingNodeId(null) }
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
-  }, [selectedNodeId])
+  }, [selectedNodeId, nodes, edges])
 
   // ─── Add node ────────────────────────────────────────────────────────────────
   const addNodeFromDef = useCallback((def: NodeDefinition, pos?: { x: number; y: number }) => {
@@ -117,9 +195,13 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
       config: defaults,
       status: "idle",
     }
-    setNodes(prev => [...prev, newNode])
+    setNodes(prev => {
+      const next = [...prev, newNode]
+      pushHistory(next, edges)
+      return next
+    })
     setSelectedNodeId(newNode.id)
-  }, [pan, zoom])
+  }, [pan, zoom, edges, pushHistory])
 
   const handleSidebarAdd = useCallback((def: NodeDefinition) => addNodeFromDef(def), [addNodeFromDef])
 
@@ -143,15 +225,48 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
 
   // ─── Delete ──────────────────────────────────────────────────────────────────
   const deleteNode = useCallback((id: string) => {
-    setNodes(prev => prev.filter(n => n.id !== id))
-    setEdges(prev => prev.filter(e => e.sourceNodeId !== id && e.targetNodeId !== id))
+    setNodes(prev => {
+      const nextN = prev.filter(n => n.id !== id)
+      setEdges(prevE => {
+        const nextE = prevE.filter(e => e.sourceNodeId !== id && e.targetNodeId !== id)
+        pushHistory(nextN, nextE)
+        return nextE
+      })
+      return nextN
+    })
     setSelectedNodeId(null)
-  }, [])
+  }, [pushHistory])
+
+  const deleteEdge = useCallback((edgeId: string) => {
+    setEdges(prev => {
+      const next = prev.filter(e => e.id !== edgeId)
+      pushHistory(nodes, next)
+      return next
+    })
+  }, [nodes, pushHistory])
 
   // ─── Config change ───────────────────────────────────────────────────────────
   const updateNodeConfig = useCallback((nodeId: string, key: string, value: unknown) => {
     setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, config: { ...n.config, [key]: value } } : n))
+    // Don't push to undo history on every keystroke — save does it
   }, [])
+
+  // ─── Rename ──────────────────────────────────────────────────────────────────
+  const startRename = useCallback((node: CanvasNode, def: NodeDefinition) => {
+    setRenamingNodeId(node.id)
+    setRenameValue(node.label ?? def.name)
+    setTimeout(() => renameInputRef.current?.select(), 30)
+  }, [])
+
+  const commitRename = useCallback(() => {
+    if (!renamingNodeId) return
+    setNodes(prev => {
+      const next = prev.map(n => n.id === renamingNodeId ? { ...n, label: renameValue.trim() || undefined } : n)
+      pushHistory(next, edges)
+      return next
+    })
+    setRenamingNodeId(null)
+  }, [renamingNodeId, renameValue, edges, pushHistory])
 
   // ─── Canvas pan ──────────────────────────────────────────────────────────────
   const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
@@ -180,16 +295,50 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
       if (!rect) return
       const x2 = (e.clientX - rect.left - pan.x) / zoom
       const y2 = (e.clientY - rect.top - pan.y) / zoom
-      setGhostEdge({ x1: drawingEdge.current.x, y1: drawingEdge.current.y, x2, y2 })
+      setGhostEdge({ x1: drawingEdge.current.x1, y1: drawingEdge.current.y1, x2, y2 })
     }
   }, [pan, zoom])
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    // If we were drawing an edge and released over a port, the port handler fires first via onMouseUp on the port div.
+    // Just clean up here.
+    if (draggingNodeId.current) {
+      // Push history after node drag ends
+      pushHistory(nodes, edges)
+    }
     isDraggingCanvas.current = false
     draggingNodeId.current = null
     drawingEdge.current = null
     setGhostEdge(null)
+    setHighlightPort(null)
+  }, [nodes, edges, pushHistory])
+
+  // ─── Edge drawing port handlers ──────────────────────────────────────────────
+  const startEdge = useCallback((nodeId: string, portId: string, x1: number, y1: number, e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    drawingEdge.current = { sourceNodeId: nodeId, sourcePort: portId, x1, y1 }
+    setGhostEdge({ x1, y1, x2: x1, y2: y1 })
   }, [])
+
+  const commitEdge = useCallback((targetNodeId: string, targetPortId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const src = drawingEdge.current
+    if (!src) return
+    drawingEdge.current = null
+    setGhostEdge(null)
+    setHighlightPort(null)
+    if (src.sourceNodeId === targetNodeId) return
+    // Prevent duplicate edges on same ports
+    const exists = edges.some(edge => edge.sourceNodeId === src.sourceNodeId && edge.sourcePort === src.sourcePort && edge.targetNodeId === targetNodeId && edge.targetPort === targetPortId)
+    if (exists) return
+    const newEdge: CanvasEdge = { id: uid(), sourceNodeId: src.sourceNodeId, sourcePort: src.sourcePort, targetNodeId, targetPort: targetPortId }
+    setEdges(prev => {
+      const next = [...prev, newEdge]
+      pushHistory(nodes, next)
+      return next
+    })
+  }, [edges, nodes, pushHistory])
 
   // ─── Zoom ─────────────────────────────────────────────────────────────────────
   const handleWheel = useCallback((e: React.WheelEvent) => {
@@ -217,9 +366,9 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
         edges: edges.map(e => ({
           id: e.id,
           source_node_id: e.sourceNodeId,
-          source_output: Number(e.sourcePort),
+          source_output: e.sourcePort,
           target_node_id: e.targetNodeId,
-          target_input: Number(e.targetPort),
+          target_input: e.targetPort,
         })),
       }
       await onSave(definition)
@@ -233,21 +382,46 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
     }
   }, [nodes, edges, onSave])
 
+  // ─── Validation gate ─────────────────────────────────────────────────────────
+  const getValidationErrors = useCallback(() => {
+    const errors: string[] = []
+    for (const node of nodes) {
+      const def = getNodeById(node.definitionId)
+      if (!def) continue
+      const missing = def.fields.filter(f => f.required && (node.config[f.key] === undefined || node.config[f.key] === ""))
+      if (missing.length > 0) errors.push(`${node.label ?? def.name}: missing ${missing.map(f => f.label).join(", ")}`)
+    }
+    return errors
+  }, [nodes])
+
   const handleExecute = async () => {
+    setExecError(null)
+    const errors = getValidationErrors()
+    if (errors.length > 0) {
+      setExecError(`Fix ${errors.length} error${errors.length > 1 ? "s" : ""} before running:\n${errors.slice(0, 3).join("\n")}${errors.length > 3 ? `\n…and ${errors.length - 3} more` : ""}`)
+      return
+    }
+    if (nodes.length === 0) { setExecError("Add at least one node before running."); return }
+    // Animate: set all nodes to idle, then run through them sequentially
+    setNodes(prev => prev.map(n => ({ ...n, status: "idle", output: undefined })))
     setExecuting(true)
-    try { await onExecute() } finally { setExecuting(false) }
+    try {
+      await onExecute()
+    } finally {
+      setExecuting(false)
+    }
   }
 
-  // ─── Validation ──────────────────────────────────────────────────────────────
+  // ─── Per-node validation ──────────────────────────────────────────────────────
   const validateNode = useCallback((node: CanvasNode, def: NodeDefinition): { state: ValidationState; message: string } => {
-    const missing = def.fields.filter(f => f.required && !node.config[f.key])
+    const missing = def.fields.filter(f => f.required && (node.config[f.key] === undefined || node.config[f.key] === ""))
     if (missing.length > 0) return { state: "error", message: `Required: ${missing.map(f => f.label).join(", ")}` }
     return { state: "valid", message: "Configuration is valid" }
   }, [])
 
   // ─── Edge bezier path ─────────────────────────────────────────────────────────
   const edgePath = (x1: number, y1: number, x2: number, y2: number) => {
-    const dx = Math.abs(x2 - x1) * 0.5
+    const dx = Math.max(60, Math.abs(x2 - x1) * 0.45)
     return `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`
   }
 
@@ -263,8 +437,8 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
           <p className="text-sm font-semibold text-white truncate">{workflow.name}</p>
         </div>
         <div className="flex items-center gap-1">
-          <ToolbarBtn onClick={() => {}} title="Undo (Ctrl+Z)"><Undo2 className="h-3.5 w-3.5" /></ToolbarBtn>
-          <ToolbarBtn onClick={() => {}} title="Redo (Ctrl+Y)"><Redo2 className="h-3.5 w-3.5" /></ToolbarBtn>
+          <ToolbarBtn onClick={undo} title="Undo (Ctrl+Z)" disabled={!canUndo}><Undo2 className="h-3.5 w-3.5" /></ToolbarBtn>
+          <ToolbarBtn onClick={redo} title="Redo (Ctrl+Y)" disabled={!canRedo}><Redo2 className="h-3.5 w-3.5" /></ToolbarBtn>
           <div className="h-4 w-px bg-white/[0.08] mx-1" />
           <ToolbarBtn onClick={zoomOut} title="Zoom Out"><ZoomOut className="h-3.5 w-3.5" /></ToolbarBtn>
           <span className="text-xs text-white/30 w-10 text-center tabular-nums">{Math.round(zoom * 100)}%</span>
@@ -310,7 +484,7 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
           onMouseDown={handleCanvasMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
+          onMouseLeave={e => { handleMouseUp(e); drawingEdge.current = null; setGhostEdge(null) }}
           onWheel={handleWheel}
           onDragOver={e => e.preventDefault()}
           onDrop={handleCanvasDrop}
@@ -323,33 +497,38 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
           <div
             style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "0 0", position: "absolute", inset: 0 }}
           >
-            {/* SVG edges */}
-            <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none" style={{ position: "absolute", left: 0, top: 0, width: "100%", height: "100%", overflow: "visible" }}>
+            {/* SVG edges — pointer-events enabled so we can delete on hover */}
+            <svg style={{ position: "absolute", left: 0, top: 0, width: "10000px", height: "10000px", overflow: "visible", pointerEvents: "none" }}>
               {edges.map(edge => {
                 const srcNode = nodes.find(n => n.id === edge.sourceNodeId)
                 const tgtNode = nodes.find(n => n.id === edge.targetNodeId)
                 if (!srcNode || !tgtNode) return null
                 const srcDef = getNodeById(srcNode.definitionId)
                 const tgtDef = getNodeById(tgtNode.definitionId)
-                const portIndex = srcDef?.outputs.findIndex(p => p.id === edge.sourcePort) ?? 0
-                const tgtIndex = tgtDef?.inputs.findIndex(p => p.id === edge.targetPort) ?? 0
-                const x1 = srcNode.position.x + 220
-                const y1 = srcNode.position.y + 44 + portIndex * 20
-                const x2 = tgtNode.position.x
-                const y2 = tgtNode.position.y + 44 + tgtIndex * 20
+                if (!srcDef || !tgtDef) return null
+                const sp = portPos(srcNode, edge.sourcePort, "output", srcDef)
+                const tp = portPos(tgtNode, edge.targetPort, "input", tgtDef)
+                const isRunning = srcNode.status === "running" || tgtNode.status === "running"
                 return (
-                  <path
-                    key={edge.id}
-                    d={edgePath(x1, y1, x2, y2)}
-                    fill="none"
-                    stroke="rgba(139,92,246,0.5)"
-                    strokeWidth={1.5}
-                    strokeDasharray={undefined}
-                  />
+                  <g key={edge.id} style={{ pointerEvents: "all" }}>
+                    {/* Wide invisible hit area */}
+                    <path d={edgePath(sp.x, sp.y, tp.x, tp.y)} fill="none" stroke="transparent" strokeWidth={12}
+                      className="cursor-pointer"
+                      onClick={e => { e.stopPropagation(); deleteEdge(edge.id) }}
+                    />
+                    <path
+                      d={edgePath(sp.x, sp.y, tp.x, tp.y)}
+                      fill="none"
+                      stroke={isRunning ? "rgba(245,158,11,0.7)" : "rgba(139,92,246,0.55)"}
+                      strokeWidth={1.5}
+                      className="pointer-events-none"
+                      style={isRunning ? { strokeDasharray: "8 4", animation: "dash 0.8s linear infinite" } : undefined}
+                    />
+                  </g>
                 )
               })}
               {ghostEdge && (
-                <path d={edgePath(ghostEdge.x1, ghostEdge.y1, ghostEdge.x2, ghostEdge.y2)} fill="none" stroke="rgba(139,92,246,0.3)" strokeWidth={1.5} strokeDasharray="4 3" />
+                <path d={edgePath(ghostEdge.x1, ghostEdge.y1, ghostEdge.x2, ghostEdge.y2)} fill="none" stroke="rgba(139,92,246,0.4)" strokeWidth={1.5} strokeDasharray="5 3" className="pointer-events-none" />
               )}
             </svg>
 
@@ -358,17 +537,26 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
               const def = getNodeById(node.definitionId)
               if (!def) return null
               const isSelected = node.id === selectedNodeId
+              const isRenaming = node.id === renamingNodeId
               return (
                 <CanvasNodeCard
                   key={node.id}
                   node={node}
                   def={def}
                   isSelected={isSelected}
+                  isRenaming={isRenaming}
+                  renameValue={renameValue}
+                  renameInputRef={renameInputRef}
+                  highlightPort={highlightPort}
+                  onRenameChange={setRenameValue}
+                  onRenameCommit={commitRename}
+                  onDoubleClick={() => startRename(node, def)}
                   onMouseDown={(e) => {
+                    if ((e.target as HTMLElement).closest("[data-port]")) return
                     e.stopPropagation()
                     setSelectedNodeId(node.id)
+                    if (isRenaming) return
                     draggingNodeId.current = node.id
-                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
                     const canvasRect = canvasRef.current?.getBoundingClientRect()
                     if (canvasRect) {
                       dragOffset.current = {
@@ -379,10 +567,14 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
                   }}
                   onDelete={() => deleteNode(node.id)}
                   onDuplicate={() => {
-                    const copy: CanvasNode = { ...node, id: uid(), position: { x: node.position.x + 40, y: node.position.y + 40 } }
-                    setNodes(prev => [...prev, copy])
+                    const copy: CanvasNode = { ...JSON.parse(JSON.stringify(node)), id: uid(), position: { x: node.position.x + 40, y: node.position.y + 40 } }
+                    setNodes(prev => { const next = [...prev, copy]; pushHistory(next, edges); return next })
                     setSelectedNodeId(copy.id)
                   }}
+                  onOutputPortMouseDown={(portId, x, y, e) => startEdge(node.id, portId, x, y, e)}
+                  onInputPortMouseUp={(portId, e) => commitEdge(node.id, portId, e)}
+                  onInputPortMouseEnter={(portId) => setHighlightPort({ nodeId: node.id, portId })}
+                  onInputPortMouseLeave={() => setHighlightPort(null)}
                 />
               )
             })}
@@ -399,11 +591,23 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
             )}
           </div>
 
+          {/* Exec error toast */}
+          {execError && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 max-w-sm w-full px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 backdrop-blur-sm">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-red-300 flex-1 whitespace-pre-line">{execError}</p>
+                <button onClick={() => setExecError(null)} className="text-red-400/60 hover:text-red-300"><X className="h-3.5 w-3.5" /></button>
+              </div>
+            </div>
+          )}
           {/* Node count badge */}
           <div className="absolute bottom-4 left-4 flex items-center gap-2 text-[10px] text-white/20 pointer-events-none">
             <span>{nodes.length} nodes</span>
             <span>·</span>
             <span>{edges.length} connections</span>
+            <span>·</span>
+            <span>{getValidationErrors().length === 0 ? "✓ valid" : `${getValidationErrors().length} errors`}</span>
           </div>
         </div>
 
@@ -423,12 +627,13 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
 }
 
 // ─── Toolbar button ────────────────────────────────────────────────────────────
-function ToolbarBtn({ children, onClick, title }: { children: React.ReactNode; onClick: () => void; title?: string }) {
+function ToolbarBtn({ children, onClick, title, disabled }: { children: React.ReactNode; onClick: () => void; title?: string; disabled?: boolean }) {
   return (
     <button
       onClick={onClick}
       title={title}
-      className="h-8 w-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors"
+      disabled={disabled}
+      className="h-8 w-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors disabled:opacity-25 disabled:pointer-events-none"
     >
       {children}
     </button>
@@ -458,22 +663,40 @@ interface CanvasNodeCardProps {
   node: CanvasNode
   def: NodeDefinition
   isSelected: boolean
+  isRenaming: boolean
+  renameValue: string
+  renameInputRef: React.RefObject<HTMLInputElement | null>
+  highlightPort: { nodeId: string; portId: string } | null
+  onRenameChange: (v: string) => void
+  onRenameCommit: () => void
+  onDoubleClick: () => void
   onMouseDown: (e: React.MouseEvent) => void
   onDelete: () => void
   onDuplicate: () => void
+  onOutputPortMouseDown: (portId: string, x: number, y: number, e: React.MouseEvent) => void
+  onInputPortMouseUp: (portId: string, e: React.MouseEvent) => void
+  onInputPortMouseEnter: (portId: string) => void
+  onInputPortMouseLeave: () => void
 }
 
-function CanvasNodeCard({ node, def, isSelected, onMouseDown, onDelete, onDuplicate }: CanvasNodeCardProps) {
-  const statusColor = { idle: "", running: "border-amber-500/60", success: "border-emerald-500/60", error: "border-red-500/60" }[node.status ?? "idle"]
+function CanvasNodeCard({
+  node, def, isSelected, isRenaming, renameValue, renameInputRef, highlightPort,
+  onRenameChange, onRenameCommit, onDoubleClick,
+  onMouseDown, onDelete, onDuplicate,
+  onOutputPortMouseDown, onInputPortMouseUp, onInputPortMouseEnter, onInputPortMouseLeave,
+}: CanvasNodeCardProps) {
+  const statusBorder = { idle: "", running: "border-amber-500/60", success: "border-emerald-500/60", error: "border-red-500/60" }[node.status ?? "idle"]
 
   return (
     <div
-      style={{ position: "absolute", left: node.position.x, top: node.position.y, width: 220, userSelect: "none" }}
+      style={{ position: "absolute", left: node.position.x, top: node.position.y, width: NODE_WIDTH, userSelect: "none" }}
       onMouseDown={onMouseDown}
+      onDoubleClick={onDoubleClick}
       className={cn(
-        "rounded-xl border bg-[#0f0f1a] shadow-xl transition-shadow cursor-grab active:cursor-grabbing group",
-        isSelected ? "border-violet-500/70 shadow-violet-500/10" : "border-white/[0.08] hover:border-white/[0.14]",
-        statusColor,
+        "rounded-xl border bg-[#0f0f1a] shadow-xl cursor-grab active:cursor-grabbing group",
+        isSelected ? "border-violet-500/70 shadow-[0_0_20px_rgba(139,92,246,0.12)]" : "border-white/[0.08] hover:border-white/[0.16]",
+        statusBorder && !isSelected ? statusBorder : "",
+        node.status === "running" ? "shadow-amber-500/10" : "",
       )}
     >
       {/* Node header */}
@@ -485,7 +708,20 @@ function CanvasNodeCard({ node, def, isSelected, onMouseDown, onDelete, onDuplic
           {def.icon.length === 1 ? <span style={{ fontSize: 13 }}>{def.icon}</span> : <BrandIcon brand={def.icon} size={15} />}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-white leading-tight truncate">{node.label ?? def.name}</p>
+          {isRenaming ? (
+            <input
+              ref={renameInputRef as React.RefObject<HTMLInputElement>}
+              value={renameValue}
+              onChange={e => onRenameChange(e.target.value)}
+              onBlur={onRenameCommit}
+              onKeyDown={e => { if (e.key === "Enter") onRenameCommit(); if (e.key === "Escape") onRenameCommit() }}
+              onClick={e => e.stopPropagation()}
+              onMouseDown={e => e.stopPropagation()}
+              className="w-full bg-white/[0.06] border border-white/[0.15] rounded px-1 py-0 text-xs font-semibold text-white outline-none"
+            />
+          ) : (
+            <p className="text-xs font-semibold text-white leading-tight truncate">{node.label ?? def.name}</p>
+          )}
           <p className="text-[9px] text-white/30 leading-tight capitalize">{def.category}</p>
         </div>
         {/* Status indicator */}
@@ -494,48 +730,71 @@ function CanvasNodeCard({ node, def, isSelected, onMouseDown, onDelete, onDuplic
         {node.status === "error" && <div className="h-2 w-2 rounded-full bg-red-400 flex-shrink-0" />}
         {/* Actions - show on hover */}
         <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 transition-opacity">
-          <button
-            onClick={e => { e.stopPropagation(); onDuplicate() }}
-            className="h-5 w-5 flex items-center justify-center rounded text-white/20 hover:text-white/60 hover:bg-white/[0.06]"
-          >
+          <button onClick={e => { e.stopPropagation(); onDuplicate() }} className="h-5 w-5 flex items-center justify-center rounded text-white/20 hover:text-white/60 hover:bg-white/[0.06]">
             <Copy className="h-3 w-3" />
           </button>
-          <button
-            onClick={e => { e.stopPropagation(); onDelete() }}
-            className="h-5 w-5 flex items-center justify-center rounded text-white/20 hover:text-red-400 hover:bg-red-500/10"
-          >
+          <button onClick={e => { e.stopPropagation(); onDelete() }} className="h-5 w-5 flex items-center justify-center rounded text-white/20 hover:text-red-400 hover:bg-red-500/10">
             <Trash2 className="h-3 w-3" />
           </button>
         </div>
       </div>
 
-      {/* Input ports */}
+      {/* Input ports — on left side */}
       {def.inputs.length > 0 && (
-        <div className="px-3 pt-2 pb-1 space-y-1">
-          {def.inputs.map((port, i) => (
-            <div key={port.id} className="flex items-center gap-1.5 relative">
+        <div className="px-3 pt-1.5 pb-1 space-y-0">
+          {def.inputs.map((port) => {
+            const isHighlighted = highlightPort?.nodeId === node.id && highlightPort?.portId === port.id
+            return (
+              <div key={port.id} className="flex items-center gap-1.5 relative" style={{ height: PORT_ROW_H }}>
+                <div
+                  data-port="input"
+                  className={cn(
+                    "absolute -left-[17px] h-3 w-3 rounded-full border-2 bg-[#0f0f1a] cursor-crosshair transition-all",
+                    isHighlighted ? "border-blue-300 bg-blue-400/30 scale-125" : "border-blue-400 hover:bg-blue-400/20"
+                  )}
+                  title={`Input: ${port.label} (${port.type})`}
+                  onMouseUp={e => onInputPortMouseUp(port.id, e)}
+                  onMouseEnter={() => onInputPortMouseEnter(port.id)}
+                  onMouseLeave={onInputPortMouseLeave}
+                />
+                <span className="text-[9px] text-white/25 pl-1 truncate">{port.label}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Output ports — on right side */}
+      {def.outputs.length > 0 && (
+        <div className="px-3 pb-1.5 pt-1 space-y-0">
+          {def.outputs.map((port) => (
+            <div key={port.id} className="flex items-center justify-end gap-1.5 relative" style={{ height: PORT_ROW_H }}>
+              <span className="text-[9px] text-white/25 pr-1 truncate">{port.label}</span>
               <div
-                className="absolute -left-[17px] h-3 w-3 rounded-full border-2 border-blue-400 bg-[#0f0f1a] cursor-crosshair hover:bg-blue-400/20 transition-colors"
-                title={`Input: ${port.label}`}
+                data-port="output"
+                className="absolute -right-[17px] h-3 w-3 rounded-full border-2 border-emerald-400 bg-[#0f0f1a] cursor-crosshair hover:bg-emerald-400/30 hover:scale-125 transition-all"
+                title={`Output: ${port.label} (${port.type})`}
+                onMouseDown={e => {
+                  e.stopPropagation()
+                  // Calculate port center in canvas coords
+                  const portEl = e.currentTarget as HTMLElement
+                  const canvasEl = portEl.closest(".flex-1.relative") as HTMLElement
+                  if (!canvasEl) return
+                  const pr = portEl.getBoundingClientRect()
+                  const cr = canvasEl.getBoundingClientRect()
+                  // We can't read zoom/pan here, so pass client coords and let parent calculate
+                  onOutputPortMouseDown(port.id, pr.left + pr.width / 2 - cr.left, pr.top + pr.height / 2 - cr.top, e)
+                }}
               />
-              <span className="text-[9px] text-white/25 pl-1">{port.label}</span>
             </div>
           ))}
         </div>
       )}
 
-      {/* Output ports */}
-      {def.outputs.length > 0 && (
-        <div className="px-3 pb-2 pt-1 space-y-1">
-          {def.outputs.map((port, i) => (
-            <div key={port.id} className="flex items-center justify-end gap-1.5 relative">
-              <span className="text-[9px] text-white/25 pr-1">{port.label}</span>
-              <div
-                className="absolute -right-[17px] h-3 w-3 rounded-full border-2 border-emerald-400 bg-[#0f0f1a] cursor-crosshair hover:bg-emerald-400/20 transition-colors"
-                title={`Output: ${port.label}`}
-              />
-            </div>
-          ))}
+      {/* Output value badge (shown after execution) */}
+      {node.status === "success" && node.output && (
+        <div className="mx-3 mb-2 px-2 py-1 rounded-md bg-emerald-500/8 border border-emerald-500/15 text-[9px] text-emerald-300/70 truncate">
+          ✓ {Object.keys(node.output).slice(0, 3).join(", ")}
         </div>
       )}
     </div>

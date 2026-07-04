@@ -59,9 +59,9 @@ export interface WorkflowNode {
 export interface WorkflowEdge {
   id: string
   source_node_id: string
-  source_output: number
+  source_output: string
   target_node_id: string
-  target_input: number
+  target_input: string
 }
 
 export interface WorkflowDefinition {

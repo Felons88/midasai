@@ -10,6 +10,8 @@ import { ExecutionHistory } from "./ExecutionHistory"
 import { DirectoryOptimizer } from "./DirectoryOptimizer"
 import { NodeLibrary } from "./NodeLibrary"
 import { MidasBridge } from "./MidasBridge"
+import { CredentialManager } from "./CredentialManager"
+import { WorkflowInspector } from "./WorkflowInspector"
 import { Loader2, X } from "lucide-react"
 import type { NexusWorkflow, NexusNode, NexusDirectory, WorkflowExecution } from "@/lib/nexus/types"
 
@@ -171,6 +173,17 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
     if (activeWorkflow?.id === id) setActiveWorkflow(null)
   }, [activeWorkflow])
 
+  const handleCloneWorkflow = useCallback(async (workflow: NexusWorkflow) => {
+    const res = await fetch("/api/nexus/workflows", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: `${workflow.name} (copy)`, description: workflow.description ?? "", definition: workflow.definition }),
+    })
+    if (!res.ok) return
+    const data = await res.json()
+    setWorkflows(prev => [data.workflow, ...prev])
+  }, [])
+
   const handleDeleteDirectory = useCallback(async (id: string) => {
     await fetch(`/api/nexus/directories/${id}`, { method: "DELETE" })
     setDirectories((prev) => prev.filter((d) => d.id !== id))
@@ -211,6 +224,7 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
           <TabsTrigger value="directories">Directories</TabsTrigger>
           <TabsTrigger value="nodes">Node Library</TabsTrigger>
           <TabsTrigger value="bridge">Bridge</TabsTrigger>
+          <TabsTrigger value="credentials">Credentials</TabsTrigger>
         </TabsList>
 
         <TabsContent value="workflows">
@@ -220,17 +234,23 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
             onCreate={() => setShowCreate(true)}
             onDelete={handleDeleteWorkflow}
             onExecute={(id) => handleExecuteWorkflow(id)}
+            onClone={handleCloneWorkflow}
             executing={executing}
           />
         </TabsContent>
 
         <TabsContent value="executions">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-white">Execution History</h2>
-              <span className="text-xs text-white/40">{executions.length} runs</span>
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-semibold text-white">Execution History</h2>
+                <span className="text-xs text-white/40">{executions.length} runs</span>
+              </div>
+              <ExecutionHistory executions={executions} />
             </div>
-            <ExecutionHistory executions={executions} />
+            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.01] overflow-hidden" style={{ minHeight: 400 }}>
+              <WorkflowInspector executions={executions} />
+            </div>
           </div>
         </TabsContent>
 
@@ -248,6 +268,12 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
 
         <TabsContent value="bridge">
           <MidasBridge />
+        </TabsContent>
+
+        <TabsContent value="credentials">
+          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.01] overflow-hidden" style={{ minHeight: 500 }}>
+            <CredentialManager />
+          </div>
         </TabsContent>
       </Tabs>
 
