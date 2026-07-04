@@ -28,16 +28,26 @@ export async function POST(request: Request) {
       )
     }
 
-    // For MVP, we'll trust the auth token (in production, validate against cli_login_requests)
-    // Create the bridge device directly
+    // Validate auth token against cli_login_requests to get user_id
     const supabase = await createClient()
+    const { data: loginRequest, error: authError } = await supabase
+      .from("cli_login_requests")
+      .select("user_id")
+      .eq("token", authToken)
+      .eq("status", "approved")
+      .single()
+
+    if (authError || !loginRequest) {
+      return NextResponse.json({ error: "Invalid or expired auth token" }, { status: 401 })
+    }
 
     const deviceToken = randomBytes(32).toString("hex")
 
     const { data: device, error: deviceError } = await supabase
       .from("bridge_devices")
       .insert({
-        token: deviceToken,
+        user_id: loginRequest.user_id,
+        device_token: deviceToken,
         ide_name,
         ide_version: ide_version ?? null,
         device_name,
@@ -45,7 +55,6 @@ export async function POST(request: Request) {
         device_arch: device_arch ?? null,
         bridge_port,
         bridge_version: bridge_version ?? null,
-        status: "active",
         last_seen: new Date().toISOString(),
       })
       .select()
