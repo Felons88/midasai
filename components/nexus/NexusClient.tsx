@@ -4,13 +4,13 @@ import { useState, useCallback, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { WorkflowCanvas } from "./WorkflowCanvas"
+import { WorkflowEditor } from "./WorkflowEditor"
 import { WorkflowList } from "./WorkflowList"
 import { ExecutionHistory } from "./ExecutionHistory"
 import { DirectoryOptimizer } from "./DirectoryOptimizer"
 import { NodeLibrary } from "./NodeLibrary"
 import { MidasBridge } from "./MidasBridge"
-import { ArrowLeft, Loader2, X } from "lucide-react"
+import { Loader2, X } from "lucide-react"
 import type { NexusWorkflow, NexusNode, NexusDirectory, WorkflowExecution } from "@/lib/nexus/types"
 
 interface CreateWorkflowModalProps {
@@ -184,34 +184,15 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
     }
   }, [])
 
-  // ─── Workflow Editor View ───────────────────────────────────────────────────
+  // ─── Workflow Editor View — full-screen overlay ──────────────────────────────
   if (activeWorkflow) {
     return (
-      <div className="flex flex-col h-[calc(100vh-8rem)]">
-        <div className="flex items-center gap-3 mb-4 flex-shrink-0">
-          <Button variant="ghost" size="sm" onClick={() => setActiveWorkflow(null)}>
-            <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
-            Back
-          </Button>
-          <div className="flex-1">
-            <h2 className="text-sm font-semibold text-white">{activeWorkflow.name}</h2>
-            {activeWorkflow.description && (
-              <p className="text-xs text-white/40">{activeWorkflow.description}</p>
-            )}
-          </div>
-          <span className="text-xs text-white/30 capitalize">{activeWorkflow.status}</span>
-        </div>
-        <div className="flex-1 rounded-2xl border border-white/[0.06] overflow-hidden">
-          <WorkflowCanvas
-            workflow={activeWorkflow}
-            availableNodes={nodes}
-            onSave={handleSaveWorkflow}
-            onExecute={() => handleExecuteWorkflow()}
-            saving={saving}
-            executing={executing === activeWorkflow.id}
-          />
-        </div>
-      </div>
+      <WorkflowEditor
+        workflow={activeWorkflow}
+        onBack={() => setActiveWorkflow(null)}
+        onSave={handleSaveWorkflow}
+        onExecute={() => handleExecuteWorkflow()}
+      />
     )
   }
 
