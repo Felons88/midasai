@@ -1321,9 +1321,9 @@ function CanvasNodeCard({
       {node.status === "success" && node.output && (
         <OutputInspector output={node.output} nodeLabel={node.label ?? def.name} />
       )}
-      {node.status === "error" && node.output?.error && (
+      {node.status === "error" && !!node.output?.error && (
         <div className="mx-3 mb-2 px-2 py-1 rounded-md bg-red-500/8 border border-red-500/15 text-[9px] text-red-300/70 truncate">
-          {`✗ ${String(node.output.error).slice(0, 60)}`}
+          {`✗ ${String(node.output?.error).slice(0, 60)}`}
         </div>
       )}
     </div>
