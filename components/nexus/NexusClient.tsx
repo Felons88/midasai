@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { WorkflowEditor } from "./WorkflowEditor"
 import { WorkflowList } from "./WorkflowList"
+import { WorkflowTemplates } from "./WorkflowTemplates"
+import type { WorkflowTemplate } from "@/lib/nexus/workflow-templates"
 import { ExecutionHistory } from "./ExecutionHistory"
 import { DirectoryOptimizer } from "./DirectoryOptimizer"
 import { NodeLibrary } from "./NodeLibrary"
@@ -14,7 +16,7 @@ import { CredentialManager } from "./CredentialManager"
 import { WorkflowInspector } from "./WorkflowInspector"
 import { ScheduleManager } from "./ScheduleManager"
 import { WebhookManager } from "./WebhookManager"
-import { Loader2, X } from "lucide-react"
+import { Loader2, X, CheckCircle2, AlertCircle, Info } from "lucide-react"
 import type { NexusWorkflow, NexusNode, NexusDirectory, WorkflowExecution } from "@/lib/nexus/types"
 
 interface CreateWorkflowModalProps {
@@ -98,6 +100,13 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
   const [saving, setSaving] = useState(false)
   const [executing, setExecuting] = useState<string | null>(null)
   const [tab, setTab] = useState("workflows")
+  const [toasts, setToasts] = useState<{ id: string; type: "success" | "error" | "info"; message: string }[]>([])
+
+  const showToast = useCallback((type: "success" | "error" | "info", message: string) => {
+    const id = Math.random().toString(36).slice(2)
+    setToasts(prev => [...prev, { id, type, message }])
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000)
+  }, [])
 
   // Refresh executions every 5s when one is running
   useEffect(() => {
@@ -119,12 +128,13 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, description }),
     })
-    if (!res.ok) throw new Error("Failed to create workflow")
+    if (!res.ok) { showToast("error", "Failed to create workflow"); throw new Error("Failed to create workflow") }
     const data = await res.json()
     setWorkflows((prev) => [data.workflow, ...prev])
     setShowCreate(false)
     setActiveWorkflow(data.workflow)
-  }, [])
+    showToast("success", `Workflow "${name}" created`)
+  }, [showToast])
 
   const handleSaveWorkflow = useCallback(async (definition: NexusWorkflow["definition"]) => {
     if (!activeWorkflow) return
@@ -135,14 +145,15 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ definition }),
       })
-      if (!res.ok) throw new Error("Save failed")
+      if (!res.ok) { showToast("error", "Failed to save workflow"); throw new Error("Save failed") }
       const data = await res.json()
       setWorkflows((prev) => prev.map((w) => (w.id === data.workflow.id ? data.workflow : w)))
       setActiveWorkflow(data.workflow)
+      showToast("success", "Workflow saved")
     } finally {
       setSaving(false)
     }
-  }, [activeWorkflow])
+  }, [activeWorkflow, showToast])
 
   const handleExecuteWorkflow = useCallback(async (workflowId?: string) => {
     const id = workflowId ?? activeWorkflow?.id
@@ -155,8 +166,13 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
         body: JSON.stringify({}),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? data.details ?? "Execution failed")
+      if (!res.ok) {
+        const msg = data.error ?? data.details ?? "Execution failed"
+        showToast("error", msg)
+        throw new Error(msg)
+      }
       setExecutions((prev) => [data.execution, ...prev])
+      showToast("success", `Workflow executed in ${data.result?.duration_ms ?? 0}ms`)
       // Update workflow execution_count
       const wfRes = await fetch(`/api/nexus/workflows/${id}`)
       if (wfRes.ok) {
@@ -167,13 +183,32 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
     } finally {
       setExecuting(null)
     }
-  }, [activeWorkflow])
+  }, [activeWorkflow, showToast])
 
   const handleDeleteWorkflow = useCallback(async (id: string) => {
+    const wf = workflows.find(w => w.id === id)
     await fetch(`/api/nexus/workflows/${id}`, { method: "DELETE" })
     setWorkflows((prev) => prev.filter((w) => w.id !== id))
     if (activeWorkflow?.id === id) setActiveWorkflow(null)
-  }, [activeWorkflow])
+    if (wf) showToast("info", `"${wf.name}" deleted`)
+  }, [activeWorkflow, workflows, showToast])
+
+  const handleCreateFromTemplate = useCallback(async (template: WorkflowTemplate) => {
+    const res = await fetch("/api/nexus/workflows", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: template.name,
+        description: template.description,
+        definition: template.definition,
+      }),
+    })
+    if (!res.ok) { showToast("error", "Failed to create workflow from template"); return }
+    const data = await res.json()
+    setWorkflows(prev => [data.workflow, ...prev])
+    setActiveWorkflow(data.workflow)
+    showToast("success", `Created "${template.name}" from template`)
+  }, [showToast])
 
   const handleCloneWorkflow = useCallback(async (workflow: NexusWorkflow) => {
     const res = await fetch("/api/nexus/workflows", {
@@ -181,10 +216,11 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: `${workflow.name} (copy)`, description: workflow.description ?? "", definition: workflow.definition }),
     })
-    if (!res.ok) return
+    if (!res.ok) { showToast("error", "Failed to clone workflow"); return }
     const data = await res.json()
     setWorkflows(prev => [data.workflow, ...prev])
-  }, [])
+    showToast("success", `"${workflow.name}" cloned`)
+  }, [showToast])
 
   const handleDeleteDirectory = useCallback(async (id: string) => {
     await fetch(`/api/nexus/directories/${id}`, { method: "DELETE" })
@@ -227,6 +263,7 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
           <TabsTrigger value="nodes">Node Library</TabsTrigger>
           <TabsTrigger value="bridge">Bridge</TabsTrigger>
           <TabsTrigger value="triggers">Triggers</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="credentials">Credentials</TabsTrigger>
         </TabsList>
 
@@ -284,6 +321,10 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
           </div>
         </TabsContent>
 
+        <TabsContent value="templates">
+          <WorkflowTemplates onUse={handleCreateFromTemplate} />
+        </TabsContent>
+
         <TabsContent value="credentials">
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.01] overflow-hidden" style={{ minHeight: 500 }}>
             <CredentialManager />
@@ -297,6 +338,42 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
           onCreate={handleCreateWorkflow}
         />
       )}
+
+      {/* Toast notifications */}
+      <ToastContainer toasts={toasts} onDismiss={(id) => setToasts(prev => prev.filter(t => t.id !== id))} />
     </>
+  )
+}
+
+// ─── Toast system ─────────────────────────────────────────────────────────────
+interface Toast { id: string; type: "success" | "error" | "info"; message: string }
+
+function ToastContainer({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: string) => void }) {
+  if (toasts.length === 0) return null
+  return (
+    <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none">
+      {toasts.map(t => (
+        <div
+          key={t.id}
+          className={[
+            "pointer-events-auto flex items-start gap-2.5 min-w-[260px] max-w-[360px] px-4 py-3 rounded-xl border backdrop-blur-sm shadow-xl animate-in slide-in-from-bottom-2 fade-in",
+            t.type === "success" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300" :
+            t.type === "error" ? "bg-red-500/10 border-red-500/30 text-red-300" :
+            "bg-blue-500/10 border-blue-500/30 text-blue-300"
+          ].join(" ")}
+        >
+          {t.type === "success" && <CheckCircle2 className="h-4 w-4 flex-shrink-0 mt-0.5" />}
+          {t.type === "error" && <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />}
+          {t.type === "info" && <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />}
+          <p className="text-xs flex-1">{t.message}</p>
+          <button
+            onClick={() => onDismiss(t.id)}
+            className="opacity-50 hover:opacity-100 transition-opacity flex-shrink-0"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ))}
+    </div>
   )
 }

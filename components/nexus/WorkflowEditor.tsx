@@ -4,7 +4,8 @@ import { useState, useRef, useCallback, useEffect } from "react"
 import {
   Play, Save, Undo2, Redo2, ZoomIn, ZoomOut, Maximize2,
   ChevronLeft, Loader2, CheckCircle2, AlertCircle,
-  Trash2, Copy, GitBranch, X, Rocket, Sparkles, Package, Upload, Globe
+  Trash2, Copy, GitBranch, X, Rocket, Sparkles, Package, Upload, Globe,
+  Keyboard, Map, MousePointer2
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { getNodeById, type NodeDefinition, type NodePort } from "@/lib/nexus/node-registry"
@@ -201,6 +202,11 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle")
   const [execError, setExecError] = useState<string | null>(null)
   const [showDeploy, setShowDeploy] = useState(false)
+  const [showShortcuts, setShowShortcuts] = useState(false)
+  const [showMinimap, setShowMinimap] = useState(true)
+  const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(new Set())
+  const [selectionBox, setSelectionBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
+  const selectionStart = useRef<{ x: number; y: number } | null>(null)
   // Pending auth popup — queued node awaiting connection
   const [pendingAuth, setPendingAuth] = useState<{
     def: NodeDefinition
@@ -284,12 +290,22 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
           }
         }
       }
-      if (e.key === "Delete" || e.key === "Backspace") { if (selectedNodeId) deleteNode(selectedNodeId) }
-      if (e.key === "Escape") { setSelectedNodeId(null); setRenamingNodeId(null) }
+      if (e.key === "Delete" || e.key === "Backspace") {
+        if (selectedNodeIds.size > 0) {
+          selectedNodeIds.forEach(id => deleteNode(id))
+          setSelectedNodeIds(new Set())
+        } else if (selectedNodeId) {
+          deleteNode(selectedNodeId)
+        }
+      }
+      if (e.key === "Escape") { setSelectedNodeId(null); setRenamingNodeId(null); setSelectedNodeIds(new Set()); setSelectionBox(null) }
+      if (e.key === "?") { e.preventDefault(); setShowShortcuts(prev => !prev) }
+      if (e.key === "m" && !e.metaKey && !e.ctrlKey) { setShowMinimap(prev => !prev) }
+      if ((e.metaKey || e.ctrlKey) && e.key === "a") { e.preventDefault(); setSelectedNodeIds(new Set(nodes.map(n => n.id))) }
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
-  }, [selectedNodeId, nodes, edges])
+  }, [selectedNodeId, selectedNodeIds, nodes, edges])
 
   // ─── Add node (internal — no auth check) ───────────────────────────────────
   const placeNode = useCallback((def: NodeDefinition, pos?: { x: number; y: number }) => {
@@ -579,6 +595,12 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
           <span className="text-xs text-white/30 w-10 text-center tabular-nums">{Math.round(zoom * 100)}%</span>
           <ToolbarBtn onClick={zoomIn} title="Zoom In"><ZoomIn className="h-3.5 w-3.5" /></ToolbarBtn>
           <ToolbarBtn onClick={fitView} title="Fit View"><Maximize2 className="h-3.5 w-3.5" /></ToolbarBtn>
+          <ToolbarBtn onClick={() => setShowMinimap(p => !p)} title={showMinimap ? "Hide Minimap (M)" : "Show Minimap (M)"}>
+            <Map className={cn("h-3.5 w-3.5", showMinimap ? "text-violet-400" : "")} />
+          </ToolbarBtn>
+          <ToolbarBtn onClick={() => setShowShortcuts(true)} title="Keyboard Shortcuts (?)">
+            <Keyboard className="h-3.5 w-3.5" />
+          </ToolbarBtn>
           <div className="h-4 w-px bg-white/[0.08] mx-1" />
           <button
             onClick={handleSave}
@@ -619,6 +641,11 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
         <DeployAnimationModal workflowName={workflow.name} onClose={() => setShowDeploy(false)} />
       )}
 
+      {/* ─── Keyboard shortcuts modal ─────────────────────────────────────────── */}
+      {showShortcuts && (
+        <KeyboardShortcutsModal onClose={() => setShowShortcuts(false)} />
+      )}
+
       {/* ─── Node auth popup ─────────────────────────────────────────────────── */}
       {pendingAuth && (() => {
         const integration = getIntegration(pendingAuth.integrationId)
@@ -653,7 +680,7 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
           onWheel={handleWheel}
           onDragOver={e => e.preventDefault()}
           onDrop={handleCanvasDrop}
-          onClick={e => { if (e.target === canvasRef.current || (e.target as HTMLElement).closest("[data-canvas-bg]")) setSelectedNodeId(null) }}
+          onClick={e => { if (e.target === canvasRef.current || (e.target as HTMLElement).closest("[data-canvas-bg]")) { setSelectedNodeId(null); setSelectedNodeIds(new Set()) } }}
         >
           {/* Grid background */}
           <CanvasGrid zoom={zoom} pan={pan} />
@@ -766,13 +793,23 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
               </div>
             </div>
           )}
+          {/* Selection box */}
+          {selectionBox && (
+            <div style={{ position: "absolute", left: selectionBox.x, top: selectionBox.y, width: selectionBox.w, height: selectionBox.h, border: "1px solid rgba(139,92,246,0.6)", background: "rgba(139,92,246,0.08)", pointerEvents: "none", zIndex: 20 }} />
+          )}
+
+          {/* Minimap */}
+          {showMinimap && (
+            <CanvasMinimap nodes={nodes} pan={pan} zoom={zoom} canvasRef={canvasRef} />
+          )}
+
           {/* Node count badge */}
           <div className="absolute bottom-4 left-4 flex items-center gap-2 text-[10px] text-white/20 pointer-events-none">
             <span>{nodes.length} nodes</span>
             <span>·</span>
             <span>{edges.length} connections</span>
             <span>·</span>
-            <span>{getValidationErrors().length === 0 ? "✓ valid" : `${getValidationErrors().length} errors`}</span>
+            <span>{selectedNodeIds.size > 0 ? `${selectedNodeIds.size} selected` : getValidationErrors().length === 0 ? "✓ valid" : `${getValidationErrors().length} errors`}</span>
           </div>
         </div>
 
@@ -962,6 +999,145 @@ function CanvasNodeCard({
           ✓ {Object.keys(node.output).slice(0, 3).join(", ")}
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Keyboard Shortcuts Modal ─────────────────────────────────────────────────
+const SHORTCUTS = [
+  { group: "Canvas", items: [
+    { keys: ["Ctrl", "S"], label: "Save workflow" },
+    { keys: ["Ctrl", "Z"], label: "Undo" },
+    { keys: ["Ctrl", "Y"], label: "Redo" },
+    { keys: ["Ctrl", "D"], label: "Duplicate selected node" },
+    { keys: ["Ctrl", "A"], label: "Select all nodes" },
+    { keys: ["Scroll"], label: "Zoom in/out" },
+    { keys: ["Ctrl", "+"], label: "Zoom in" },
+    { keys: ["Ctrl", "-"], label: "Zoom out" },
+  ]},
+  { group: "Nodes", items: [
+    { keys: ["Click"], label: "Select node" },
+    { keys: ["Double click"], label: "Rename node" },
+    { keys: ["Delete"], label: "Delete selected node(s)" },
+    { keys: ["Escape"], label: "Deselect / close" },
+    { keys: ["/"], label: "Focus node search" },
+  ]},
+  { group: "Edges", items: [
+    { keys: ["Drag", "port →", "port"], label: "Draw connection" },
+    { keys: ["Click", "edge"], label: "Delete connection" },
+  ]},
+  { group: "View", items: [
+    { keys: ["M"], label: "Toggle minimap" },
+    { keys: ["?"], label: "Toggle keyboard shortcuts" },
+    { keys: ["F"], label: "Fit view" },
+    { keys: ["Space", "+", "drag"], label: "Pan canvas" },
+  ]},
+]
+
+function KeyboardShortcutsModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="relative w-full max-w-lg bg-[#0a0a12] border border-white/[0.1] rounded-2xl shadow-2xl p-6 max-h-[80vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <Keyboard className="h-4 w-4 text-violet-400" />
+            <h2 className="text-sm font-semibold text-white">Keyboard Shortcuts</h2>
+          </div>
+          <button onClick={onClose} className="text-white/30 hover:text-white/70 transition-colors"><X className="h-4 w-4" /></button>
+        </div>
+        <div className="space-y-5">
+          {SHORTCUTS.map(group => (
+            <div key={group.group}>
+              <p className="text-[10px] font-semibold text-white/30 uppercase tracking-wider mb-2">{group.group}</p>
+              <div className="space-y-1">
+                {group.items.map(item => (
+                  <div key={item.label} className="flex items-center justify-between">
+                    <span className="text-xs text-white/50">{item.label}</span>
+                    <div className="flex items-center gap-1">
+                      {item.keys.map((k, i) => (
+                        <span key={i} className={cn(
+                          "text-[10px] px-1.5 py-0.5 rounded",
+                          k === "+" || k === "→" || k === "drag" ? "text-white/20" : "bg-white/[0.06] border border-white/[0.1] text-white/60 font-mono"
+                        )}>{k}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-5 text-[10px] text-white/20 text-center">Press <kbd className="bg-white/[0.06] border border-white/[0.1] rounded px-1 font-mono">?</kbd> to toggle this panel</p>
+      </div>
+    </div>
+  )
+}
+
+// ─── Canvas Minimap ───────────────────────────────────────────────────────────
+const MINIMAP_W = 160
+const MINIMAP_H = 100
+const MINIMAP_PADDING = 20
+
+function CanvasMinimap({ nodes, pan, zoom, canvasRef }: {
+  nodes: CanvasNode[]
+  pan: { x: number; y: number }
+  zoom: number
+  canvasRef: React.RefObject<HTMLDivElement | null>
+}) {
+  if (nodes.length === 0) return null
+
+  const xs = nodes.map(n => n.position.x)
+  const ys = nodes.map(n => n.position.y)
+  const minX = Math.min(...xs) - MINIMAP_PADDING
+  const minY = Math.min(...ys) - MINIMAP_PADDING
+  const maxX = Math.max(...xs) + NODE_WIDTH + MINIMAP_PADDING
+  const maxY = Math.max(...ys) + 80 + MINIMAP_PADDING
+  const contentW = maxX - minX
+  const contentH = maxY - minY
+  const scaleX = MINIMAP_W / contentW
+  const scaleY = MINIMAP_H / contentH
+  const scale = Math.min(scaleX, scaleY)
+
+  const canvasW = canvasRef.current?.clientWidth ?? 1200
+  const canvasH = canvasRef.current?.clientHeight ?? 800
+
+  // Viewport rect in world coords
+  const vpX = (-pan.x / zoom - minX) * scale
+  const vpY = (-pan.y / zoom - minY) * scale
+  const vpW = (canvasW / zoom) * scale
+  const vpH = (canvasH / zoom) * scale
+
+  return (
+    <div
+      className="absolute bottom-4 right-4 z-10 rounded-xl border border-white/[0.08] bg-[#0a0a14]/90 backdrop-blur-sm overflow-hidden"
+      style={{ width: MINIMAP_W, height: MINIMAP_H }}
+    >
+      <svg width={MINIMAP_W} height={MINIMAP_H}>
+        {/* Nodes */}
+        {nodes.map(n => {
+          const nx = (n.position.x - minX) * scale
+          const ny = (n.position.y - minY) * scale
+          const nw = NODE_WIDTH * scale
+          const nh = Math.max(4, 30 * scale)
+          const color = n.status === "running" ? "#f59e0b"
+            : n.status === "success" ? "#10b981"
+            : n.status === "error" ? "#ef4444"
+            : "#6d28d9"
+          return (
+            <rect key={n.id} x={nx} y={ny} width={nw} height={nh}
+              rx={2} fill={color} fillOpacity={0.35} stroke={color} strokeOpacity={0.5} strokeWidth={0.5}
+            />
+          )
+        })}
+        {/* Viewport rect */}
+        <rect x={vpX} y={vpY} width={Math.min(vpW, MINIMAP_W)} height={Math.min(vpH, MINIMAP_H)}
+          rx={2} fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.25)" strokeWidth={1}
+        />
+      </svg>
+      <div className="absolute bottom-1 right-1.5 text-[8px] text-white/20">map</div>
     </div>
   )
 }

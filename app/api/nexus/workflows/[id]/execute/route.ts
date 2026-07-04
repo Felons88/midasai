@@ -3,10 +3,87 @@ import { NextResponse } from "next/server"
 import { createNexusService } from "@/lib/nexus/service"
 import { executeWorkflow } from "@/lib/nexus/executor"
 
+// ─── Security helpers ─────────────────────────────────────────────────────────
+
+// In-memory rate limit store: { userId → { count, windowStart } }
+const rateLimitStore = new Map<string, { count: number; windowStart: number }>()
+const RATE_LIMIT_MAX = 10 // executions per window
+const RATE_LIMIT_WINDOW_MS = 60_000 // 1 minute
+
+function checkRateLimit(userId: string): { ok: boolean; retryAfterSec: number } {
+  const now = Date.now()
+  const entry = rateLimitStore.get(userId)
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+    rateLimitStore.set(userId, { count: 1, windowStart: now })
+    return { ok: true, retryAfterSec: 0 }
+  }
+  if (entry.count >= RATE_LIMIT_MAX) {
+    const retryAfterSec = Math.ceil((RATE_LIMIT_WINDOW_MS - (now - entry.windowStart)) / 1000)
+    return { ok: false, retryAfterSec }
+  }
+  entry.count++
+  return { ok: true, retryAfterSec: 0 }
+}
+
+// SSRF protection: block requests to private/loopback addresses
+const PRIVATE_IP_PATTERNS = [
+  /^localhost$/i,
+  /^127\./,
+  /^10\./,
+  /^172\.(1[6-9]|2\d|3[01])\./,
+  /^192\.168\./,
+  /^0\./,
+  /^169\.254\./,
+  /^::1$/,
+  /^fc00:/i,
+  /^fe80:/i,
+  /metadata\.google\.internal/i,
+  /169\.254\.169\.254/,
+]
+
+function isSsrfUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    const host = parsed.hostname.toLowerCase()
+    return PRIVATE_IP_PATTERNS.some(p => p.test(host))
+  } catch {
+    return true // Malformed URL is also blocked
+  }
+}
+
+function validateWorkflowSchema(definition: { nodes?: unknown[]; edges?: unknown[] }): string | null {
+  const nodes = definition.nodes ?? []
+  const edges = definition.edges ?? []
+  if (nodes.length > 100) return "Workflow exceeds maximum of 100 nodes"
+  if (edges.length > 500) return "Workflow exceeds maximum of 500 connections"
+  // Check for SSRF in http_request nodes
+  for (const node of nodes) {
+    const n = node as { node_type_id?: string; configuration?: Record<string, unknown> }
+    if (n.node_type_id === "http_request" && n.configuration?.url) {
+      const url = String(n.configuration.url)
+      if (!url.startsWith("{{") && isSsrfUrl(url)) {
+        return `Node contains blocked URL (private/loopback address): ${url}`
+      }
+    }
+  }
+  return null
+}
+
+// ─── Route handler ────────────────────────────────────────────────────────────
+
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  // Rate limit check
+  const rl = checkRateLimit(user.id)
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: `Rate limit exceeded. Retry in ${rl.retryAfterSec}s (max ${RATE_LIMIT_MAX} executions/minute)` },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+    )
+  }
 
   try {
     const { id } = await params
@@ -15,6 +92,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     // Verify workflow exists and belongs to user
     const workflow = await svc.getWorkflow(id)
+
+    // Schema validation + security scan
+    const schemaError = validateWorkflowSchema(workflow.definition ?? {})
+    if (schemaError) {
+      return NextResponse.json({ error: schemaError }, { status: 400 })
+    }
 
     if (!workflow.definition?.nodes?.length) {
       return NextResponse.json({ error: "Workflow has no nodes" }, { status: 400 })
