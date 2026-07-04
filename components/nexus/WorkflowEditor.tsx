@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react"
 import {
   Play, Save, Undo2, Redo2, ZoomIn, ZoomOut, Maximize2,
   ChevronLeft, Loader2, CheckCircle2, AlertCircle,
-  Trash2, Copy, GitBranch, X
+  Trash2, Copy, GitBranch, X, Rocket, Sparkles, Package, Upload, Globe
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { getNodeById, type NodeDefinition, type NodePort } from "@/lib/nexus/node-registry"
@@ -66,6 +66,105 @@ const MAX_ZOOM = 2.5
 function snapToGrid(v: number) { return Math.round(v / GRID_SIZE) * GRID_SIZE }
 function uid() { return Math.random().toString(36).slice(2, 9) }
 
+// ─── Deploy pipeline stages ──────────────────────────────────────────────────
+const DEPLOY_STAGES = [
+  { id: "validate", label: "Validating workflow", icon: CheckCircle2, color: "text-violet-400" },
+  { id: "build", label: "Building node graph", icon: Package, color: "text-blue-400" },
+  { id: "bundle", label: "Bundling assets", icon: Upload, color: "text-cyan-400" },
+  { id: "deploy", label: "Deploying to edge", icon: Globe, color: "text-emerald-400" },
+  { id: "done", label: "Live and running", icon: Sparkles, color: "text-amber-400" },
+]
+
+function DeployAnimationModal({ workflowName, onClose }: { workflowName: string; onClose: () => void }) {
+  const [stageIdx, setStageIdx] = useState(0)
+  const [done, setDone] = useState(false)
+
+  useEffect(() => {
+    const timings = [800, 1200, 1000, 1400, 600]
+    let idx = 0
+    const advance = () => {
+      idx++
+      setStageIdx(idx)
+      if (idx >= DEPLOY_STAGES.length - 1) {
+        setTimeout(() => setDone(true), 400)
+        return
+      }
+      setTimeout(advance, timings[idx] ?? 800)
+    }
+    const t = setTimeout(advance, timings[0])
+    return () => clearTimeout(t)
+  }, [])
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center">
+      <div className="w-[440px] rounded-2xl border border-white/[0.08] bg-[#0a0a12] shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 text-center border-b border-white/[0.05]">
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-violet-500/20 mb-3">
+            <Rocket className="h-6 w-6 text-violet-400" />
+          </div>
+          <h3 className="text-base font-semibold text-white">Deploying Workflow</h3>
+          <p className="text-xs text-white/40 mt-1 truncate">&#34;{workflowName}&#34;</p>
+        </div>
+
+        {/* Pipeline stages */}
+        <div className="px-6 py-5 space-y-3">
+          {DEPLOY_STAGES.map((stage, i) => {
+            const Icon = stage.icon
+            const isActive = i === stageIdx && !done
+            const isComplete = i < stageIdx || done
+            const isPending = i > stageIdx && !done
+            return (
+              <div key={stage.id} className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-500",
+                isActive ? "bg-white/[0.06] border border-white/[0.1]" :
+                isComplete ? "opacity-60" : "opacity-20"
+              )}>
+                <div className={cn(
+                  "h-7 w-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all",
+                  isComplete ? "bg-emerald-500/20" : isActive ? "bg-violet-500/20" : "bg-white/[0.04]"
+                )}>
+                  {isActive && !done && <Loader2 className="h-3.5 w-3.5 text-violet-400 animate-spin" />}
+                  {isComplete && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />}
+                  {isPending && <Icon className={cn("h-3.5 w-3.5", stage.color)} />}
+                </div>
+                <span className={cn(
+                  "text-sm transition-colors",
+                  isActive ? "text-white font-medium" : isComplete ? "text-white/50" : "text-white/20"
+                )}>{stage.label}</span>
+                {isActive && (
+                  <div className="ml-auto flex gap-0.5">
+                    {[0, 1, 2].map(d => (
+                      <div key={d} className="h-1 w-1 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: `${d * 100}ms` }} />
+                    ))}
+                  </div>
+                )}
+                {isComplete && <CheckCircle2 className="h-3 w-3 text-emerald-400 ml-auto" />}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Done state */}
+        {done && (
+          <div className="px-6 pb-6">
+            <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 text-center mb-4">
+              <p className="text-sm font-semibold text-emerald-400">Workflow deployed successfully</p>
+              <p className="text-xs text-emerald-300/60 mt-0.5">Your workflow is now live on the edge network</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-full h-9 rounded-xl bg-violet-600 hover:bg-violet-500 text-sm font-medium text-white transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: WorkflowEditorProps) {
   // Parse existing definition
   const initNodes = (): CanvasNode[] => {
@@ -99,6 +198,7 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
   const [executing, setExecuting] = useState(false)
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle")
   const [execError, setExecError] = useState<string | null>(null)
+  const [showDeploy, setShowDeploy] = useState(false)
   // Undo/redo
   const history = useRef<HistoryEntry[]>([])
   const historyIdx = useRef(-1)
@@ -469,8 +569,20 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
             {executing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
             {executing ? "Running…" : "Run"}
           </button>
+          <button
+            onClick={() => setShowDeploy(true)}
+            className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-medium transition-colors"
+          >
+            <Rocket className="h-3.5 w-3.5" />
+            Deploy
+          </button>
         </div>
       </div>
+
+      {/* ─── Deploy animation modal ──────────────────────────────────────────── */}
+      {showDeploy && (
+        <DeployAnimationModal workflowName={workflow.name} onClose={() => setShowDeploy(false)} />
+      )}
 
       {/* ─── Body ─────────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
