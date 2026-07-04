@@ -5,10 +5,10 @@ import {
   Play, Save, Undo2, Redo2, ZoomIn, ZoomOut, Maximize2,
   ChevronLeft, Loader2, CheckCircle2, AlertCircle,
   Trash2, Copy, GitBranch, X, Rocket, Sparkles, Package, Upload, Globe,
-  Keyboard, Map, MousePointer2
+  Keyboard, Map, MousePointer2, Search, Download, FolderOpen
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { getNodeById, type NodeDefinition, type NodePort } from "@/lib/nexus/node-registry"
+import { getNodeById, NODE_REGISTRY, searchNodes, type NodeDefinition, type NodePort } from "@/lib/nexus/node-registry"
 import { getIntegration, CREDENTIAL_TO_INTEGRATION } from "@/lib/nexus/integration-registry"
 import { BrandIcon } from "./BrandIcon"
 import { NodeSidebar } from "./NodeSidebar"
@@ -204,9 +204,11 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
   const [showDeploy, setShowDeploy] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [showMinimap, setShowMinimap] = useState(true)
+  const [showPalette, setShowPalette] = useState(false)
   const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(new Set())
   const [selectionBox, setSelectionBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
   const selectionStart = useRef<{ x: number; y: number } | null>(null)
+  const sseRef = useRef<EventSource | null>(null)
   // Pending auth popup — queued node awaiting connection
   const [pendingAuth, setPendingAuth] = useState<{
     def: NodeDefinition
@@ -298,10 +300,11 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
           deleteNode(selectedNodeId)
         }
       }
-      if (e.key === "Escape") { setSelectedNodeId(null); setRenamingNodeId(null); setSelectedNodeIds(new Set()); setSelectionBox(null) }
+      if (e.key === "Escape") { setSelectedNodeId(null); setRenamingNodeId(null); setSelectedNodeIds(new Set()); setSelectionBox(null); setShowPalette(false) }
       if (e.key === "?") { e.preventDefault(); setShowShortcuts(prev => !prev) }
       if (e.key === "m" && !e.metaKey && !e.ctrlKey) { setShowMinimap(prev => !prev) }
       if ((e.metaKey || e.ctrlKey) && e.key === "a") { e.preventDefault(); setSelectedNodeIds(new Set(nodes.map(n => n.id))) }
+      if (e.key === "/" || ((e.metaKey || e.ctrlKey) && e.key === "k")) { e.preventDefault(); setShowPalette(prev => !prev) }
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
@@ -417,12 +420,23 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
     setRenamingNodeId(null)
   }, [renamingNodeId, renameValue, edges, pushHistory])
 
-  // ─── Canvas pan ──────────────────────────────────────────────────────────────
+  // ─── Canvas pan + rubber-band selection ─────────────────────────────────────
   const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 1 || (e.button === 0 && e.altKey)) {
       isDraggingCanvas.current = true
       lastPanPos.current = { x: e.clientX, y: e.clientY }
       e.preventDefault()
+      return
+    }
+    // Start rubber-band selection on LMB click directly on canvas bg
+    if (e.button === 0 && (e.target === canvasRef.current || (e.target as HTMLElement).closest("[data-canvas-bg]"))) {
+      const rect = canvasRef.current?.getBoundingClientRect()
+      if (rect) {
+        selectionStart.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+        setSelectionBox({ x: e.clientX - rect.left, y: e.clientY - rect.top, w: 0, h: 0 })
+        setSelectedNodeIds(new Set())
+        setSelectedNodeId(null)
+      }
     }
   }, [])
 
@@ -435,9 +449,21 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
     if (draggingNodeId.current) {
       const rect = canvasRef.current?.getBoundingClientRect()
       if (!rect) return
-      const x = snapToGrid((e.clientX - rect.left - pan.x) / zoom - dragOffset.current.x)
-      const y = snapToGrid((e.clientY - rect.top - pan.y) / zoom - dragOffset.current.y)
-      setNodes(prev => prev.map(n => n.id === draggingNodeId.current ? { ...n, position: { x, y } } : n))
+      const nx = snapToGrid((e.clientX - rect.left - pan.x) / zoom - dragOffset.current.x)
+      const ny = snapToGrid((e.clientY - rect.top - pan.y) / zoom - dragOffset.current.y)
+      const dx = nx - (nodes.find(n => n.id === draggingNodeId.current)?.position.x ?? nx)
+      const dy = ny - (nodes.find(n => n.id === draggingNodeId.current)?.position.y ?? ny)
+      // If node is part of multi-select, move all selected nodes together
+      if (selectedNodeIds.has(draggingNodeId.current!) && selectedNodeIds.size > 1) {
+        setNodes(prev => prev.map(n =>
+          selectedNodeIds.has(n.id)
+            ? { ...n, position: { x: snapToGrid(n.position.x + dx), y: snapToGrid(n.position.y + dy) } }
+            : n
+        ))
+      } else {
+        setNodes(prev => prev.map(n => n.id === draggingNodeId.current ? { ...n, position: { x: nx, y: ny } } : n))
+      }
+      return
     }
     if (drawingEdge.current) {
       const rect = canvasRef.current?.getBoundingClientRect()
@@ -445,21 +471,47 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
       const x2 = (e.clientX - rect.left - pan.x) / zoom
       const y2 = (e.clientY - rect.top - pan.y) / zoom
       setGhostEdge({ x1: drawingEdge.current.x1, y1: drawingEdge.current.y1, x2, y2 })
+      return
     }
-  }, [pan, zoom])
+    // Rubber-band selection
+    if (selectionStart.current) {
+      const rect = canvasRef.current?.getBoundingClientRect()
+      if (!rect) return
+      const cx = e.clientX - rect.left
+      const cy = e.clientY - rect.top
+      const sx = selectionStart.current.x
+      const sy = selectionStart.current.y
+      const bx = Math.min(sx, cx)
+      const by = Math.min(sy, cy)
+      const bw = Math.abs(cx - sx)
+      const bh = Math.abs(cy - sy)
+      setSelectionBox({ x: bx, y: by, w: bw, h: bh })
+      // Compute world-space selection rect
+      const wx1 = (bx - pan.x) / zoom
+      const wy1 = (by - pan.y) / zoom
+      const wx2 = wx1 + bw / zoom
+      const wy2 = wy1 + bh / zoom
+      const ids = new Set(nodes.filter(n =>
+        n.position.x < wx2 && n.position.x + NODE_WIDTH > wx1 &&
+        n.position.y < wy2 && n.position.y + 80 > wy1
+      ).map(n => n.id))
+      setSelectedNodeIds(ids)
+    }
+  }, [pan, zoom, nodes, selectedNodeIds])
 
   const handleMouseUp = useCallback((e: React.MouseEvent) => {
-    // If we were drawing an edge and released over a port, the port handler fires first via onMouseUp on the port div.
-    // Just clean up here.
-    if (draggingNodeId.current) {
-      // Push history after node drag ends
-      pushHistory(nodes, edges)
-    }
+    if (draggingNodeId.current) pushHistory(nodes, edges)
     isDraggingCanvas.current = false
     draggingNodeId.current = null
     drawingEdge.current = null
     setGhostEdge(null)
     setHighlightPort(null)
+    // Finish rubber-band selection
+    if (selectionStart.current) {
+      selectionStart.current = null
+      setSelectionBox(null)
+      // selectedNodeIds already set during mousemove
+    }
   }, [nodes, edges, pushHistory])
 
   // ─── Edge drawing port handlers ──────────────────────────────────────────────
@@ -543,7 +595,7 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
     return errors
   }, [nodes])
 
-  const handleExecute = async () => {
+  const handleExecute = useCallback(async () => {
     setExecError(null)
     const errors = getValidationErrors()
     if (errors.length > 0) {
@@ -551,17 +603,114 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
       return
     }
     if (nodes.length === 0) { setExecError("Add at least one node before running."); return }
-    // Animate: set all nodes to idle, then run through them sequentially
-    setNodes(prev => prev.map(n => ({ ...n, status: "idle", output: undefined })))
+
+    // Reset all nodes to idle
+    setNodes(prev => prev.map(n => ({ ...n, status: "idle" as const, output: undefined })))
     setExecuting(true)
-    try {
-      await onExecute()
-    } catch (err) {
-      setExecError(err instanceof Error ? err.message : "Execution failed")
-    } finally {
-      setExecuting(false)
+
+    // Close any existing SSE connection
+    if (sseRef.current) { sseRef.current.close(); sseRef.current = null }
+
+    // Try SSE streaming first
+    const sseUrl = `/api/nexus/workflows/${workflow.id}/execute/stream`
+    let sseWorked = false
+
+    await new Promise<void>((resolve) => {
+      const es = new EventSource(sseUrl)
+      sseRef.current = es
+      let resolved = false
+      const done = () => { if (!resolved) { resolved = true; resolve() } }
+
+      es.addEventListener("start", () => { sseWorked = true })
+
+      es.addEventListener("node", (e) => {
+        try {
+          const p = JSON.parse(e.data) as { nodeId: string; status: string; output?: Record<string, unknown>; error?: string }
+          setNodes(prev => prev.map(n =>
+            n.id === p.nodeId
+              ? { ...n, status: p.status as CanvasNode["status"], output: p.output }
+              : n
+          ))
+        } catch { /* ignore */ }
+      })
+
+      es.addEventListener("complete", () => {
+        try { onExecute().catch(() => {}) } catch { /* ignore */ }
+        es.close(); sseRef.current = null; done()
+      })
+
+      es.addEventListener("error", (e) => {
+        if (!sseWorked) {
+          // SSE not supported / failed — fall back to regular execute
+          es.close(); sseRef.current = null; done()
+        } else {
+          const data = (e as MessageEvent).data
+          if (data) {
+            try { const p = JSON.parse(data); setExecError(p.message ?? "Execution error") } catch { setExecError("Execution error") }
+          }
+          es.close(); sseRef.current = null; done()
+        }
+      })
+
+      // Fallback timeout (30s)
+      setTimeout(() => { if (!resolved) { es.close(); sseRef.current = null; done() } }, 30_000)
+    })
+
+    // Fallback if SSE didn't work
+    if (!sseWorked) {
+      try { await onExecute() } catch (err) {
+        setExecError(err instanceof Error ? err.message : "Execution failed")
+      }
     }
-  }
+
+    setExecuting(false)
+  }, [nodes, workflow.id, getValidationErrors, onExecute])
+
+  // ─── Export / Import JSON ─────────────────────────────────────────────────────
+  const handleExport = useCallback(() => {
+    const definition: WorkflowDefinition = {
+      nodes: nodes.map(n => ({ id: n.id, node_type_id: n.definitionId, position: n.position, configuration: n.config, label: n.label })),
+      edges: edges.map(e => ({ id: e.id, source_node_id: e.sourceNodeId, source_output: e.sourcePort, target_node_id: e.targetNodeId, target_input: e.targetPort })),
+    }
+    const blob = new Blob([JSON.stringify({ name: workflow.name, definition }, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url; a.download = `${workflow.name.replace(/\s+/g, "_")}.nexus.json`
+    a.click(); URL.revokeObjectURL(url)
+  }, [nodes, edges, workflow.name])
+
+  const importInputRef = useRef<HTMLInputElement>(null)
+  const handleImport = useCallback(() => { importInputRef.current?.click() }, [])
+  const handleImportFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target?.result as string)
+        const def = data.definition ?? data
+        if (!def.nodes || !def.edges) return
+        pushHistory(nodes, edges)
+        setNodes(def.nodes.map((n: { id?: string; node_type_id: string; position: { x: number; y: number }; configuration?: Record<string, unknown>; label?: string }) => ({
+          id: n.id ?? uid(),
+          definitionId: n.node_type_id,
+          position: n.position,
+          config: (n.configuration ?? {}) as NodeConfigValues,
+          label: n.label,
+          status: "idle" as const,
+        })))
+        setEdges(def.edges.map((e: { id?: string; source_node_id: string; source_output: string; target_node_id: string; target_input: string }) => ({
+          id: e.id ?? uid(),
+          sourceNodeId: e.source_node_id,
+          sourcePort: String(e.source_output),
+          targetNodeId: e.target_node_id,
+          targetPort: String(e.target_input),
+        })))
+      } catch { /* ignore malformed */ }
+    }
+    reader.readAsText(file)
+    e.target.value = ""
+  }, [nodes, edges, pushHistory])
 
   // ─── Per-node validation ──────────────────────────────────────────────────────
   const validateNode = useCallback((node: CanvasNode, def: NodeDefinition): { state: ValidationState; message: string } => {
@@ -597,6 +746,15 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
           <ToolbarBtn onClick={fitView} title="Fit View"><Maximize2 className="h-3.5 w-3.5" /></ToolbarBtn>
           <ToolbarBtn onClick={() => setShowMinimap(p => !p)} title={showMinimap ? "Hide Minimap (M)" : "Show Minimap (M)"}>
             <Map className={cn("h-3.5 w-3.5", showMinimap ? "text-violet-400" : "")} />
+          </ToolbarBtn>
+          <ToolbarBtn onClick={() => setShowPalette(p => !p)} title="Add Node (/ or ⌘K)">
+            <Search className={cn("h-3.5 w-3.5", showPalette ? "text-violet-400" : "")} />
+          </ToolbarBtn>
+          <ToolbarBtn onClick={handleExport} title="Export as JSON">
+            <Download className="h-3.5 w-3.5" />
+          </ToolbarBtn>
+          <ToolbarBtn onClick={handleImport} title="Import JSON">
+            <FolderOpen className="h-3.5 w-3.5" />
           </ToolbarBtn>
           <ToolbarBtn onClick={() => setShowShortcuts(true)} title="Keyboard Shortcuts (?)">
             <Keyboard className="h-3.5 w-3.5" />
@@ -644,6 +802,17 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
       {/* ─── Keyboard shortcuts modal ─────────────────────────────────────────── */}
       {showShortcuts && (
         <KeyboardShortcutsModal onClose={() => setShowShortcuts(false)} />
+      )}
+
+      {/* ─── Node search palette ──────────────────────────────────────────────── */}
+      {showPalette && (
+        <NodeSearchPalette
+          onClose={() => setShowPalette(false)}
+          onSelect={(def) => {
+            setShowPalette(false)
+            addNodeFromDef(def)
+          }}
+        />
       )}
 
       {/* ─── Node auth popup ─────────────────────────────────────────────────── */}
@@ -824,6 +993,15 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
           />
         )}
       </div>
+
+      {/* Hidden file input for JSON import */}
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".json,.nexus.json"
+        className="hidden"
+        onChange={handleImportFile}
+      />
     </div>
   )
 }
@@ -1138,6 +1316,74 @@ function CanvasMinimap({ nodes, pan, zoom, canvasRef }: {
         />
       </svg>
       <div className="absolute bottom-1 right-1.5 text-[8px] text-white/20">map</div>
+    </div>
+  )
+}
+
+// ─── Node Search Palette ──────────────────────────────────────────────────────
+function NodeSearchPalette({ onClose, onSelect }: { onClose: () => void; onSelect: (def: NodeDefinition) => void }) {
+  const [query, setQuery] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setTimeout(() => inputRef.current?.focus(), 30)
+  }, [])
+
+  const results = query.trim()
+    ? searchNodes(query)
+    : NODE_REGISTRY.slice(0, 20)
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24" onClick={onClose}>
+      <div
+        className="w-full max-w-md bg-[#0c0c16] border border-white/[0.12] rounded-2xl shadow-2xl overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Search input */}
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
+          <Search className="h-4 w-4 text-white/30 flex-shrink-0" />
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search nodes… (/ or ⌘K)"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            className="flex-1 bg-transparent text-sm text-white placeholder:text-white/25 outline-none"
+            onKeyDown={e => {
+              if (e.key === "Escape") onClose()
+              if (e.key === "Enter" && results.length > 0) { onSelect(results[0]); onClose() }
+            }}
+          />
+          <kbd className="text-[10px] text-white/20 bg-white/[0.04] border border-white/[0.08] rounded px-1.5 py-0.5">ESC</kbd>
+        </div>
+
+        {/* Results */}
+        <div className="max-h-[360px] overflow-y-auto">
+          {results.length === 0 ? (
+            <div className="py-8 text-center text-xs text-white/30">No nodes found</div>
+          ) : (
+            results.map(def => (
+              <button
+                key={def.id}
+                onClick={() => { onSelect(def); onClose() }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.05] transition-colors text-left group"
+              >
+                <span className="text-base flex-shrink-0">{def.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-medium text-white/80 group-hover:text-white truncate">{def.name}</div>
+                  <div className="text-[10px] text-white/30 truncate">{def.description}</div>
+                </div>
+                <span className="text-[9px] text-white/20 bg-white/[0.04] rounded px-1.5 py-0.5 flex-shrink-0">{def.category}</span>
+              </button>
+            ))
+          )}
+        </div>
+
+        <div className="px-4 py-2 border-t border-white/[0.04] flex items-center justify-between">
+          <span className="text-[10px] text-white/20">{results.length} nodes</span>
+          <span className="text-[10px] text-white/20">↵ to add first result</span>
+        </div>
+      </div>
     </div>
   )
 }
