@@ -12,6 +12,8 @@ import { NodeLibrary } from "./NodeLibrary"
 import { MidasBridge } from "./MidasBridge"
 import { CredentialManager } from "./CredentialManager"
 import { WorkflowInspector } from "./WorkflowInspector"
+import { ScheduleManager } from "./ScheduleManager"
+import { WebhookManager } from "./WebhookManager"
 import { Loader2, X } from "lucide-react"
 import type { NexusWorkflow, NexusNode, NexusDirectory, WorkflowExecution } from "@/lib/nexus/types"
 
@@ -224,6 +226,7 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
           <TabsTrigger value="directories">Directories</TabsTrigger>
           <TabsTrigger value="nodes">Node Library</TabsTrigger>
           <TabsTrigger value="bridge">Bridge</TabsTrigger>
+          <TabsTrigger value="triggers">Triggers</TabsTrigger>
           <TabsTrigger value="credentials">Credentials</TabsTrigger>
         </TabsList>
 
@@ -268,6 +271,17 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
 
         <TabsContent value="bridge">
           <MidasBridge />
+        </TabsContent>
+
+        <TabsContent value="triggers">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.01] p-4">
+              <ScheduleManager workflows={workflows} />
+            </div>
+            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.01] p-4">
+              <WebhookManager workflows={workflows} />
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="credentials">

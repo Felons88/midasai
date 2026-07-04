@@ -106,7 +106,7 @@ export async function GET(
     const value = JSON.stringify(tokenData)
     const { data, error } = await supabase
       .from("nexus_credentials")
-      .insert({ user_id: userId, provider, name: provider, value_encrypted: value })
+      .insert({ user_id: userId, provider, name: provider, value })
       .select("id")
       .single()
 

@@ -1,0 +1,40 @@
+import { createClient } from "@/lib/supabase/server"
+import { NextResponse } from "next/server"
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const body = await request.json().catch(() => ({}))
+  const updates: Record<string, unknown> = {}
+  if (body.enabled !== undefined) updates.enabled = body.enabled
+
+  const { data, error } = await supabase
+    .from("nexus_webhook_tokens")
+    .update(updates)
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .select("*, nexus_workflows(name)")
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ webhook: data })
+}
+
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const { error } = await supabase
+    .from("nexus_webhook_tokens")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
+}
