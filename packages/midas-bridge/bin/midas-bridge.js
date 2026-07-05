@@ -23,7 +23,7 @@ const { join } = require("path")
 const { createServer } = require("http")
 
 // ─── Config ────────────────────────────────────────────────────────────────
-const VERSION = "1.0.4"
+const VERSION = "1.0.5"
 const MIDAS_API = process.env.MIDAS_API_URL || "https://midasai.tech"
 const CONFIG_DIR = join(os.homedir(), ".midas-bridge")
 const TOKEN_FILE = join(CONFIG_DIR, "token.json")
@@ -418,12 +418,11 @@ async function handleLogin() {
   console.log(`  ║  Login to MidasAI               ║`)
   console.log(`  ╚═══════════════════════════════════╝\n`)
 
-  // Check if already logged in
+  // Check if already logged in and show message
   const existingAuth = loadAuth()
   if (existingAuth) {
-    console.log(`  ✓ Already logged in as ${existingAuth.email}`)
-    console.log(`  Run 'npx @midasai/bridge' to connect your IDE.\n`)
-    return
+    console.log(`  Currently logged in as ${existingAuth.email}`)
+    console.log(`  Initiating new login to change account...\n`)
   }
 
   // Create login request
