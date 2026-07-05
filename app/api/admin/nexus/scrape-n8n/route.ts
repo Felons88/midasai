@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { scrapeN8nCategory, scrapeN8nWorkflows } from '@/lib/nexus/n8n-scraper'
+import { scrapeAllN8nTemplates, scrapeN8nCategory } from '@/lib/nexus/n8n-scraper'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     .eq('id', user.id)
     .single()
 
-  if (!userData || userData.role !== 'ADMIN') {
+  if (!userData || (userData.role !== 'ADMIN' && userData.role !== 'OWNER')) {
     return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 })
   }
 
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     // For now, we'll do simple synchronous processing with progress tracking
     
     if (mode === 'category' && category) {
-      // Scrape a single category
+      // Scrape a single category - scrapeN8nCategory already saves to nexus_workflow_templates
       const { workflows, errors } = await scrapeN8nCategory(
         category,
         (current, total, message) => {
@@ -37,64 +37,28 @@ export async function POST(request: Request) {
         }
       )
 
-      // Insert workflows into database
-      let imported = 0
-      let failed = 0
-
-      for (const workflow of workflows) {
-        try {
-          const { error } = await supabase.from('nexus_workflows').insert({
-            user_id: user.id,
-            name: workflow.name,
-            description: `Imported from n8n: ${category}/${workflow.name}`,
-            definition: workflow.definition,
-            status: 'draft',
-            execution_count: 0,
-            is_template: true,
-            source_type: 'n8n',
-            source_url: `https://github.com/zie619/n8n-workflows/tree/main/workflows/${category}`,
-          })
-
-          if (error) {
-            console.error(`Failed to insert ${workflow.name}:`, error)
-            failed++
-          } else {
-            imported++
-          }
-        } catch (error) {
-          console.error(`Error inserting ${workflow.name}:`, error)
-          failed++
-        }
-      }
-
       return NextResponse.json({
         success: true,
-        imported,
-        failed,
+        imported: workflows.length,
+        failed: errors.length,
         errors,
         total: workflows.length,
       })
     } else {
-      // Full scrape - this might take a long time, so we should return immediately
-      // and process in the background. For now, we'll do it synchronously.
-      
-      const result = await scrapeN8nWorkflows(
+      // Full scrape - process all categories and save to nexus_workflow_templates
+      const result = await scrapeAllN8nTemplates(
         (current, total, message) => {
           console.log(`[${current}/${total}] ${message}`)
         }
       )
 
-      // Note: The scraper doesn't actually return the workflows, just stats
-      // We need to modify the scraper to return the workflows or do a different approach
-      // For now, let's return the scrape result
-      
       return NextResponse.json({
-        success: result.success,
+        success: result.failed === 0,
         imported: result.imported,
         failed: result.failed,
+        categories: result.categories,
         errors: result.errors,
-        warnings: result.warnings,
-        message: 'Full scrape completed. Note: Workflows were not saved to database in this mode.',
+        message: 'Full scrape completed. Workflows saved to nexus_workflow_templates.',
       })
     }
   } catch (error) {
@@ -121,7 +85,7 @@ export async function GET(request: Request) {
     .eq('id', user.id)
     .single()
 
-  if (!userData || userData.role !== 'ADMIN') {
+  if (!userData || (userData.role !== 'ADMIN' && userData.role !== 'OWNER')) {
     return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 })
   }
 

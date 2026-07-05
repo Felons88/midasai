@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { convertN8nToNexus, validateN8nWorkflow, type N8nWorkflow } from '@/lib/nexus/n8n-converter'
+import { generateFallbackTitle } from '@/lib/ai/gemini'
+import { loadCustomNodes } from '@/lib/nexus/custom-nodes'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -27,15 +29,19 @@ export async function POST(request: Request) {
       }, { status: 400 })
     }
 
-    // Convert to Nexus format
-    const nexusDefinition = convertN8nToNexus(n8nWorkflow)
+    // Ensure any dynamically-added n8n nodes are available before conversion
+    await loadCustomNodes()
+
+    // Convert to Nexus format (auto-layout enabled by default)
+    const nexusDefinition = convertN8nToNexus(n8nWorkflow, { autoLayout: true })
+    const workflowName = name || n8nWorkflow.name || 'Imported n8n Workflow'
 
     // Create the workflow in Nexus
     const { data: workflow, error } = await supabase
       .from('nexus_workflows')
       .insert({
         user_id: user.id,
-        name: name || n8nWorkflow.name || 'Imported n8n Workflow',
+        name: generateFallbackTitle(workflowName),
         description: description || n8nWorkflow.description || `Imported from n8n: ${n8nWorkflow.name}`,
         definition: nexusDefinition,
         status: 'draft',
@@ -50,7 +56,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ 
       workflow,
-      warnings: validation.warnings 
+      warnings: validation.warnings,
+      credentialRequirements: nexusDefinition.metadata?.credential_requirements || []
     }, { status: 201 })
 
   } catch (error) {

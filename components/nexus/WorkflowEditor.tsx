@@ -5,10 +5,11 @@ import {
   Play, Save, Undo2, Redo2, ZoomIn, ZoomOut, Maximize2,
   ChevronLeft, Loader2, CheckCircle2, AlertCircle,
   Trash2, Copy, GitBranch, X, Rocket, Sparkles, Package, Upload, Globe,
-  Keyboard, Map, MousePointer2, Search, Download, FolderOpen
+  Keyboard, Map, MousePointer2, Search, Download, FolderOpen,
+  Edit3, Plus
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { getNodeById, NODE_REGISTRY, searchNodes, type NodeDefinition, type NodePort } from "@/lib/nexus/node-registry"
+import { getNodeById, NODE_REGISTRY, registerCustomNode, searchNodes, type NodeDefinition, type NodePort } from "@/lib/nexus/node-registry"
 import { getIntegration, CREDENTIAL_TO_INTEGRATION } from "@/lib/nexus/integration-registry"
 import { BrandIcon } from "./BrandIcon"
 import { NodeSidebar } from "./NodeSidebar"
@@ -209,6 +210,9 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
   const [selectionBox, setSelectionBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
   const selectionStart = useRef<{ x: number; y: number } | null>(null)
   const sseRef = useRef<EventSource | null>(null)
+  // Context menu
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; type: "node" | "canvas"; nodeId?: string } | null>(null)
+  const contextMenuRef = useRef<HTMLDivElement>(null)
   // Pending auth popup — queued node awaiting connection
   const [pendingAuth, setPendingAuth] = useState<{
     def: NodeDefinition
@@ -271,6 +275,35 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
 
   // Initialize history on mount
   useEffect(() => { pushHistory(initNodes(), initEdges()) }, [])
+
+  // Load dynamically-generated custom nodes so they render on the canvas
+  useEffect(() => {
+    fetch("/api/nexus/custom-nodes")
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data.nodes)) {
+          data.nodes.forEach((def: NodeDefinition) => registerCustomNode(def))
+        }
+      })
+      .catch(err => console.error("Failed to load custom nodes:", err))
+  }, [])
+
+  // Close context menu on click outside or scroll
+  useEffect(() => {
+    if (!contextMenu) return
+    const close = (e: MouseEvent | Event) => {
+      const target = e.target as HTMLElement
+      if (contextMenuRef.current && !contextMenuRef.current.contains(target)) {
+        setContextMenu(null)
+      }
+    }
+    window.addEventListener("mousedown", close)
+    window.addEventListener("wheel", close)
+    return () => {
+      window.removeEventListener("mousedown", close)
+      window.removeEventListener("wheel", close)
+    }
+  }, [contextMenu])
 
   // ─── Keyboard shortcuts ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -912,6 +945,12 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
           onDragOver={e => e.preventDefault()}
           onDrop={handleCanvasDrop}
           onClick={e => { if (e.target === canvasRef.current || (e.target as HTMLElement).closest("[data-canvas-bg]")) { setSelectedNodeId(null); setSelectedNodeIds(new Set()) } }}
+          onContextMenu={e => {
+            e.preventDefault()
+            const rect = canvasRef.current?.getBoundingClientRect()
+            if (!rect) return
+            setContextMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top, type: "canvas" })
+          }}
         >
           {/* Grid background */}
           <CanvasGrid zoom={zoom} pan={pan} />
@@ -1009,11 +1048,19 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
                     className="cursor-grab active:cursor-grabbing"
                     onMouseDown={(e) => {
                       if ((e.target as HTMLElement).tagName === "TEXTAREA") return
+                      e.preventDefault()
                       e.stopPropagation()
                       setSelectedNodeId(node.id)
                       draggingNodeId.current = node.id
                       const cr = canvasRef.current?.getBoundingClientRect()
                       if (cr) dragOffset.current = { x: (e.clientX - cr.left - pan.x) / zoom - node.position.x, y: (e.clientY - cr.top - pan.y) / zoom - node.position.y }
+                    }}
+                    onDragStart={e => e.preventDefault()}
+                    onContextMenu={e => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      const rect = canvasRef.current?.getBoundingClientRect()
+                      if (rect) setContextMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top, type: "node", nodeId: node.id })
                     }}
                   >
                     <div
@@ -1060,6 +1107,7 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
                   onDoubleClick={() => startRename(node, def)}
                   onMouseDown={(e) => {
                     if ((e.target as HTMLElement).closest("[data-port]")) return
+                    e.preventDefault()
                     e.stopPropagation()
                     setSelectedNodeId(node.id)
                     if (isRenaming) return
@@ -1072,6 +1120,13 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
                       }
                     }
                   }}
+                  onContextMenu={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    const rect = canvasRef.current?.getBoundingClientRect()
+                    if (rect) setContextMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top, type: "node", nodeId: node.id })
+                  }}
+                  onDragStart={e => e.preventDefault()}
                   onDelete={() => deleteNode(node.id)}
                   onDuplicate={() => {
                     const copy: CanvasNode = { ...JSON.parse(JSON.stringify(node)), id: uid(), position: { x: node.position.x + 40, y: node.position.y + 40 } }
@@ -1113,6 +1168,91 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
             <div style={{ position: "absolute", left: selectionBox.x, top: selectionBox.y, width: selectionBox.w, height: selectionBox.h, border: "1px solid rgba(139,92,246,0.6)", background: "rgba(139,92,246,0.08)", pointerEvents: "none", zIndex: 20 }} />
           )}
 
+          {/* Context menu */}
+          {contextMenu && (
+            <div
+              ref={contextMenuRef}
+              style={{ position: "absolute", left: contextMenu.x, top: contextMenu.y, zIndex: 50 }}
+              className="min-w-[160px] rounded-xl border border-white/[0.1] bg-[#0b0b16] shadow-2xl overflow-hidden py-1"
+              onMouseDown={e => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
+            >
+              {contextMenu.type === "node" && contextMenu.nodeId && (
+                <>
+                  <ContextMenuItem
+                    icon={<Edit3 className="h-3.5 w-3.5" />}
+                    label="Rename"
+                    onClick={() => {
+                      const node = nodes.find(n => n.id === contextMenu.nodeId)
+                      const def = node ? getNodeById(node.definitionId) : null
+                      if (node && def) startRename(node, def)
+                      setContextMenu(null)
+                    }}
+                  />
+                  <ContextMenuItem
+                    icon={<Edit3 className="h-3.5 w-3.5" />}
+                    label="Edit"
+                    onClick={() => {
+                      setSelectedNodeId(contextMenu.nodeId ?? null)
+                      setContextMenu(null)
+                    }}
+                  />
+                  <ContextMenuItem
+                    icon={<Copy className="h-3.5 w-3.5" />}
+                    label="Duplicate"
+                    onClick={() => {
+                      const node = nodes.find(n => n.id === contextMenu.nodeId)
+                      if (node) {
+                        const copy: CanvasNode = { ...JSON.parse(JSON.stringify(node)), id: uid(), position: { x: node.position.x + 40, y: node.position.y + 40 } }
+                        setNodes(prev => { const next = [...prev, copy]; pushHistory(next, edges); return next })
+                        setSelectedNodeId(copy.id)
+                      }
+                      setContextMenu(null)
+                    }}
+                  />
+                  <div className="h-px bg-white/[0.06] my-1" />
+                  <ContextMenuItem
+                    icon={<Trash2 className="h-3.5 w-3.5" />}
+                    label="Remove"
+                    danger
+                    onClick={() => {
+                      deleteNode(contextMenu.nodeId!)
+                      setContextMenu(null)
+                    }}
+                  />
+                </>
+              )}
+              {contextMenu.type === "canvas" && (
+                <>
+                  <ContextMenuItem
+                    icon={<Plus className="h-3.5 w-3.5" />}
+                    label="Add node"
+                    onClick={() => {
+                      setShowPalette(true)
+                      setContextMenu(null)
+                    }}
+                  />
+                  <ContextMenuItem
+                    icon={<GitBranch className="h-3.5 w-3.5" />}
+                    label="Auto-layout"
+                    onClick={() => {
+                      handleAutoLayout()
+                      setContextMenu(null)
+                    }}
+                  />
+                  <ContextMenuItem
+                    icon={<Maximize2 className="h-3.5 w-3.5" />}
+                    label="Fit view"
+                    onClick={() => {
+                      fitView()
+                      setContextMenu(null)
+                    }}
+                  />
+                </>
+              )}
+            </div>
+          )}
+
           {/* Minimap */}
           {showMinimap && (
             <CanvasMinimap nodes={nodes} edges={edges} pan={pan} zoom={zoom} canvasRef={canvasRef} onPan={setPan} />
@@ -1149,6 +1289,22 @@ export function WorkflowEditor({ workflow, onBack, onSave, onExecute }: Workflow
         onChange={handleImportFile}
       />
     </div>
+  )
+}
+
+// ─── Context menu item ─────────────────────────────────────────────────────────
+function ContextMenuItem({ icon, label, danger, onClick }: { icon: React.ReactNode; label: string; danger?: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs transition-colors",
+        danger ? "text-red-300 hover:bg-red-500/10" : "text-white/70 hover:bg-white/[0.06] hover:text-white"
+      )}
+    >
+      <span className={cn("opacity-60", danger ? "text-red-400" : "")}>{icon}</span>
+      <span>{label}</span>
+    </button>
   )
 }
 
@@ -1197,6 +1353,8 @@ interface CanvasNodeCardProps {
   onRenameCommit: () => void
   onDoubleClick: () => void
   onMouseDown: (e: React.MouseEvent) => void
+  onContextMenu: (e: React.MouseEvent) => void
+  onDragStart: (e: React.MouseEvent) => void
   onDelete: () => void
   onDuplicate: () => void
   onOutputPortMouseDown: (portId: string, x: number, y: number, e: React.MouseEvent) => void
@@ -1208,7 +1366,7 @@ interface CanvasNodeCardProps {
 function CanvasNodeCard({
   node, def, isSelected, isRenaming, renameValue, renameInputRef, highlightPort,
   onRenameChange, onRenameCommit, onDoubleClick,
-  onMouseDown, onDelete, onDuplicate,
+  onMouseDown, onContextMenu, onDragStart, onDelete, onDuplicate,
   onOutputPortMouseDown, onInputPortMouseUp, onInputPortMouseEnter, onInputPortMouseLeave,
 }: CanvasNodeCardProps) {
   const statusBorder = { idle: "", running: "border-amber-500/60", success: "border-emerald-500/60", error: "border-red-500/60" }[node.status ?? "idle"]
@@ -1218,6 +1376,8 @@ function CanvasNodeCard({
       style={{ position: "absolute", left: node.position.x, top: node.position.y, width: NODE_WIDTH, userSelect: "none" }}
       onMouseDown={onMouseDown}
       onDoubleClick={onDoubleClick}
+      onContextMenu={onContextMenu}
+      onDragStart={onDragStart}
       className={cn(
         "rounded-xl border bg-[#0f0f1a] shadow-xl cursor-grab active:cursor-grabbing group",
         isSelected ? "border-violet-500/70 shadow-[0_0_20px_rgba(139,92,246,0.12)]" : "border-white/[0.08] hover:border-white/[0.16]",

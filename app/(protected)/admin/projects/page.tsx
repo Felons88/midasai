@@ -2,6 +2,7 @@ import { getAdminProjects } from "@/lib/admin/queries"
 import { AdminPageHeader } from "@/components/admin/AdminUi"
 import { AdminDataTable } from "@/components/admin/AdminDataTable"
 import { Badge } from "@/components/ui/badge"
+import { ProjectNameCell, ProjectStatusCell, ProjectProgressCell, ProjectFilesCell, ProjectCreatedCell } from "@/components/admin/ProjectCells"
 
 export default async function AdminProjectsPage() {
   const { sessions, expansions } = await getAdminProjects(100)
@@ -44,52 +45,29 @@ export default async function AdminProjectsPage() {
             key: "name",
             label: "Project",
             sortable: true,
-            render: (row) => (
-              <div>
-                <p className="font-medium text-white">{row.name}</p>
-                <p className="text-xs text-white/40">{row.type}</p>
-              </div>
-            ),
+            render: ProjectNameCell,
           },
           {
             key: "status",
             label: "Status",
-            render: (row) => (
-              <Badge variant="outline" className="text-[10px] uppercase">
-                {row.status}
-              </Badge>
-            ),
+            render: ProjectStatusCell,
           },
           {
             key: "progress",
             label: "Progress",
-            render: (row) => (
-              <div className="flex items-center gap-2">
-                <div className="h-1.5 w-20 rounded-full bg-white/10 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-amber-400"
-                    style={{ width: `${Math.max(0, Math.min(100, row.confidence ?? 0))}%` }}
-                  />
-                </div>
-                <span className="text-xs text-white/50">{row.confidence ?? 0}%</span>
-              </div>
-            ),
+            render: ProjectProgressCell,
           },
           {
             key: "fileCount",
             label: "Files",
             sortable: true,
-            render: (row) => <span className="text-white/70 text-sm">{row.fileCount ?? 0}</span>,
+            render: ProjectFilesCell,
           },
           {
             key: "createdAt",
             label: "Created",
             sortable: true,
-            render: (row) => (
-              <span className="text-white/50 text-xs">
-                {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "—"}
-              </span>
-            ),
+            render: ProjectCreatedCell,
           },
         ]}
         rows={projects}

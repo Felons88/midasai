@@ -13,6 +13,7 @@ import { DirectoryOptimizer } from "./DirectoryOptimizer"
 import { NodeLibrary } from "./NodeLibrary"
 import { MidasBridge } from "./MidasBridge"
 import { CredentialManager } from "./CredentialManager"
+import { TemplateCredentialSetup } from "./TemplateCredentialSetup"
 import { WorkflowInspector } from "./WorkflowInspector"
 import { ScheduleManager } from "./ScheduleManager"
 import { WebhookManager } from "./WebhookManager"
@@ -101,6 +102,7 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
   const [executing, setExecuting] = useState<string | null>(null)
   const [tab, setTab] = useState("workflows")
   const [toasts, setToasts] = useState<{ id: string; type: "success" | "error" | "info"; message: string }[]>([])
+  const [credentialRequirements, setCredentialRequirements] = useState<string[] | null>(null)
 
   const showToast = useCallback((type: "success" | "error" | "info", message: string) => {
     const id = Math.random().toString(36).slice(2)
@@ -194,20 +196,30 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
   }, [activeWorkflow, workflows, showToast])
 
   const handleCreateFromTemplate = useCallback(async (template: WorkflowTemplate) => {
+    const displayName = template.seo_title || template.name
+
+    // Load the template definition from storage (for n8n templates) or use the stored definition
+    const loadRes = await fetch(`/api/nexus/templates/${template.id}/load`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    })
+    if (!loadRes.ok) { showToast("error", "Failed to load template"); return }
+    const loadData = await loadRes.json()
+
     const res = await fetch("/api/nexus/workflows", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name: template.name,
-        description: template.description,
-        definition: template.definition,
+        name: displayName,
+        description: loadData.template.description,
+        definition: loadData.definition,
       }),
     })
     if (!res.ok) { showToast("error", "Failed to create workflow from template"); return }
     const data = await res.json()
     setWorkflows(prev => [data.workflow, ...prev])
     setActiveWorkflow(data.workflow)
-    showToast("success", `Created "${template.name}" from template`)
+    showToast("success", `Created "${displayName}" from template`)
   }, [showToast])
 
   const handleCloneWorkflow = useCallback(async (workflow: NexusWorkflow) => {
@@ -241,6 +253,11 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
       
       const data = await res.json()
       setWorkflows(prev => [data.workflow, ...prev])
+      
+      // Show credential setup modal if requirements exist
+      if (data.credentialRequirements && data.credentialRequirements.length > 0) {
+        setCredentialRequirements(data.credentialRequirements)
+      }
       
       if (data.warnings && data.warnings.length > 0) {
         showToast("info", `Imported with ${data.warnings.length} warning(s)`)
@@ -280,6 +297,15 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
   // ─── Main Dashboard View ───────────────────────────────────────────────────
   return (
     <>
+      {/* Credential Setup Modal */}
+      {credentialRequirements && (
+        <TemplateCredentialSetup
+          requirements={credentialRequirements}
+          onSetupComplete={() => setCredentialRequirements(null)}
+          onCancel={() => setCredentialRequirements(null)}
+        />
+      )}
+
       <Tabs value={tab} onValueChange={setTab} className="space-y-6">
         <TabsList className="bg-white/[0.02] border border-white/[0.06]">
           <TabsTrigger value="workflows">Workflows</TabsTrigger>

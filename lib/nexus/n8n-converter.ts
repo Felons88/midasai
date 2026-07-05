@@ -6,6 +6,7 @@
  */
 
 import type { WorkflowDefinition, WorkflowNode, WorkflowEdge } from './types'
+import { getNodeById } from './node-registry'
 
 export interface N8nNode {
   name: string
@@ -24,6 +25,7 @@ export interface N8nWorkflow {
   name: string
   nodes: N8nNode[]
   active?: boolean
+  version?: string | number
   settings?: {
     executionOrder?: string
     saveManualExecutions?: boolean
@@ -36,7 +38,7 @@ export interface N8nWorkflow {
     retryCount?: number
     retryDelay?: number
   }
-  connections?: Record<string, Record<string, Array<{ node: string; type: string; index: number }>>>
+  connections?: Record<string, Record<string, Array<Array<{ node: string; type: string; index: number }>>>>
   description?: string
   tags?: string[]
 }
@@ -63,6 +65,9 @@ const N8N_TO_NEXUS_MAP: Record<string, string> = {
   'n8n-nodes-base.salesforce': 'crm.salesforce',
   'n8n-nodes-base.pipedrive': 'crm.pipedrive',
   'n8n-nodes-base.zohoCrm': 'crm.zoho',
+  'n8n-nodes-base.activeCampaign': 'crm.activecampaign',
+  'n8n-nodes-base.acuityScheduling': 'crm.acuity',
+  'n8n-nodes-base.affinity': 'crm.affinity',
   
   // Database
   'n8n-nodes-base.postgres': 'db.postgres',
@@ -70,6 +75,7 @@ const N8N_TO_NEXUS_MAP: Record<string, string> = {
   'n8n-nodes-base.mongodb': 'db.mongodb',
   'n8n-nodes-base.redis': 'db.redis',
   'n8n-nodes-base.supabase': 'db.supabase',
+  'n8n-nodes-base.airtable': 'db.airtable',
   
   // Cloud
   'n8n-nodes-base.awsS3': 'cloud.aws_s3',
@@ -105,10 +111,22 @@ const N8N_TO_NEXUS_MAP: Record<string, string> = {
   'n8n-nodes-base.linear': 'dev.linear',
   'n8n-nodes-base.notion': 'dev.notion',
   
+  // Forms
+  'n8n-nodes-base.jotform': 'forms.jotform',
+  'n8n-nodes-base.typeform': 'forms.typeform',
+  
+  // AI/ML
+  'n8n-nodes-base.openAi': 'ai.openai',
+  'n8n-nodes-base.anthropic': 'ai.anthropic',
+  'n8n-nodes-base.googlePalm': 'ai.google',
+  'n8n-nodes-base.azureOpenAi': 'ai.azure',
+  'n8n-nodes-base.mindee': 'ai.mindee',
+  
   // Utility
   'n8n-nodes-base.wait': 'util.wait',
   'n8n-nodes-base.noOp': 'util.noop',
   'n8n-nodes-base.stopAndError': 'util.error',
+  'n8n-nodes-base.stickyNote': 'util.sticky_note',
 }
 
 /**
@@ -130,6 +148,20 @@ const N8N_CREDENTIAL_MAP: Record<string, string> = {
   'openAiApi': 'openai',
   'anthropicApi': 'anthropic',
   'supabaseApi': 'supabase',
+  'airtableTokenApi': 'airtable',
+  'airtableApi': 'airtable',
+  'gmailOAuth2': 'gmail',
+  'telegramApi': 'telegram',
+  'activeCampaignApi': 'activecampaign',
+  'acuitySchedulingApi': 'acuity',
+  'affinityApi': 'affinity',
+  'jotFormApi': 'jotform',
+  'typeformApi': 'typeform',
+  'vonageApi': 'vonage',
+  'mindeeReceiptApi': 'mindee',
+  'mindeeApi': 'mindee',
+  'httpHeaderAuth': 'generic',
+  'httpQueryAuth': 'generic',
 }
 
 /**
@@ -193,53 +225,192 @@ function convertCredentials(credentials: Record<string, { id: string; name: stri
   return credRefs
 }
 
+type N8nConnectionTarget = { node: string; type: string; index: number }
+
 /**
- * Converts n8n connections to Nexus edges
+ * Converts n8n connections to Nexus edges.
+ * n8n stores connections as nested arrays: connections[sourceNode][outputName][branch][connection]
  */
 function convertConnections(
-  connections: Record<string, Record<string, Array<{ node: string; type: string; index: number }>>>,
-  nodeMap: Map<string, string>
+  connections: Record<string, Record<string, Array<Array<N8nConnectionTarget>>>>,
+  nodeMap: Map<string, string>,
+  nexusNodeTypeMap: Map<string, string>
 ): WorkflowEdge[] {
   const edges: WorkflowEdge[] = []
   let edgeId = 0
-  
+
   for (const [sourceNodeName, outputConnections] of Object.entries(connections)) {
     const sourceNodeId = nodeMap.get(sourceNodeName)
     if (!sourceNodeId) continue
-    
-    for (const [outputName, targets] of Object.entries(outputConnections)) {
-      for (const target of targets) {
-        const targetNodeId = nodeMap.get(target.node)
-        if (!targetNodeId) continue
-        
-        edges.push({
-          id: `edge-${edgeId++}`,
-          source_node_id: sourceNodeId,
-          source_output: outputName,
-          target_node_id: targetNodeId,
-          target_input: 'input'
-        })
+    const sourceNodeType = nexusNodeTypeMap.get(sourceNodeId)
+
+    for (const [outputName, branches] of Object.entries(outputConnections)) {
+      for (const branch of branches) {
+        for (const target of branch) {
+          const targetNodeId = nodeMap.get(target.node)
+          if (!targetNodeId) continue
+          const targetNodeType = nexusNodeTypeMap.get(targetNodeId)
+
+          const nexusOutput = mapN8nPortToNexus(outputName, sourceNodeType || '', 'output')
+          const nexusInput = mapN8nPortToNexus(target.type, targetNodeType || '', 'input')
+
+          edges.push({
+            id: `edge-${edgeId++}`,
+            source_node_id: sourceNodeId,
+            source_output: nexusOutput,
+            target_node_id: targetNodeId,
+            target_input: nexusInput
+          })
+        }
       }
     }
   }
-  
+
   return edges
+}
+
+/**
+ * Maps an n8n port name to the best matching Nexus port on a given node definition.
+ * n8n uses 'main' for the default data flow; Nexus nodes have specific port ids.
+ */
+function mapN8nPortToNexus(n8nPort: string, nexusNodeTypeId: string, side: 'input' | 'output'): string {
+  const def = getNodeById(nexusNodeTypeId)
+  const ports = side === 'input' ? def?.inputs : def?.outputs
+  if (!ports || ports.length === 0) return n8nPort
+
+  // n8n 'main' always maps to the first available data port (skip trigger-only ports)
+  if (n8nPort === 'main') {
+    const dataPort = ports.find(p => p.id !== 'trigger')
+    return dataPort ? dataPort.id : ports[0].id
+  }
+
+  // Map known n8n port names to Nexus equivalents
+  if (n8nPort === 'success' || n8nPort === 'error') {
+    const matched = ports.find(p => p.id === n8nPort)
+    if (matched) return matched.id
+  }
+
+  // Try exact match
+  const exact = ports.find(p => p.id === n8nPort)
+  if (exact) return exact.id
+
+  // Fallback to first available data port, then first port
+  return ports.find(p => p.id !== 'trigger')?.id ?? ports[0].id
+}
+
+/**
+ * Auto-layout nodes into a compact grid around the origin.
+ * Used when imported n8n positions are scattered or missing.
+ */
+function layoutNodes(nodes: WorkflowNode[], edges: WorkflowEdge[]): WorkflowNode[] {
+  if (nodes.length === 0) return nodes
+
+  const H_GAP = 240
+  const V_GAP = 140
+
+  // Build in-degree + successors from edges
+  const inDeg: Record<string, number> = {}
+  const succ: Record<string, string[]> = {}
+  nodes.forEach(n => { inDeg[n.id] = 0; succ[n.id] = [] })
+  edges.forEach(e => {
+    inDeg[e.target_node_id] = (inDeg[e.target_node_id] ?? 0) + 1
+    succ[e.source_node_id] = [...(succ[e.source_node_id] ?? []), e.target_node_id]
+  })
+
+  // Kahn's BFS topological sort → assign rank (column)
+  const rank: Record<string, number> = {}
+  const queue = nodes.filter(n => (inDeg[n.id] ?? 0) === 0).map(n => n.id)
+  queue.forEach(id => { rank[id] = 0 })
+  let head = 0
+  while (head < queue.length) {
+    const cur = queue[head++]
+    for (const next of succ[cur] ?? []) {
+      rank[next] = Math.max(rank[next] ?? 0, (rank[cur] ?? 0) + 1)
+      inDeg[next]--
+      if (inDeg[next] === 0) queue.push(next)
+    }
+  }
+
+  // Nodes not reached (cycles / disconnected) get rank = max+1
+  const maxRank = Math.max(0, ...Object.values(rank))
+  nodes.forEach(n => { if (rank[n.id] === undefined) rank[n.id] = maxRank + 1 })
+
+  // Group by rank
+  const byRank: Record<number, string[]> = {}
+  nodes.forEach(n => {
+    const r = rank[n.id] ?? 0
+    byRank[r] = [...(byRank[r] ?? []), n.id]
+  })
+
+  // Assign positions
+  const posMap: Record<string, { x: number; y: number }> = {}
+  Object.entries(byRank).forEach(([rankStr, ids]) => {
+    const r = Number(rankStr)
+    const totalH = (ids.length - 1) * V_GAP
+    ids.forEach((id, i) => {
+      posMap[id] = { x: 80 + r * H_GAP, y: 80 + i * V_GAP - totalH / 2 }
+    })
+  })
+
+  return nodes.map(n => ({ ...n, position: posMap[n.id] ?? n.position }))
+}
+
+/**
+ * Finds unique n8n node types in a workflow that are not present in the current
+ * Nexus node registry / type mapping.
+ */
+export function findUnknownN8nNodeTypes(n8nWorkflow: N8nWorkflow): string[] {
+  const unknown = new Set<string>()
+  for (const node of n8nWorkflow.nodes || []) {
+    if (!node.type) continue
+    if (!N8N_TO_NEXUS_MAP[node.type] && !getNodeById(node.type.replace('n8n-nodes-base.', ''))) {
+      unknown.add(node.type)
+    }
+  }
+  return Array.from(unknown)
+}
+
+/**
+ * Returns a representative sample node for every unknown n8n node type.
+ */
+export function getUnknownN8nNodeSamples(n8nWorkflow: N8nWorkflow): Record<string, N8nNode> {
+  const samples: Record<string, N8nNode> = {}
+  for (const node of n8nWorkflow.nodes || []) {
+    if (!node.type) continue
+    if (!N8N_TO_NEXUS_MAP[node.type] && !getNodeById(node.type.replace('n8n-nodes-base.', ''))) {
+      if (!samples[node.type]) samples[node.type] = node
+    }
+  }
+  return samples
 }
 
 /**
  * Main conversion function
  */
-export function convertN8nToNexus(n8nWorkflow: N8nWorkflow): WorkflowDefinition {
+export function convertN8nToNexus(n8nWorkflow: N8nWorkflow, options?: { autoLayout?: boolean }): WorkflowDefinition {
   const nodeMap = new Map<string, string>()
+  const nexusNodeTypeMap = new Map<string, string>()
   const nodes: WorkflowNode[] = []
   let nodeId = 0
-  
+  const credentialRequirements: Set<string> = new Set()
+
   // Convert nodes
   for (const n8nNode of n8nWorkflow.nodes) {
     const nexusNodeType = N8N_TO_NEXUS_MAP[n8nNode.type] || n8nNode.type.replace('n8n-nodes-base.', '')
-    
+
+    // Track credential requirements
+    if (n8nNode.credentials) {
+      for (const credType of Object.keys(n8nNode.credentials)) {
+        const nexusProvider = N8N_CREDENTIAL_MAP[credType]
+        if (nexusProvider) {
+          credentialRequirements.add(nexusProvider)
+        }
+      }
+    }
+
+    const id = `node-${nodeId++}`
     const nexusNode: WorkflowNode = {
-      id: `node-${nodeId++}`,
+      id,
       node_type_id: nexusNodeType,
       position: {
         x: n8nNode.position[0],
@@ -251,25 +422,36 @@ export function convertN8nToNexus(n8nWorkflow: N8nWorkflow): WorkflowDefinition 
       },
       label: n8nNode.name
     }
-    
+
     nodes.push(nexusNode)
-    nodeMap.set(n8nNode.name, nexusNode.id)
+    nodeMap.set(n8nNode.name, id)
+    nexusNodeTypeMap.set(id, nexusNodeType)
   }
-  
+
   // Convert connections
-  const edges = convertConnections(n8nWorkflow.connections || {}, nodeMap)
-  
+  const edges = convertConnections(n8nWorkflow.connections || {}, nodeMap, nexusNodeTypeMap)
+
+  // Apply auto-layout so imported workflows are grouped and readable
+  const positionedNodes = options?.autoLayout !== false ? layoutNodes(nodes, edges) : nodes
+
   // Convert settings
   const settings = {
     timeout_ms: n8nWorkflow.settings?.executionTimeout || 30000,
     max_retries: n8nWorkflow.settings?.retryCount || 3,
     concurrency: 1
   }
-  
+
   return {
-    nodes,
+    nodes: positionedNodes,
     edges,
-    settings
+    settings,
+    metadata: {
+      source: 'n8n',
+      original_name: n8nWorkflow.name,
+      credential_requirements: Array.from(credentialRequirements),
+      description: n8nWorkflow.description,
+      tags: n8nWorkflow.tags
+    }
   }
 }
 

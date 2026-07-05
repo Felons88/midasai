@@ -36,10 +36,11 @@ interface ProviderConfig {
 }
 
 const PROVIDER_CATEGORIES = {
-  ai: { label: "AI", providers: ["openai", "anthropic", "google-ai", "groq", "openrouter", "mistral", "cohere"] },
+  ai: { label: "AI", providers: ["openai", "anthropic", "google-ai", "groq", "openrouter", "mistral", "cohere", "mindee"] },
   dev: { label: "Development", providers: ["github", "gitlab", "linear"] },
-  communication: { label: "Communication", providers: ["slack", "discord", "twilio", "sendgrid", "resend"] },
-  infrastructure: { label: "Infrastructure", providers: ["stripe", "notion", "supabase", "vercel", "aws", "cloudflare"] },
+  communication: { label: "Communication", providers: ["slack", "discord", "twilio", "sendgrid", "resend", "gmail", "telegram"] },
+  infrastructure: { label: "Infrastructure", providers: ["stripe", "notion", "supabase", "vercel", "aws", "cloudflare", "airtable"] },
+  crm: { label: "CRM & Forms", providers: ["activecampaign", "acuity", "affinity", "jotform", "typeform", "vonage"] },
 }
 
 const PROVIDER_NAMES: Record<ProviderType, string> = {
@@ -64,6 +65,16 @@ const PROVIDER_NAMES: Record<ProviderType, string> = {
   "vercel": "Vercel",
   "aws": "AWS",
   "cloudflare": "Cloudflare",
+  "airtable": "Airtable",
+  "gmail": "Gmail",
+  "telegram": "Telegram",
+  "activecampaign": "ActiveCampaign",
+  "acuity": "Acuity Scheduling",
+  "affinity": "Affinity",
+  "jotform": "JotForm",
+  "typeform": "Typeform",
+  "vonage": "Vonage",
+  "mindee": "Mindee",
 }
 
 export function CredentialManager() {

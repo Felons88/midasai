@@ -1,9 +1,25 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import { WORKFLOW_TEMPLATES, TEMPLATE_CATEGORIES, type WorkflowTemplate } from "@/lib/nexus/workflow-templates"
-import { Search, Zap, ChevronRight } from "lucide-react"
+import { Search, Zap, ChevronRight, Loader2 } from "lucide-react"
+
+interface WorkflowTemplate {
+  id: string
+  name: string
+  seo_title?: string
+  description: string
+  category: string
+  icon: string
+  color: string
+  tags: string[]
+  difficulty: "beginner" | "intermediate" | "advanced"
+  definition: any
+  source: string
+  usage_count: number
+  storage_path?: string
+  storage_url?: string
+}
 
 interface WorkflowTemplatesProps {
   onUse: (template: WorkflowTemplate) => void
@@ -19,10 +35,36 @@ export function WorkflowTemplates({ onUse }: WorkflowTemplatesProps) {
   const [search, setSearch] = useState("")
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [templates, setTemplates] = useState<WorkflowTemplate[]>([])
+  const [loading, setLoading] = useState(true)
+  const [categories, setCategories] = useState<string[]>([])
 
-  const filtered = WORKFLOW_TEMPLATES.filter(t => {
+  useEffect(() => {
+    loadTemplates()
+  }, [])
+
+  const loadTemplates = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/nexus/templates')
+      const data = await res.json()
+      setTemplates(data.templates || [])
+      
+      // Extract unique categories
+      const uniqueCategories = [...new Set(data.templates?.map((t: WorkflowTemplate) => t.category) || [])]
+      setCategories(uniqueCategories)
+    } catch (error) {
+      console.error('Failed to load templates:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filtered = templates.filter(t => {
+    const displayTitle = t.seo_title || t.name
     const matchesSearch =
       !search ||
+      displayTitle.toLowerCase().includes(search.toLowerCase()) ||
       t.name.toLowerCase().includes(search.toLowerCase()) ||
       t.description.toLowerCase().includes(search.toLowerCase()) ||
       t.tags.some(tag => tag.includes(search.toLowerCase()))
@@ -38,7 +80,7 @@ export function WorkflowTemplates({ onUse }: WorkflowTemplatesProps) {
           <h2 className="text-base font-semibold text-white">Workflow Templates</h2>
           <p className="text-xs text-white/40 mt-0.5">Start with a pre-built workflow and customize it</p>
         </div>
-        <span className="text-xs text-white/30">{WORKFLOW_TEMPLATES.length} templates</span>
+        <span className="text-xs text-white/30">{templates.length} templates</span>
       </div>
 
       {/* Search */}
@@ -66,7 +108,7 @@ export function WorkflowTemplates({ onUse }: WorkflowTemplatesProps) {
         >
           All
         </button>
-        {TEMPLATE_CATEGORIES.map(cat => (
+        {categories.map(cat => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat === activeCategory ? null : cat)}
@@ -83,7 +125,11 @@ export function WorkflowTemplates({ onUse }: WorkflowTemplatesProps) {
       </div>
 
       {/* Template grid */}
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 text-white/20 animate-spin" />
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="text-center py-12">
           <Zap className="h-8 w-8 text-white/10 mx-auto mb-3" />
           <p className="text-sm text-white/30">No templates match your search</p>
@@ -116,8 +162,8 @@ function TemplateCard({
   onHover: (id: string | null) => void
   onUse: (t: WorkflowTemplate) => void
 }) {
-  const nodeCount = template.definition.nodes.length
-  const edgeCount = template.definition.edges.length
+  const nodeCount = template.definition?.nodes?.length || 0
+  const edgeCount = template.definition?.edges?.length || 0
 
   return (
     <div
@@ -148,7 +194,7 @@ function TemplateCard({
       </div>
 
       {/* Title + description */}
-      <h3 className="text-sm font-semibold text-white mb-1">{template.name}</h3>
+      <h3 className="text-sm font-semibold text-white mb-1">{template.seo_title || template.name}</h3>
       <p className="text-xs text-white/40 leading-relaxed mb-3 line-clamp-2">{template.description}</p>
 
       {/* Tags */}

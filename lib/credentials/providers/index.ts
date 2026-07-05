@@ -26,6 +26,16 @@ import { supabaseProvider } from './supabase'
 import { vercelProvider } from './vercel'
 import { awsProvider } from './aws'
 import { cloudflareProvider } from './cloudflare'
+import { airtableProvider } from './airtable'
+import { gmailProvider } from './gmail'
+import { telegramProvider } from './telegram'
+import { activecampaignProvider } from './activecampaign'
+import { acuityProvider } from './acuity'
+import { affinityProvider } from './affinity'
+import { jotformProvider } from './jotform'
+import { typeformProvider } from './typeform'
+import { vonageProvider } from './vonage'
+import { mindeeProvider } from './mindee'
 
 // Register all providers
 export function registerProviders() {
@@ -50,6 +60,16 @@ export function registerProviders() {
   providerRegistry.register(vercelProvider)
   providerRegistry.register(awsProvider)
   providerRegistry.register(cloudflareProvider)
+  providerRegistry.register(airtableProvider)
+  providerRegistry.register(gmailProvider)
+  providerRegistry.register(telegramProvider)
+  providerRegistry.register(activecampaignProvider)
+  providerRegistry.register(acuityProvider)
+  providerRegistry.register(affinityProvider)
+  providerRegistry.register(jotformProvider)
+  providerRegistry.register(typeformProvider)
+  providerRegistry.register(vonageProvider)
+  providerRegistry.register(mindeeProvider)
 }
 
 // Auto-register on import

@@ -22,6 +22,7 @@ export interface NodeField {
   group?: string
   showIf?: Record<string, unknown>
   validate?: (v: unknown) => string | null
+  credentialProvider?: string
 }
 
 export interface NodePort {
@@ -93,7 +94,7 @@ export const NODE_REGISTRY: NodeDefinition[] = [
       { key: "streaming", label: "Streaming", type: "boolean", default: false, group: "Parameters" },
       { key: "json_mode", label: "JSON Mode", type: "boolean", default: false, group: "Parameters" },
       { key: "base_url", label: "Base URL Override", type: "url", placeholder: "https://api.openai.com/v1", group: "Advanced" },
-      { key: "api_key_override", label: "API Key Override", type: "secret", group: "Advanced" },
+      { key: "api_key_override", label: "API Key Override", type: "secret", group: "Advanced", credentialProvider: "openai" },
     ],
     executor: "ai_chat",
     tags: ["ai", "llm", "chat", "openai", "anthropic", "gemini"],
@@ -256,7 +257,7 @@ export const NODE_REGISTRY: NodeDefinition[] = [
       { key: "headers", label: "Headers", type: "json", default: {}, group: "Headers" },
       { key: "body", label: "Body", type: "json", group: "Body" },
       { key: "auth_type", label: "Auth Type", type: "select", default: "none", options: [{ label: "None", value: "none" }, { label: "Bearer Token", value: "bearer" }, { label: "Basic Auth", value: "basic" }, { label: "API Key", value: "apikey" }], group: "Auth" },
-      { key: "auth_value", label: "Auth Value", type: "secret", group: "Auth", showIf: { auth_type: ["bearer", "basic", "apikey"] } },
+      { key: "auth_value", label: "Auth Value", type: "secret", group: "Auth", showIf: { auth_type: ["bearer", "basic", "apikey"] }, credentialProvider: "generic" },
       { key: "timeout_ms", label: "Timeout (ms)", type: "number", default: 30000, group: "Advanced" },
       { key: "retry_count", label: "Retry Count", type: "number", default: 0, group: "Advanced" },
       { key: "follow_redirects", label: "Follow Redirects", type: "boolean", default: true, group: "Advanced" },
@@ -276,7 +277,7 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     outputs: [D("body", "Body", "object"), D("headers", "Headers", "object"), D("method", "Method", "string"), D("query", "Query", "object")],
     fields: [
       { key: "path", label: "Webhook Path", type: "string", required: true, placeholder: "/webhooks/my-hook" },
-      { key: "secret", label: "Secret (HMAC)", type: "secret" },
+      { key: "secret", label: "Secret (HMAC)", type: "secret", credentialProvider: "generic" },
       { key: "response_code", label: "Response Code", type: "number", default: 200 },
       { key: "response_body", label: "Response Body", type: "json", default: { ok: true } },
     ],
@@ -2177,7 +2178,7 @@ export const NODE_REGISTRY: NodeDefinition[] = [
       { key: "max_words", label: "Max Words", type: "number", default: 100 },
       { key: "format", label: "Output Format", type: "select", default: "paragraph", options: [{ label: "Paragraph", value: "paragraph" }, { label: "Bullet Points", value: "bullets" }, { label: "One Sentence", value: "sentence" }] },
       { key: "provider", label: "Provider", type: "select", default: "openai", options: [{ label: "OpenAI", value: "openai" }, { label: "Anthropic", value: "anthropic" }] },
-      { key: "api_key_override", label: "API Key Override", type: "secret", group: "Advanced" },
+      { key: "api_key_override", label: "API Key Override", type: "secret", group: "Advanced", credentialProvider: "anthropic" },
     ],
     executor: "ai_chat",
     tags: ["ai", "summarize", "text", "nlp"],
@@ -2198,7 +2199,7 @@ export const NODE_REGISTRY: NodeDefinition[] = [
       { key: "target_language", label: "Target Language", type: "string", required: true, default: "English", placeholder: "Spanish, French, Japanese..." },
       { key: "source_language", label: "Source Language", type: "string", placeholder: "auto-detect if blank" },
       { key: "provider", label: "Provider", type: "select", default: "openai", options: [{ label: "OpenAI", value: "openai" }, { label: "Anthropic", value: "anthropic" }, { label: "Google Gemini", value: "gemini" }] },
-      { key: "api_key_override", label: "API Key Override", type: "secret", group: "Advanced" },
+      { key: "api_key_override", label: "API Key Override", type: "secret", group: "Advanced", credentialProvider: "anthropic" },
     ],
     executor: "ai_chat",
     tags: ["ai", "translate", "language", "nlp"],
@@ -2226,7 +2227,7 @@ export const NODE_REGISTRY: NodeDefinition[] = [
         { label: "SEO Optimized", value: "seo" },
       ]},
       { key: "provider", label: "Provider", type: "select", default: "openai", options: [{ label: "OpenAI", value: "openai" }, { label: "Anthropic", value: "anthropic" }] },
-      { key: "api_key_override", label: "API Key Override", type: "secret", group: "Advanced" },
+      { key: "api_key_override", label: "API Key Override", type: "secret", group: "Advanced", credentialProvider: "anthropic" },
     ],
     executor: "ai_chat",
     tags: ["ai", "rewrite", "text", "edit"],
@@ -2247,7 +2248,7 @@ export const NODE_REGISTRY: NodeDefinition[] = [
       { key: "language", label: "Language", type: "string", default: "auto-detect", placeholder: "TypeScript, Python, Go..." },
       { key: "focus", label: "Review Focus", type: "select", default: "all", options: [{ label: "All Issues", value: "all" }, { label: "Security Only", value: "security" }, { label: "Performance", value: "performance" }, { label: "Best Practices", value: "best_practices" }] },
       { key: "provider", label: "Provider", type: "select", default: "openai", options: [{ label: "OpenAI", value: "openai" }, { label: "Anthropic", value: "anthropic" }] },
-      { key: "api_key_override", label: "API Key Override", type: "secret", group: "Advanced" },
+      { key: "api_key_override", label: "API Key Override", type: "secret", group: "Advanced", credentialProvider: "anthropic" },
     ],
     executor: "ai_chat",
     tags: ["ai", "code", "review", "security"],
@@ -2267,7 +2268,7 @@ export const NODE_REGISTRY: NodeDefinition[] = [
       { key: "image_url", label: "Image URL", type: "url", required: true, placeholder: "https://example.com/image.jpg" },
       { key: "prompt", label: "Analysis Prompt", type: "textarea", default: "Describe this image in detail.", placeholder: "What objects are in this image?" },
       { key: "provider", label: "Provider", type: "select", default: "openai", options: [{ label: "OpenAI GPT-4 Vision", value: "openai" }, { label: "Google Gemini", value: "gemini" }] },
-      { key: "api_key_override", label: "API Key Override", type: "secret", group: "Advanced" },
+      { key: "api_key_override", label: "API Key Override", type: "secret", group: "Advanced", credentialProvider: "anthropic" },
     ],
     executor: "ai_chat",
     tags: ["ai", "vision", "image", "multimodal"],
@@ -2288,7 +2289,7 @@ export const NODE_REGISTRY: NodeDefinition[] = [
       { key: "schema", label: "Output Schema (JSON)", type: "json", required: true, default: { name: "string", date: "string", location: "string" } },
       { key: "provider", label: "Provider", type: "select", default: "openai", options: [{ label: "OpenAI", value: "openai" }, { label: "Anthropic", value: "anthropic" }] },
       { key: "model", label: "Model", type: "string", default: "gpt-4o-mini" },
-      { key: "api_key_override", label: "API Key Override", type: "secret", group: "Advanced" },
+      { key: "api_key_override", label: "API Key Override", type: "secret", group: "Advanced", credentialProvider: "anthropic" },
     ],
     executor: "ai_extract",
     tags: ["ai", "structured", "json", "extraction"],
@@ -2310,7 +2311,7 @@ export const NODE_REGISTRY: NodeDefinition[] = [
       { key: "query", label: "Query / Mutation", type: "code", required: true, placeholder: "query { users { id name } }" },
       { key: "variables", label: "Variables (JSON)", type: "json" },
       { key: "auth_type", label: "Auth", type: "select", default: "none", options: [{ label: "None", value: "none" }, { label: "Bearer Token", value: "bearer" }, { label: "API Key Header", value: "apikey" }] },
-      { key: "auth_value", label: "Auth Value", type: "secret", showIf: { auth_type: ["bearer", "apikey"] } },
+      { key: "auth_value", label: "Auth Value", type: "secret", showIf: { auth_type: ["bearer", "apikey"] }, credentialProvider: "generic" },
     ],
     executor: "http_request",
     tags: ["graphql", "api", "query", "mutation"],
@@ -2329,7 +2330,7 @@ export const NODE_REGISTRY: NodeDefinition[] = [
       { key: "operation", label: "Operation", type: "select", required: true, default: "sign", options: [{ label: "Sign (Create Token)", value: "sign" }, { label: "Verify & Decode", value: "verify" }] },
       { key: "payload", label: "Payload (JSON)", type: "json", showIf: { operation: ["sign"] } },
       { key: "token", label: "Token to Verify", type: "string", showIf: { operation: ["verify"] } },
-      { key: "secret", label: "Secret Key", type: "secret", required: true },
+      { key: "secret", label: "Secret Key", type: "secret", required: true, credentialProvider: "generic" },
       { key: "algorithm", label: "Algorithm", type: "select", default: "HS256", options: [{ label: "HS256", value: "HS256" }, { label: "HS512", value: "HS512" }, { label: "RS256", value: "RS256" }] },
       { key: "expires_in", label: "Expires In", type: "string", default: "1h", placeholder: "1h, 7d, 30m", showIf: { operation: ["sign"] } },
     ],
@@ -2359,7 +2360,7 @@ export const NODE_REGISTRY: NodeDefinition[] = [
         { label: "URL-safe Slug", value: "slug" },
       ]},
       { key: "input", label: "Input", type: "textarea", placeholder: "{{$input.text}}" },
-      { key: "secret", label: "HMAC Secret", type: "secret", showIf: { operation: ["hmac_sha256"] } },
+      { key: "secret", label: "HMAC Secret", type: "secret", showIf: { operation: ["hmac_sha256"] }, credentialProvider: "generic" },
       { key: "bytes", label: "Byte Length", type: "number", default: 32, showIf: { operation: ["random_bytes"] } },
     ],
     executor: "text_transform",
@@ -2562,7 +2563,7 @@ export const NODE_REGISTRY: NodeDefinition[] = [
       { key: "from", label: "From Currency", type: "string", required: true, default: "USD", placeholder: "USD, EUR, GBP..." },
       { key: "to", label: "To Currency", type: "string", required: true, default: "EUR" },
       { key: "amount", label: "Amount to Convert", type: "number", default: 1 },
-      { key: "api_key", label: "API Key (ExchangeRate-API)", type: "secret", description: "Get free key at exchangerate-api.com" },
+      { key: "api_key", label: "API Key (ExchangeRate-API)", type: "secret", description: "Get free key at exchangerate-api.com", credentialProvider: "generic" },
     ],
     executor: "http_request",
     tags: ["finance", "currency", "exchange", "forex"],
@@ -2944,20 +2945,40 @@ export const CATEGORY_META: Record<NodeCategory, { label: string; color: string;
   utility:       { label: "Utility",        color: "#a3a3a3", description: "Canvas annotations and utilities" },
 }
 
+export const CUSTOM_NODE_REGISTRY: NodeDefinition[] = []
+
+export function registerCustomNode(def: NodeDefinition): void {
+  // Replace existing if same id
+  const idx = CUSTOM_NODE_REGISTRY.findIndex(n => n.id === def.id)
+  if (idx >= 0) {
+    CUSTOM_NODE_REGISTRY[idx] = def
+  } else {
+    CUSTOM_NODE_REGISTRY.push(def)
+  }
+}
+
 export function getNodeById(id: string): NodeDefinition | undefined {
-  return NODE_REGISTRY.find(n => n.id === id)
+  return NODE_REGISTRY.find(n => n.id === id) ?? CUSTOM_NODE_REGISTRY.find(n => n.id === id)
 }
 
 export function getNodesByCategory(category: NodeCategory): NodeDefinition[] {
-  return NODE_REGISTRY.filter(n => n.category === category)
+  return [
+    ...NODE_REGISTRY.filter(n => n.category === category),
+    ...CUSTOM_NODE_REGISTRY.filter(n => n.category === category)
+  ]
 }
 
 export function searchNodes(query: string): NodeDefinition[] {
   const q = query.toLowerCase()
-  return NODE_REGISTRY.filter(n =>
+  const all = [...NODE_REGISTRY, ...CUSTOM_NODE_REGISTRY]
+  return all.filter(n =>
     n.name.toLowerCase().includes(q) ||
     n.description.toLowerCase().includes(q) ||
     n.tags?.some(t => t.includes(q)) ||
     n.id.includes(q)
   )
+}
+
+export function getAllNodeDefinitions(): NodeDefinition[] {
+  return [...NODE_REGISTRY, ...CUSTOM_NODE_REGISTRY]
 }

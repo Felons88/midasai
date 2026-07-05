@@ -24,6 +24,16 @@ export type ProviderType =
   | 'vercel'
   | 'aws'
   | 'cloudflare'
+  | 'airtable'
+  | 'gmail'
+  | 'telegram'
+  | 'activecampaign'
+  | 'acuity'
+  | 'affinity'
+  | 'jotform'
+  | 'typeform'
+  | 'vonage'
+  | 'mindee'
 
 export type ConnectionStatus = 
   | 'unknown'
@@ -69,7 +79,7 @@ export interface ProviderConfig {
   id: ProviderType
   name: string
   icon: string
-  category: 'ai' | 'dev' | 'communication' | 'infrastructure' | 'cloud'
+  category: 'ai' | 'dev' | 'communication' | 'infrastructure' | 'cloud' | 'database'
   fields: CredentialField[]
   documentationUrl?: string
   rateLimitInfo?: string

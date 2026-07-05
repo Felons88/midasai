@@ -3,6 +3,7 @@ import type { WorkflowDefinition } from "./types"
 export interface WorkflowTemplate {
   id: string
   name: string
+  seo_title?: string
   description: string
   category: string
   icon: string
@@ -10,6 +11,8 @@ export interface WorkflowTemplate {
   tags: string[]
   difficulty: "beginner" | "intermediate" | "advanced"
   definition: WorkflowDefinition
+  storage_path?: string
+  storage_url?: string
 }
 
 export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [

@@ -73,6 +73,13 @@ export interface WorkflowDefinition {
     max_retries?: number
     concurrency?: number
   }
+  metadata?: {
+    source?: string
+    original_name?: string
+    credential_requirements?: string[]
+    description?: string
+    tags?: string[]
+  }
 }
 
 export interface NexusWorkflow {

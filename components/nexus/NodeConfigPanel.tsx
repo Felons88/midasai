@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { X, ChevronDown, ChevronRight, CheckCircle2, AlertCircle, AlertTriangle, Eye, EyeOff } from "lucide-react"
+import { X, ChevronDown, ChevronRight, CheckCircle2, AlertCircle, AlertTriangle, Eye, EyeOff, Key, Loader2, Sparkles } from "lucide-react"
 import { BrandIcon } from "./BrandIcon"
 import { cn } from "@/lib/utils"
 import type { NodeDefinition, NodeField } from "@/lib/nexus/node-registry"
@@ -24,6 +24,8 @@ export interface NodeConfigPanelProps {
 export function NodeConfigPanel({ node, values, onChange, onClose, validationState = "idle", validationMessage }: NodeConfigPanelProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set(["Advanced"]))
   const [showSecrets, setShowSecrets] = useState<Set<string>>(new Set())
+  const [savingCredential, setSavingCredential] = useState<string | null>(null)
+  const [savedCredentials, setSavedCredentials] = useState<Set<string>>(new Set())
 
   const toggleGroup = (g: string) => setCollapsedGroups(prev => {
     const n = new Set(prev); n.has(g) ? n.delete(g) : n.add(g); return n
@@ -31,6 +33,29 @@ export function NodeConfigPanel({ node, values, onChange, onClose, validationSta
   const toggleSecret = (k: string) => setShowSecrets(prev => {
     const n = new Set(prev); n.has(k) ? n.delete(k) : n.add(k); return n
   })
+
+  const handleSaveCredential = useCallback(async (field: NodeField) => {
+    if (!field.credentialProvider) return
+
+    setSavingCredential(field.key)
+    try {
+      const response = await fetch('/api/nexus/credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider: field.credentialProvider,
+          fields: { [field.key]: values[field.key] },
+          autoSave: true
+        })
+      })
+
+      if (response.ok) {
+        setSavedCredentials(prev => new Set([...prev, field.key]))
+      }
+    } finally {
+      setSavingCredential(null)
+    }
+  }, [values])
 
   // Group fields
   const groups = new Map<string, NodeField[]>()
@@ -117,6 +142,9 @@ export function NodeConfigPanel({ node, values, onChange, onClose, validationSta
                       onChange={v => onChange(field.key, v)}
                       showSecret={showSecrets.has(field.key)}
                       onToggleSecret={() => toggleSecret(field.key)}
+                      onSaveCredential={() => handleSaveCredential(field)}
+                      isSavingCredential={savingCredential === field.key}
+                      isCredentialSaved={savedCredentials.has(field.key)}
                     />
                   ))}
                 </div>
@@ -160,9 +188,12 @@ interface FieldRendererProps {
   onChange: (v: unknown) => void
   showSecret: boolean
   onToggleSecret: () => void
+  onSaveCredential?: () => void
+  isSavingCredential?: boolean
+  isCredentialSaved?: boolean
 }
 
-function FieldRenderer({ field, value, onChange, showSecret, onToggleSecret }: FieldRendererProps) {
+function FieldRenderer({ field, value, onChange, showSecret, onToggleSecret, onSaveCredential, isSavingCredential, isCredentialSaved }: FieldRendererProps) {
   const baseInput = "w-full bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/25 outline-none focus:border-white/[0.2] transition-colors"
 
   return (
@@ -229,7 +260,7 @@ function FieldRenderer({ field, value, onChange, showSecret, onToggleSecret }: F
             value={String(value ?? "")}
             onChange={e => onChange(e.target.value)}
             placeholder={field.placeholder ?? "••••••••"}
-            className={cn(baseInput, "pr-8")}
+            className={cn(baseInput, field.credentialProvider ? "pr-16" : "pr-8")}
           />
           <button
             type="button"
@@ -238,6 +269,23 @@ function FieldRenderer({ field, value, onChange, showSecret, onToggleSecret }: F
           >
             {showSecret ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
           </button>
+          {field.credentialProvider && (
+            <button
+              type="button"
+              onClick={onSaveCredential}
+              disabled={isSavingCredential || isCredentialSaved || !value}
+              className="absolute right-8 top-1/2 -translate-y-1/2 text-white/20 hover:text-violet-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={isCredentialSaved ? "Credential saved" : "Save to credential vault"}
+            >
+              {isSavingCredential ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : isCredentialSaved ? (
+                <Sparkles className="h-3.5 w-3.5 text-violet-400" />
+              ) : (
+                <Key className="h-3.5 w-3.5" />
+              )}
+            </button>
+          )}
         </div>
       )}
 

@@ -111,7 +111,7 @@ export function N8nScraperTool() {
           <Workflow className="h-5 w-5 text-blue-400" />
         </div>
         <div>
-          <h3 className="text-base font-semibold text-white">n8n Workflow Scraper</h3>
+          <h3 className="text-base font-semibold text-white">AI n8n Workflow Importer</h3>
           <p className="text-xs text-white/45">
             Imports n8n workflows from{" "}
             <a
@@ -122,14 +122,14 @@ export function N8nScraperTool() {
             >
               zie619/n8n-workflows
             </a>{" "}
-            as Nexus templates
+            and auto-generates readable titles and descriptions
           </p>
         </div>
       </div>
 
       <div className="p-5 space-y-4">
         <p className="text-sm text-white/55 leading-relaxed">
-          Fetches n8n workflow JSON files from GitHub, converts them to Nexus format using the n8n converter, and saves them as template workflows in the database.
+          Fetches n8n workflow JSON files from GitHub, converts them to Nexus format, auto-generates a readable title and a one-sentence description for each workflow, and saves them as templates in the database. Existing templates are updated with better titles and descriptions when re-run.
         </p>
 
         <div className="flex flex-wrap items-center gap-4">

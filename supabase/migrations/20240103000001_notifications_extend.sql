@@ -22,7 +22,7 @@ ALTER TABLE notifications
   ADD COLUMN IF NOT EXISTS metadata jsonb;
 
 -- Index for fast unread counts
-CREATE INDEX IF NOT EXISTS notifications_user_read_idx ON notifications(user_id, read);
+CREATE INDEX IF NOT EXISTS notifications_user_read_idx ON notifications(user_id, is_read);
 CREATE INDEX IF NOT EXISTS notifications_created_at_idx ON notifications(created_at DESC);
 
 -- Mark all read function
@@ -30,8 +30,8 @@ CREATE OR REPLACE FUNCTION public.mark_all_notifications_read(p_user_id uuid)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   UPDATE notifications
-  SET read = true, read_at = now()
-  WHERE user_id = p_user_id AND read = false;
+  SET is_read = true, read_at = now()
+  WHERE user_id = p_user_id AND is_read = false;
 END;
 $$;
 
