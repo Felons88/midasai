@@ -34,12 +34,10 @@ export async function GET(
 
   // Return current status
   if (loginRequest.status === "approved") {
-    // Generate a fresh auth token on each poll for approved state
-    const { randomBytes } = await import("crypto")
-    const authToken = randomBytes(32).toString("hex")
+    // Return the stored auth_token from database
     return NextResponse.json({
       status: "approved",
-      token: authToken,
+      token: loginRequest.auth_token,
       userId: loginRequest.user_id,
       email: loginRequest.email,
     })
