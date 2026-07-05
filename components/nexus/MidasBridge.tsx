@@ -316,7 +316,7 @@ interface BridgeDevice {
   device_os?: string | null
   device_arch?: string | null
   bridge_port: number
-  last_seen_at?: string | null
+  last_seen?: string | null
   created_at: string
 }
 
@@ -368,7 +368,7 @@ function DevicesPanel() {
               {d.device_os}{d.device_arch ? ` · ${d.device_arch}` : ""}
               {" · "}
               <Clock className="h-2.5 w-2.5 inline mr-0.5" />
-              {formatAgo(d.last_seen_at)}
+              {formatAgo(d.last_seen)}
             </p>
           </div>
           <button

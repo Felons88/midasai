@@ -12,9 +12,9 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("bridge_devices")
-    .select("id, ide_name, ide_version, device_name, device_os, device_arch, bridge_port, last_seen_at, created_at")
+    .select("id, ide_name, ide_version, device_name, device_os, device_arch, bridge_port, last_seen, created_at")
     .eq("user_id", user.id)
-    .order("last_seen_at", { ascending: false })
+    .order("last_seen", { ascending: false })
 
   if (error) return NextResponse.json({ error: "Failed to fetch devices" }, { status: 500 })
   return NextResponse.json({ devices: data ?? [] })
