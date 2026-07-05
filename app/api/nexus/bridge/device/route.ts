@@ -61,8 +61,11 @@ export async function POST(request: Request) {
       .single()
 
     if (deviceError) {
-      console.error("bridge/device POST", deviceError)
-      return NextResponse.json({ error: "Failed to create device" }, { status: 500 })
+      console.error("bridge/device POST deviceError:", JSON.stringify(deviceError))
+      console.error("bridge/device POST deviceError message:", deviceError.message)
+      console.error("bridge/device POST deviceError details:", deviceError.details)
+      console.error("bridge/device POST deviceError hint:", deviceError.hint)
+      return NextResponse.json({ error: "Failed to create device", details: deviceError.message }, { status: 500 })
     }
 
     // Auto-create MCP connection
