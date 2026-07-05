@@ -68,24 +68,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to create device", details: deviceError.message }, { status: 500 })
     }
 
-    // Auto-create MCP connection
-    const { createMcpConnection } = await import("@/lib/mcp/create-connection")
-    const mcpResult = await createMcpConnection(
-      `${ide_name} Bridge (${device_name})`,
-      supabase
-    )
+    // Skip MCP connection creation for now - device registration is priority
+    // TODO: Re-enable MCP connection after debugging
+    /*
+    try {
+      const { createMcpConnection } = await import("@/lib/mcp/create-connection")
+      const mcpResult = await createMcpConnection(
+        `${ide_name} Bridge (${device_name})`,
+        supabase
+      )
 
-    if (!mcpResult.ok) {
-      console.error("bridge/device MCP creation failed", mcpResult.error)
-      // Continue anyway — device is created, MCP is optional
+      if (!mcpResult.ok) {
+        console.error("bridge/device MCP creation failed", mcpResult.error)
+      }
+    } catch (mcpError) {
+      console.error("bridge/device MCP error:", mcpError)
     }
-
-    const siteUrl = getSiteUrl()
-    const mcpEndpoint = `${siteUrl}/api/mcp`
+    */
 
     return NextResponse.json({
       device_token: deviceToken,
-      mcp_endpoint: mcpResult.ok ? mcpEndpoint : null,
+      mcp_endpoint: null,
     })
   } catch (e) {
     console.error("bridge/device POST", e)
