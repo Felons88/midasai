@@ -1,19 +1,15 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import { credentialService } from "@/lib/credentials/service"
+import type { CredentialData } from "@/lib/credentials/provider-types"
 
 export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { data, error } = await supabase
-    .from("nexus_credentials")
-    .select("id, provider, name, masked, created_at, updated_at")
-    .eq("user_id", user.id)
-    .order("provider")
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ credentials: data })
+  const credentials = await credentialService.list(user.id)
+  return NextResponse.json({ credentials })
 }
 
 export async function POST(request: Request) {
@@ -22,21 +18,25 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const body = await request.json().catch(() => ({}))
-  const { provider, name, value } = body
+  const { provider, name, description, fields, isDefault } = body
 
-  if (!provider || !name || !value) {
-    return NextResponse.json({ error: "provider, name, and value are required" }, { status: 400 })
-  }
-  if (typeof value !== "string" || value.length < 4) {
-    return NextResponse.json({ error: "value must be at least 4 characters" }, { status: 400 })
+  if (!provider || !name || !fields) {
+    return NextResponse.json({ error: "provider, name, and fields are required" }, { status: 400 })
   }
 
-  const { data, error } = await supabase
-    .from("nexus_credentials")
-    .insert({ user_id: user.id, provider, name, value })
-    .select("id, provider, name, masked, created_at")
-    .single()
+  const data: CredentialData = {
+    provider,
+    name,
+    description,
+    fields,
+    isDefault
+  }
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ credential: data }, { status: 201 })
+  const result = await credentialService.create(user.id, data)
+
+  if (!result.success) {
+    return NextResponse.json({ error: result.error }, { status: 400 })
+  }
+
+  return NextResponse.json({ credential: result.credential }, { status: 201 })
 }

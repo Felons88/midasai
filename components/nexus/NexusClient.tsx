@@ -222,6 +222,36 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
     showToast("success", `"${workflow.name}" cloned`)
   }, [showToast])
 
+  const handleImportN8n = useCallback(async (file: File) => {
+    try {
+      const text = await file.text()
+      const n8nWorkflow = JSON.parse(text)
+      
+      const res = await fetch("/api/nexus/import-n8n", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ n8nWorkflow }),
+      })
+      
+      if (!res.ok) {
+        const error = await res.json()
+        showToast("error", `Import failed: ${error.error}`)
+        return
+      }
+      
+      const data = await res.json()
+      setWorkflows(prev => [data.workflow, ...prev])
+      
+      if (data.warnings && data.warnings.length > 0) {
+        showToast("info", `Imported with ${data.warnings.length} warning(s)`)
+      } else {
+        showToast("success", "n8n workflow imported successfully")
+      }
+    } catch (error) {
+      showToast("error", "Failed to parse n8n workflow file")
+    }
+  }, [showToast])
+
   const handleDeleteDirectory = useCallback(async (id: string) => {
     await fetch(`/api/nexus/directories/${id}`, { method: "DELETE" })
     setDirectories((prev) => prev.filter((d) => d.id !== id))
@@ -275,6 +305,7 @@ export function NexusClient({ initialWorkflows, initialNodes, initialDirectories
             onDelete={handleDeleteWorkflow}
             onExecute={(id) => handleExecuteWorkflow(id)}
             onClone={handleCloneWorkflow}
+            onImportN8n={handleImportN8n}
             executing={executing}
           />
         </TabsContent>

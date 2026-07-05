@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { Plus, Play, Edit3, Trash2, Clock, CheckCircle, XCircle, Pause, Archive, Activity, Search, Copy, SortAsc, SortDesc } from "lucide-react"
+import { useState, useMemo, useRef } from "react"
+import { Plus, Play, Edit3, Trash2, Clock, CheckCircle, XCircle, Pause, Archive, Activity, Search, Copy, SortAsc, SortDesc, Upload, FileJson } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -23,19 +23,30 @@ interface WorkflowListProps {
   onDelete: (id: string) => void
   onExecute: (id: string) => void
   onClone?: (workflow: NexusWorkflow) => void
+  onImportN8n?: (file: File) => void
   executing: string | null
 }
 
-export function WorkflowList({ workflows, onOpen, onCreate, onDelete, onExecute, onClone, executing }: WorkflowListProps) {
+export function WorkflowList({ workflows, onOpen, onCreate, onDelete, onExecute, onClone, onImportN8n, executing }: WorkflowListProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState<WorkflowStatus | "all">("all")
   const [sortField, setSortField] = useState<SortField>("updated_at")
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
+  const [showImportMenu, setShowImportMenu] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) setSortDir(d => d === "asc" ? "desc" : "asc")
     else { setSortField(field); setSortDir("desc") }
+  }
+
+  const handleImportN8n = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && onImportN8n) {
+      onImportN8n(file)
+    }
+    setShowImportMenu(false)
   }
 
   const filtered = useMemo(() => {
@@ -65,10 +76,31 @@ export function WorkflowList({ workflows, onOpen, onCreate, onDelete, onExecute,
           <h2 className="text-base font-semibold text-white">Workflows</h2>
           <p className="text-xs text-white/40 mt-0.5">{filtered.length} of {workflows.length} workflow{workflows.length !== 1 ? "s" : ""}</p>
         </div>
-        <Button size="sm" onClick={onCreate}>
-          <Plus className="h-3.5 w-3.5 mr-1.5" />
-          New Workflow
-        </Button>
+        <div className="flex items-center gap-2">
+          {onImportN8n && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                onChange={handleImportN8n}
+                className="hidden"
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <FileJson className="h-3.5 w-3.5 mr-1.5" />
+                Import n8n
+              </Button>
+            </>
+          )}
+          <Button size="sm" onClick={onCreate}>
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
+            New Workflow
+          </Button>
+        </div>
       </div>
 
       {/* Search + filters */}
