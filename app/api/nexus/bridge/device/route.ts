@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const { data: loginRequest, error: authError } = await supabase
       .from("cli_login_requests")
       .select("user_id")
-      .eq("token", authToken)
+      .eq("auth_token", authToken)
       .eq("status", "approved")
       .single()
 

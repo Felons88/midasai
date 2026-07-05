@@ -65,6 +65,7 @@ export async function POST(
       status: "approved",
       user_id: user.id,
       email: user.email,
+      auth_token: authToken,
     })
     .eq("token", token)
 
