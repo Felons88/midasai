@@ -395,7 +395,7 @@ export function convertN8nToNexus(n8nWorkflow: N8nWorkflow, options?: { autoLayo
   const credentialRequirements: Set<string> = new Set()
 
   // Convert nodes
-  for (const n8nNode of n8nWorkflow.nodes) {
+  for (const n8nNode of n8nWorkflow.nodes || []) {
     const nexusNodeType = N8N_TO_NEXUS_MAP[n8nNode.type] || n8nNode.type.replace('n8n-nodes-base.', '')
 
     // Track credential requirements

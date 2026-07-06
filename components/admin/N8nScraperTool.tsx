@@ -228,7 +228,7 @@ export function N8nScraperTool() {
               )}
             </div>
 
-            {result.warnings.length > 0 && (
+            {result.warnings?.length > 0 && (
               <details className="text-xs text-amber-300/80">
                 <summary>{result.warnings.length} warnings</summary>
                 <ul className="mt-2 list-disc pl-4 max-h-32 overflow-y-auto">
@@ -239,13 +239,17 @@ export function N8nScraperTool() {
               </details>
             )}
 
-            {result.errors.length > 0 && (
+            {result.errors?.length > 0 && (
               <details className="text-xs text-red-300/80">
                 <summary>{result.errors.length} errors</summary>
                 <ul className="mt-2 list-disc pl-4 max-h-32 overflow-y-auto">
                   {result.errors.slice(0, 20).map((e, i) => (
                     <li key={i}>
-                      <span className="font-mono">{e.file}</span>: {e.error}
+                      {typeof e === 'string' ? e : (
+                        <>
+                          <span className="font-mono">{e.file}</span>: {e.error}
+                        </>
+                      )}
                     </li>
                   ))}
                 </ul>
