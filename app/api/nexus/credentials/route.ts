@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { credentialService } from "@/lib/credentials/service"
 import type { CredentialData } from "@/lib/credentials/provider-types"
+// Import providers to ensure they are registered
+import "@/lib/credentials/providers"
 
 export async function GET() {
   const supabase = await createClient()
