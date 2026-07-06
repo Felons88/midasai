@@ -5,6 +5,7 @@ export type NodeCategory =
   | "ai" | "llm" | "image" | "audio" | "developer" | "database"
   | "cloud" | "logic" | "files" | "midas" | "analytics" | "browser"
   | "ide" | "communication" | "data" | "devops" | "finance" | "crm" | "utility"
+  | "marketing" | "productivity"
 
 export type FieldType =
   | "string" | "number" | "boolean" | "select" | "multiselect"
@@ -50,6 +51,26 @@ export interface NodeDefinition {
   docs?: string
   tags?: string[]
   premium?: boolean
+  
+  // n8n Compatibility Fields
+  /** All n8n node types that map to this node */
+  n8nAliases?: string[]
+  /** Minimum n8n version required */
+  n8nVersion?: string
+  /** Function to convert n8n config to Nexus config */
+  importMapper?: (n8nConfig: Record<string, unknown>) => Record<string, unknown>
+  /** Function to convert Nexus config to n8n config */
+  exportMapper?: (nexusConfig: Record<string, unknown>) => Record<string, unknown>
+  /** Validation rules for configuration */
+  validationRules?: ValidationRule[]
+}
+
+export interface ValidationRule {
+  field: string
+  rule: 'required' | 'pattern' | 'min' | 'max' | 'custom'
+  value?: string | number
+  message: string
+  customValidate?: (v: unknown) => boolean
 }
 
 const T = (id: string, label: string): NodePort => ({ id, label, type: "trigger" })
@@ -69,6 +90,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("prompt", "Prompt", "string"), D("context", "Context", "any")],
     outputs: [D("response", "Response", "string"), D("usage", "Usage", "object"), D("raw", "Raw", "object")],
     credentials: ["ai_provider"],
+    n8nAliases: ["n8n-nodes-base.openAi", "n8n-nodes-base.anthropic", "n8n-nodes-base.googlePalm", "n8n-nodes-base.azureOpenAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", required: true, default: "openai", options: [
         { label: "OpenAI", value: "openai", icon: "openai" },
@@ -110,6 +133,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("text", "Text", "string")],
     outputs: [D("embedding", "Embedding", "array"), D("dimensions", "Dimensions", "number")],
     credentials: ["ai_provider"],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", required: true, default: "openai", options: [
         { label: "OpenAI", value: "openai" },
@@ -134,6 +159,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("prompt", "Prompt", "string")],
     outputs: [D("image_url", "Image URL", "string"), D("base64", "Base64", "string")],
     credentials: ["ai_provider"],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", required: true, default: "openai", options: [
         { label: "OpenAI DALL-E", value: "openai" },
@@ -166,6 +193,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("audio", "Audio File", "any")],
     outputs: [D("text", "Transcript", "string"), D("segments", "Segments", "array")],
     credentials: ["ai_provider"],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", default: "openai", options: [{ label: "OpenAI Whisper", value: "openai" }, { label: "Groq Whisper", value: "groq" }] },
       { key: "language", label: "Language", type: "string", placeholder: "en", default: "en" },
@@ -185,6 +214,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("text", "Text", "string")],
     outputs: [D("category", "Category", "string"), D("confidence", "Confidence", "number"), D("all", "All Scores", "object")],
     credentials: ["ai_provider"],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", default: "openai", options: [{ label: "OpenAI", value: "openai" }, { label: "Anthropic", value: "anthropic" }] },
       { key: "categories", label: "Categories (comma-separated)", type: "string", required: true, placeholder: "positive, negative, neutral" },
@@ -204,6 +235,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("text", "Text", "string")],
     outputs: [D("data", "Extracted Data", "object"), D("raw", "Raw Response", "string")],
     credentials: ["ai_provider"],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", default: "openai", options: [{ label: "OpenAI", value: "openai" }, { label: "Anthropic", value: "anthropic" }] },
       { key: "model", label: "Model", type: "string", default: "gpt-4o" },
@@ -224,6 +257,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("task", "Task", "string"), D("context", "Context", "any")],
     outputs: [D("result", "Result", "string"), D("steps", "Steps", "array"), D("tools_used", "Tools Used", "array")],
     credentials: ["ai_provider"],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", default: "openai", options: [{ label: "OpenAI", value: "openai" }, { label: "Anthropic", value: "anthropic" }] },
       { key: "model", label: "Model", type: "string", default: "gpt-4o" },
@@ -251,6 +286,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#2563eb",
     inputs: [D("trigger", "Trigger", "trigger"), D("body", "Body", "any"), D("headers_in", "Headers", "object")],
     outputs: [D("response", "Response", "object"), D("status", "Status Code", "number"), D("headers", "Headers", "object"), D("body_out", "Body", "any")],
+    n8nAliases: ["n8n-nodes-base.httpRequest"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "method", label: "Method", type: "select", required: true, default: "GET", options: ["GET","POST","PUT","PATCH","DELETE","HEAD","OPTIONS"].map(m => ({ label: m, value: m })) },
       { key: "url", label: "URL", type: "url", required: true, placeholder: "https://api.example.com/data" },
@@ -275,6 +312,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#2563eb",
     inputs: [],
     outputs: [D("body", "Body", "object"), D("headers", "Headers", "object"), D("method", "Method", "string"), D("query", "Query", "object")],
+    n8nAliases: ["n8n-nodes-base.webhook", "n8n-nodes-base.respondToWebhook"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "path", label: "Webhook Path", type: "string", required: true, placeholder: "/webhooks/my-hook" },
       { key: "secret", label: "Secret (HMAC)", type: "secret", credentialProvider: "generic" },
@@ -294,12 +333,30 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#2563eb",
     inputs: [],
     outputs: [D("timestamp", "Timestamp", "string"), D("tick", "Tick", "number")],
+    n8nAliases: ["n8n-nodes-base.scheduleTrigger"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "cron", label: "Cron Expression", type: "string", required: true, placeholder: "0 9 * * 1-5", description: "Standard cron: min hour day month weekday" },
       { key: "timezone", label: "Timezone", type: "string", default: "UTC", placeholder: "America/New_York" },
     ],
     executor: "schedule",
     tags: ["schedule", "cron", "trigger"],
+  },
+
+  {
+    id: "dev.manual",
+    name: "Manual Trigger",
+    description: "Manually trigger workflow execution for testing and debugging.",
+    category: "developer",
+    icon: "▶",
+    color: "#2563eb",
+    inputs: [],
+    outputs: [D("timestamp", "Timestamp", "string"), D("manual", "Manual", "boolean")],
+    n8nAliases: ["n8n-nodes-base.manualTrigger"],
+    n8nVersion: "0.20.0",
+    fields: [],
+    executor: "manual_trigger",
+    tags: ["trigger", "manual", "test"],
   },
 
   {
@@ -311,6 +368,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#059669",
     inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "any")],
     outputs: [D("result", "Result", "any"), D("error", "Error", "string")],
+    n8nAliases: ["n8n-nodes-base.code", "n8n-nodes-base.function", "n8n-nodes-base.functionItem"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "language", label: "Language", type: "select", default: "javascript", options: [{ label: "JavaScript", value: "javascript" }, { label: "TypeScript", value: "typescript" }, { label: "Python", value: "python" }] },
       { key: "code", label: "Code", type: "code", required: true, default: "// Access input via $input\n// Return result\nreturn { result: $input }" },
@@ -332,6 +391,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("data", "Data", "object"), D("items", "Items", "array")],
     credentials: ["github"],
+    n8nAliases: ["n8n-nodes-base.github"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "get_repo", options: [
         { label: "Get Repository", value: "get_repo" },
@@ -364,6 +425,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("run", "Run", "object"), D("status", "Status", "string")],
     credentials: ["github"],
+    n8nAliases: ["n8n-nodes-base.githubActions"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "owner", label: "Owner", type: "string", required: true },
       { key: "repo", label: "Repository", type: "string", required: true },
@@ -387,6 +450,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "object")],
     outputs: [D("result", "Result", "any"), D("count", "Count", "number")],
     credentials: ["supabase"],
+    n8nAliases: ["n8n-nodes-base.supabase"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "select", options: [
         { label: "Select", value: "select" },
@@ -419,6 +484,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("params", "Params", "array")],
     outputs: [D("rows", "Rows", "array"), D("count", "Row Count", "number")],
     credentials: ["postgres"],
+    n8nAliases: ["n8n-nodes-base.postgres"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "query", label: "SQL Query", type: "code", required: true, placeholder: "SELECT * FROM users WHERE id = $1" },
       { key: "params", label: "Parameters (JSON array)", type: "json", default: [] },
@@ -438,6 +505,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("value", "Value", "any")],
     outputs: [D("result", "Result", "any"), D("ttl", "TTL", "number")],
     credentials: ["redis"],
+    n8nAliases: ["n8n-nodes-base.redis"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "get", options: [
         { label: "Get", value: "get" },
@@ -471,6 +540,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("document", "Document", "object")],
     outputs: [D("result", "Result", "any"), D("count", "Count", "number")],
     credentials: ["mongodb"],
+    n8nAliases: ["n8n-nodes-base.mongoDb"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "find", options: [
         { label: "Find", value: "find" },
@@ -503,6 +574,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("file", "File", "any")],
     outputs: [D("url", "URL", "string"), D("key", "Key", "string"), D("metadata", "Metadata", "object")],
     credentials: ["aws"],
+    n8nAliases: ["n8n-nodes-base.awsS3"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "upload", options: [
         { label: "Upload", value: "upload" },
@@ -530,6 +603,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("file", "File", "any")],
     outputs: [D("url", "URL", "string"), D("name", "Name", "string")],
     credentials: ["gcp"],
+    n8nAliases: ["n8n-nodes-base.googleCloudStorage"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "upload", options: ["upload", "download", "list", "delete"].map(o => ({ label: o.charAt(0).toUpperCase() + o.slice(1), value: o })) },
       { key: "bucket", label: "Bucket", type: "string", required: true },
@@ -549,6 +624,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "any")],
     outputs: [D("result", "Result", "any")],
     credentials: ["cloudflare"],
+    n8nAliases: ["n8n-nodes-base.cloudflare"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "kv_get", options: [
         { label: "KV Get", value: "kv_get" },
@@ -577,6 +654,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("deployment", "Deployment", "object"), D("url", "URL", "string")],
     credentials: ["vercel"],
+    n8nAliases: ["n8n-nodes-base.vercel"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "list_deployments", options: [
         { label: "List Deployments", value: "list_deployments" },
@@ -606,6 +685,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("message", "Message", "string")],
     outputs: [D("message_id", "Message ID", "string"), D("channel", "Channel", "string")],
     credentials: ["slack"],
+    n8nAliases: ["n8n-nodes-base.slack"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "post_message", options: [
         { label: "Post Message", value: "post_message" },
@@ -637,6 +718,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("message", "Message", "string")],
     outputs: [D("message_id", "Message ID", "string")],
     credentials: ["discord_bot"],
+    n8nAliases: ["n8n-nodes-base.discord"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "send_message", options: [
         { label: "Send Message", value: "send_message" },
@@ -664,6 +747,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("to", "To", "string"), D("body", "Body", "string")],
     outputs: [D("message_id", "Message ID", "string"), D("status", "Status", "string")],
     credentials: ["email"],
+    n8nAliases: ["n8n-nodes-base.emailSend", "n8n-nodes-base.sendGrid", "n8n-nodes-base.resend", "n8n-nodes-base.mailgun"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", required: true, default: "smtp", options: [
         { label: "SMTP", value: "smtp" },
@@ -694,6 +779,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("message", "Message", "string")],
     outputs: [D("sid", "Message SID", "string"), D("status", "Status", "string")],
     credentials: ["twilio"],
+    n8nAliases: ["n8n-nodes-base.twilio"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "send_sms", options: [
         { label: "Send SMS", value: "send_sms" },
@@ -719,6 +806,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#d97706",
     inputs: [D("trigger", "Trigger", "trigger"), D("value", "Value", "any")],
     outputs: [D("true", "True", "any"), D("false", "False", "any")],
+    n8nAliases: ["n8n-nodes-base.if"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "condition", label: "Condition", type: "string", required: true, placeholder: "{{$input.status}} === 'active'" },
       { key: "comparison", label: "Compare Mode", type: "select", default: "expression", options: [
@@ -746,6 +835,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#d97706",
     inputs: [D("trigger", "Trigger", "trigger"), D("value", "Value", "any")],
     outputs: [D("output_1", "Case 1", "any"), D("output_2", "Case 2", "any"), D("output_3", "Case 3", "any"), D("default", "Default", "any")],
+    n8nAliases: ["n8n-nodes-base.switch"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "field", label: "Input Field", type: "string", required: true, placeholder: "{{$input.type}}" },
       { key: "cases", label: "Cases (JSON)", type: "json", required: true, default: [{ value: "case1", output: 0 }, { value: "case2", output: 1 }] },
@@ -763,6 +854,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#d97706",
     inputs: [D("trigger", "Trigger", "trigger"), D("items", "Items Array", "array")],
     outputs: [D("item", "Item", "any"), D("index", "Index", "number"), D("results", "All Results", "array")],
+    n8nAliases: ["n8n-nodes-base.splitInBatches", "n8n-nodes-base.loopOverItems"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "field", label: "Array Field", type: "string", required: true, placeholder: "{{$input.items}}" },
       { key: "batch_size", label: "Batch Size", type: "number", default: 1, group: "Advanced" },
@@ -781,6 +874,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#d97706",
     inputs: [D("branch_1", "Branch 1", "any"), D("branch_2", "Branch 2", "any"), D("branch_3", "Branch 3", "any")],
     outputs: [D("merged", "Merged", "object")],
+    n8nAliases: ["n8n-nodes-base.merge"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "strategy", label: "Merge Strategy", type: "select", default: "object", options: [
         { label: "Deep Merge Object", value: "object" },
@@ -802,6 +897,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#d97706",
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("trigger_out", "After Delay", "trigger")],
+    n8nAliases: ["n8n-nodes-base.wait"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "duration_ms", label: "Duration (ms)", type: "number", required: true, default: 1000 },
       { key: "until", label: "Wait Until (ISO date)", type: "string", placeholder: "2025-01-01T00:00:00Z" },
@@ -819,6 +916,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#d97706",
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("result", "Result", "any"), D("error", "Error", "string"), D("attempts", "Attempts", "number")],
+    n8nAliases: ["n8n-nodes-base.retryOnFail"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "max_attempts", label: "Max Attempts", type: "number", default: 3 },
       { key: "backoff_ms", label: "Initial Backoff (ms)", type: "number", default: 1000 },
@@ -826,6 +925,27 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     ],
     executor: "retry",
     tags: ["logic", "retry", "error", "resilience"],
+  },
+
+  {
+    id: "logic.error_handler",
+    name: "Error Handler",
+    description: "Catch and handle errors from upstream nodes with custom fallback logic.",
+    category: "logic",
+    icon: "⚠️",
+    color: "#ef4444",
+    inputs: [D("trigger", "Trigger", "trigger"), D("error_in", "Error Input", "any")],
+    outputs: [D("output", "Output", "any"), D("error", "Error", "string"), D("handled", "Was Handled", "boolean")],
+    n8nAliases: ["n8n-nodes-base.errorTrigger", "n8n-nodes-base.noOp"],
+    n8nVersion: "0.20.0",
+    fields: [
+      { key: "fallback_value", label: "Fallback Value (JSON)", type: "json", default: null, description: "Value to return if error occurs" },
+      { key: "log_error", label: "Log Error", type: "boolean", default: true },
+      { key: "continue_on_error", label: "Continue Workflow", type: "boolean", default: true },
+      { key: "error_message", label: "Custom Error Message", type: "string", placeholder: "Custom error to emit" },
+    ],
+    executor: "error_handler",
+    tags: ["logic", "error", "handler", "fallback"],
   },
 
   {
@@ -837,6 +957,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#d97706",
     inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "any")],
     outputs: [D("output", "Output", "object")],
+    n8nAliases: ["n8n-nodes-base.set"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "assignments", label: "Assignments (JSON)", type: "json", required: true, default: { result: "{{$input.value}}" }, description: "Key-value pairs. Values support {{expressions}}." },
     ],
@@ -855,6 +977,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#f59e0b",
     inputs: [D("trigger", "Trigger", "trigger"), D("path_in", "Path", "string")],
     outputs: [D("content", "Content", "string"), D("binary", "Binary", "any"), D("size", "Size", "number")],
+    n8nAliases: ["n8n-nodes-base.readBinaryFile", "n8n-nodes-base.readFile"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "path", label: "File Path", type: "string", required: true, placeholder: "/path/to/file.txt" },
       { key: "encoding", label: "Encoding", type: "select", default: "utf8", options: [{ label: "UTF-8", value: "utf8" }, { label: "Base64", value: "base64" }, { label: "Binary", value: "binary" }] },
@@ -872,6 +996,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#f59e0b",
     inputs: [D("trigger", "Trigger", "trigger"), D("content", "Content", "string")],
     outputs: [D("path_out", "Path", "string"), D("size", "Size", "number")],
+    n8nAliases: ["n8n-nodes-base.writeFile"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "path", label: "File Path", type: "string", required: true, placeholder: "/output/result.txt" },
       { key: "content", label: "Content", type: "textarea" },
@@ -883,6 +1009,25 @@ export const NODE_REGISTRY: NodeDefinition[] = [
   },
 
   {
+    id: "files.move_binary",
+    name: "Move Binary Data",
+    description: "Move binary data between properties in the data structure.",
+    category: "files",
+    icon: "↔",
+    color: "#f59e0b",
+    inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "any")],
+    outputs: [D("output", "Output", "object")],
+    n8nAliases: ["n8n-nodes-base.moveBinaryData"],
+    n8nVersion: "0.20.0",
+    fields: [
+      { key: "source_property", label: "Source Property", type: "string", required: true, placeholder: "data.binary" },
+      { key: "target_property", label: "Target Property", type: "string", required: true, placeholder: "binary" },
+    ],
+    executor: "code_exec",
+    tags: ["files", "binary", "move", "transform"],
+  },
+
+  {
     id: "files.parse_csv",
     name: "Parse CSV",
     description: "Parse CSV data into structured records.",
@@ -891,6 +1036,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#f59e0b",
     inputs: [D("trigger", "Trigger", "trigger"), D("csv", "CSV Data", "string")],
     outputs: [D("rows", "Rows", "array"), D("headers", "Headers", "array"), D("count", "Count", "number")],
+    n8nAliases: ["n8n-nodes-base.spreadsheetFile"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "delimiter", label: "Delimiter", type: "string", default: "," },
       { key: "has_header", label: "Has Header Row", type: "boolean", default: true },
@@ -909,6 +1056,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#f59e0b",
     inputs: [D("trigger", "Trigger", "trigger"), D("input", "Input", "any")],
     outputs: [D("result", "Result", "any"), D("pretty", "Pretty String", "string")],
+    n8nAliases: ["n8n-nodes-base.json"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", default: "parse", options: [{ label: "Parse String → Object", value: "parse" }, { label: "Stringify Object → String", value: "stringify" }, { label: "Extract Path", value: "path" }] },
       { key: "path", label: "JSON Path", type: "string", placeholder: "$.data.items[0]", showIf: { operation: ["path"] } },
@@ -929,6 +1078,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("text_in", "Text", "string")],
     outputs: [D("text_out", "Result", "string"), D("parts", "Parts", "array")],
+    n8nAliases: ["n8n-nodes-base.string"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "trim", options: [
         { label: "Trim", value: "trim" },
@@ -964,6 +1115,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("array_in", "Array", "array")],
     outputs: [D("filtered", "Filtered", "array"), D("rejected", "Rejected", "array"), D("count", "Count", "number")],
+    n8nAliases: ["n8n-nodes-base.filter"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "condition", label: "Filter Condition", type: "string", required: true, placeholder: "item.status === 'active'" },
       { key: "limit", label: "Max Results", type: "number", default: 0, description: "0 = unlimited" },
@@ -981,6 +1134,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("array_in", "Array", "array")],
     outputs: [D("sorted", "Sorted", "array")],
+    n8nAliases: ["n8n-nodes-base.sort"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "field", label: "Sort Field", type: "string", required: true, placeholder: "createdAt" },
       { key: "direction", label: "Direction", type: "select", default: "asc", options: [{ label: "Ascending", value: "asc" }, { label: "Descending", value: "desc" }] },
@@ -1001,6 +1156,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("properties_in", "Properties", "object")],
     outputs: [D("event_id", "Event ID", "string")],
     credentials: ["analytics"],
+    n8nAliases: ["n8n-nodes-base.posthog", "n8n-nodes-base.mixpanel", "n8n-nodes-base.amplitude", "n8n-nodes-base.segment"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", default: "posthog", options: [{ label: "PostHog", value: "posthog" }, { label: "Mixpanel", value: "mixpanel" }, { label: "Amplitude", value: "amplitude" }, { label: "Segment", value: "segment" }] },
       { key: "event_name", label: "Event Name", type: "string", required: true, placeholder: "purchase_completed" },
@@ -1023,6 +1180,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "object")],
     outputs: [D("page", "Page", "object"), D("items", "Items", "array")],
     credentials: ["notion"],
+    n8nAliases: ["n8n-nodes-base.notion"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "query_db", options: [
         { label: "Query Database", value: "query_db" },
@@ -1050,6 +1209,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "object")],
     outputs: [D("issue", "Issue", "object"), D("items", "Items", "array")],
     credentials: ["linear"],
+    n8nAliases: ["n8n-nodes-base.linear"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "create_issue", options: [
         { label: "Create Issue", value: "create_issue" },
@@ -1077,6 +1238,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "object")],
     outputs: [D("result", "Result", "object"), D("id", "ID", "string")],
     credentials: ["stripe"],
+    n8nAliases: ["n8n-nodes-base.stripe"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "create_customer", options: [
         { label: "Create Customer", value: "create_customer" },
@@ -1106,6 +1269,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#f59e0b",
     inputs: [D("trigger", "Trigger", "trigger"), D("body", "Body", "object")],
     outputs: [D("result", "Result", "any"), D("status", "Status", "number")],
+    n8nAliases: ["n8n-nodes-base.httpRequest"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "endpoint", label: "Endpoint", type: "select", required: true, default: "/api/listings", options: [
         { label: "List Listings", value: "/api/listings" },
@@ -1132,6 +1297,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#f59e0b",
     inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "object")],
     outputs: [D("listing", "Listing", "object"), D("id", "ID", "string")],
+    n8nAliases: ["n8n-nodes-base.httpRequest"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "create", options: [
         { label: "Create Listing", value: "create" },
@@ -1161,6 +1328,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#06b6d4",
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("html", "HTML", "string"), D("text", "Text", "string"), D("data", "Extracted Data", "object")],
+    n8nAliases: ["n8n-nodes-base.htmlExtract"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "url", label: "URL", type: "string", required: true, placeholder: "https://example.com" },
       { key: "selector", label: "CSS Selector", type: "string", placeholder: ".article-body" },
@@ -1181,6 +1350,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#06b6d4",
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("image_url", "Image URL", "string"), D("base64", "Base64", "string")],
+    n8nAliases: ["n8n-nodes-base.screenshot"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "url", label: "URL", type: "string", required: true },
       { key: "full_page", label: "Full Page", type: "boolean", default: false },
@@ -1201,6 +1372,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#06b6d4",
     inputs: [D("trigger", "Trigger", "trigger"), D("html_in", "HTML", "string")],
     outputs: [D("pdf_url", "PDF URL", "string"), D("base64", "Base64", "string")],
+    n8nAliases: ["n8n-nodes-base.pdf"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "source", label: "Source", type: "select", required: true, default: "url", options: [{ label: "URL", value: "url" }, { label: "HTML", value: "html" }] },
       { key: "url", label: "URL", type: "string", showIf: { source: ["url"] } },
@@ -1220,6 +1393,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#06b6d4",
     inputs: [D("trigger", "Trigger", "trigger"), D("data_in", "Form Data", "object")],
     outputs: [D("result", "Result", "object"), D("success", "Success", "boolean")],
+    n8nAliases: ["n8n-nodes-base.formTrigger"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "url", label: "URL", type: "string", required: true },
       { key: "fields", label: "Field Selectors (JSON)", type: "json", placeholder: '{"#email": "user@example.com"}' },
@@ -1241,6 +1416,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("files_in", "Files", "array")],
     outputs: [D("commit_sha", "Commit SHA", "string"), D("branch", "Branch", "string")],
     credentials: ["github"],
+    n8nAliases: ["n8n-nodes-base.git"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "repo_path", label: "Repo Path", type: "string", required: true },
       { key: "message", label: "Commit Message", type: "string", required: true, placeholder: "feat: add new feature" },
@@ -1260,6 +1437,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#64748b",
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("results", "Results", "object"), D("passed", "Passed", "number"), D("failed", "Failed", "number"), D("coverage", "Coverage", "number")],
+    n8nAliases: ["n8n-nodes-base.executeCommand"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "runner", label: "Test Runner", type: "select", default: "jest", options: ["jest", "vitest", "pytest", "mocha", "go test", "cargo test"].map(v => ({ label: v, value: v })) },
       { key: "path", label: "Test Path", type: "string", placeholder: "src/**/*.test.ts" },
@@ -1279,6 +1458,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#64748b",
     inputs: [D("trigger", "Trigger", "trigger"), D("code_in", "Code", "string")],
     outputs: [D("code_out", "Fixed Code", "string"), D("errors", "Errors", "array"), D("warnings", "Warnings", "array")],
+    n8nAliases: ["n8n-nodes-base.executeCommand"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "tool", label: "Tool", type: "select", default: "eslint", options: ["eslint", "prettier", "biome", "pylint", "gofmt", "rustfmt"].map(v => ({ label: v, value: v })) },
       { key: "fix", label: "Auto-fix", type: "boolean", default: true },
@@ -1297,6 +1478,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#64748b",
     inputs: [D("trigger", "Trigger", "trigger"), D("spec_in", "Specification", "string")],
     outputs: [D("code", "Code", "string"), D("filename", "Filename", "string"), D("language", "Language", "string")],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "language", label: "Language", type: "select", default: "typescript", options: ["typescript", "python", "go", "rust", "java", "csharp", "php", "ruby", "swift"].map(v => ({ label: v, value: v })) },
       { key: "framework", label: "Framework", type: "string", placeholder: "Next.js, FastAPI, etc." },
@@ -1319,6 +1502,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("text_in", "Text", "string")],
     outputs: [D("tweet", "Tweet", "object"), D("id", "Tweet ID", "string"), D("items", "Items", "array")],
     credentials: ["twitter"],
+    n8nAliases: ["n8n-nodes-base.twitter"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "post_tweet", options: [
         { label: "Post Tweet", value: "post_tweet" },
@@ -1347,6 +1532,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("content_in", "Content", "string")],
     outputs: [D("post", "Post", "object"), D("id", "Post ID", "string")],
     credentials: ["linkedin"],
+    n8nAliases: ["n8n-nodes-base.linkedIn"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "create_post", options: [
         { label: "Create Post", value: "create_post" },
@@ -1372,6 +1559,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("query_in", "Query", "string")],
     outputs: [D("results", "Results", "array"), D("top_result", "Top Result", "object"), D("count", "Count", "number")],
     credentials: ["search"],
+    n8nAliases: ["n8n-nodes-base.httpRequest"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", default: "brave", options: [{ label: "Brave Search", value: "brave" }, { label: "Serper (Google)", value: "serper" }, { label: "Bing", value: "bing" }] },
       { key: "query", label: "Search Query", type: "string", required: true, placeholder: "best AI tools 2025" },
@@ -1393,6 +1582,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("query_in", "Query", "string"), D("vector_in", "Vector", "array")],
     outputs: [D("results", "Results", "array"), D("ids", "IDs", "array"), D("scores", "Scores", "array")],
     credentials: ["vector_db"],
+    n8nAliases: ["n8n-nodes-base.pinecone", "n8n-nodes-base.qdrant"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", required: true, default: "pgvector", options: [{ label: "pgvector (Supabase)", value: "pgvector" }, { label: "Pinecone", value: "pinecone" }, { label: "Qdrant", value: "qdrant" }, { label: "Weaviate", value: "weaviate" }] },
       { key: "index_name", label: "Index / Table", type: "string", required: true, placeholder: "embeddings" },
@@ -1414,6 +1605,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("items_in", "Items", "array"), D("vectors_in", "Vectors", "array")],
     outputs: [D("ids", "Upserted IDs", "array"), D("count", "Count", "number")],
     credentials: ["vector_db"],
+    n8nAliases: ["n8n-nodes-base.pinecone", "n8n-nodes-base.qdrant"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", required: true, default: "pgvector", options: [{ label: "pgvector (Supabase)", value: "pgvector" }, { label: "Pinecone", value: "pinecone" }, { label: "Qdrant", value: "qdrant" }] },
       { key: "index_name", label: "Index / Table", type: "string", required: true },
@@ -1436,6 +1629,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("event_in", "Event Data", "object")],
     outputs: [D("event", "Event", "object"), D("events", "Events", "array"), D("id", "Event ID", "string")],
     credentials: ["google"],
+    n8nAliases: ["n8n-nodes-base.googleCalendar"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "create_event", options: [
         { label: "Create Event", value: "create_event" },
@@ -1465,6 +1660,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("booking", "Booking", "object"), D("bookings", "Bookings", "array")],
     credentials: ["cal_com"],
+    n8nAliases: ["n8n-nodes-base.calcom"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "list_bookings", options: [
         { label: "List Bookings", value: "list_bookings" },
@@ -1492,6 +1689,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("data_in", "Data", "object")],
     outputs: [D("post", "Post", "object"), D("id", "Post ID", "number")],
     credentials: ["wordpress"],
+    n8nAliases: ["n8n-nodes-base.wordpress"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "create_post", options: [
         { label: "Create Post", value: "create_post" },
@@ -1520,6 +1719,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("data_in", "Data", "object")],
     outputs: [D("entry", "Entry", "object"), D("entries", "Entries", "array")],
     credentials: ["contentful"],
+    n8nAliases: ["n8n-nodes-base.contentful"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "get_entries", options: [
         { label: "Get Entries", value: "get_entries" },
@@ -1551,6 +1752,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("query_in", "User Query", "string")],
     outputs: [D("answer", "Answer", "string"), D("sources", "Sources", "array"), D("context", "Context", "string")],
     credentials: ["openai", "vector_db"],
+    n8nAliases: ["n8n-nodes-base.langChain"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "llm_provider", label: "LLM Provider", type: "select", default: "openai", options: [{ label: "OpenAI", value: "openai" }, { label: "Anthropic", value: "anthropic" }, { label: "Groq", value: "groq" }] },
       { key: "llm_model", label: "LLM Model", type: "string", default: "gpt-4o-mini" },
@@ -1573,6 +1776,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("text_in", "Text", "string")],
     outputs: [D("summary", "Summary", "string"), D("bullets", "Bullet Points", "array"), D("keywords", "Keywords", "array")],
     credentials: ["openai"],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", default: "openai", options: [{ label: "OpenAI", value: "openai" }, { label: "Anthropic", value: "anthropic" }, { label: "Groq", value: "groq" }] },
       { key: "model", label: "Model", type: "string", default: "gpt-4o-mini" },
@@ -1593,6 +1798,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#7c3aed",
     inputs: [D("trigger", "Trigger", "trigger"), D("text_in", "Text", "string")],
     outputs: [D("translation", "Translation", "string"), D("detected_lang", "Detected Language", "string")],
+    n8nAliases: ["n8n-nodes-base.openAi", "n8n-nodes-base.deepl"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "source_lang", label: "Source Language", type: "string", default: "auto", placeholder: "auto" },
       { key: "target_lang", label: "Target Language", type: "string", required: true, default: "Spanish" },
@@ -1612,6 +1819,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#7c3aed",
     inputs: [D("trigger", "Trigger", "trigger"), D("text_in", "Text", "string")],
     outputs: [D("sentiment", "Sentiment", "string"), D("score", "Score", "number"), D("emotions", "Emotions", "object")],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", default: "openai", options: [{ label: "OpenAI", value: "openai" }, { label: "Anthropic", value: "anthropic" }] },
       { key: "aspects", label: "Aspect Analysis", type: "boolean", default: false, description: "Break down sentiment per topic" },
@@ -1630,6 +1839,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("image_url_in", "Image URL", "string")],
     outputs: [D("description", "Description", "string"), D("objects", "Detected Objects", "array"), D("text", "Extracted Text", "string")],
     credentials: ["openai"],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", default: "openai", options: [{ label: "OpenAI (gpt-4o)", value: "openai" }, { label: "Anthropic (Claude)", value: "anthropic" }, { label: "Google Gemini", value: "google" }] },
       { key: "task", label: "Task", type: "select", default: "describe", options: [
@@ -1657,6 +1868,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("payload_in", "Payload", "object")],
     outputs: [D("response", "Response", "any"), D("status_code", "Status Code", "number")],
     credentials: ["aws"],
+    n8nAliases: ["n8n-nodes-base.awsLambda"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "function_name", label: "Function Name", type: "string", required: true },
       { key: "region", label: "Region", type: "string", default: "us-east-1" },
@@ -1677,6 +1890,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("data_in", "Email Data", "object")],
     outputs: [D("message_id", "Message ID", "string"), D("success", "Success", "boolean")],
     credentials: ["aws"],
+    n8nAliases: ["n8n-nodes-base.awsSes"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "from", label: "From", type: "string", required: true, placeholder: "noreply@yourdomain.com" },
       { key: "to", label: "To (comma-separated)", type: "string", required: true },
@@ -1699,6 +1914,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("data_in", "Data", "any")],
     outputs: [D("url", "URL", "string"), D("items", "Items", "array")],
     credentials: ["azure"],
+    n8nAliases: ["n8n-nodes-base.azureBlob"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "upload", options: [
         { label: "Upload Blob", value: "upload" },
@@ -1725,12 +1942,75 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("data_in", "Data", "object")],
     outputs: [D("output", "Rendered Output", "string")],
+    n8nAliases: ["n8n-nodes-base.set"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "template", label: "Template", type: "textarea", required: true, placeholder: "Hello {{name}}, your order {{order.id}} is ready!" },
       { key: "engine", label: "Engine", type: "select", default: "mustache", options: [{ label: "Mustache / Handlebars", value: "mustache" }, { label: "Jinja2-like", value: "nunjucks" }, { label: "Plain (JS template literal)", value: "literal" }] },
     ],
     executor: "template_render",
     tags: ["template", "render", "handlebars", "mustache"],
+  },
+
+  {
+    id: "data.set_fields",
+    name: "Set Fields",
+    description: "Set, update, or remove fields on an object (n8n Set node equivalent).",
+    category: "data",
+    icon: "✏️",
+    color: "#0891b2",
+    inputs: [D("trigger", "Trigger", "trigger"), D("input", "Input", "any")],
+    outputs: [D("output", "Output", "any")],
+    n8nAliases: ["n8n-nodes-base.set"],
+    n8nVersion: "0.20.0",
+    fields: [
+      { key: "assignments", label: "Field Assignments (JSON)", type: "json", required: true, default: { name: "John Doe", status: "active" }, description: "Key-value pairs to set on the object" },
+      { key: "mode", label: "Mode", type: "select", default: "merge", options: [{ label: "Merge (keep existing)", value: "merge" }, { label: "Replace (overwrite)", value: "replace" }, { label: "Remove Keys", value: "remove" }] },
+      { key: "options", label: "Options", type: "json", default: {}, description: "Additional options like dot notation, etc." },
+    ],
+    executor: "code_exec",
+    tags: ["set", "fields", "object", "transform"],
+  },
+
+  {
+    id: "data.order",
+    name: "Order",
+    description: "Sort or reorder an array by a field or custom comparator.",
+    category: "data",
+    icon: "🔢",
+    color: "#0891b2",
+    inputs: [D("trigger", "Trigger", "trigger"), D("array", "Array", "array")],
+    outputs: [D("sorted", "Sorted", "array")],
+    n8nAliases: ["n8n-nodes-base.sort"],
+    n8nVersion: "0.20.0",
+    fields: [
+      { key: "field", label: "Sort Field", type: "string", placeholder: "createdAt, name, price..." },
+      { key: "direction", label: "Direction", type: "select", default: "asc", options: [{ label: "Ascending", value: "asc" }, { label: "Descending", value: "desc" }] },
+      { key: "custom_comparator", label: "Custom Comparator (JS)", type: "textarea", placeholder: "(a, b) => a.localeCompare(b)", description: "Advanced: custom JS comparator function" },
+    ],
+    executor: "code_exec",
+    tags: ["sort", "order", "array", "reorder"],
+  },
+
+  {
+    id: "data.created",
+    name: "Created At",
+    description: "Add a created_at timestamp to objects or records.",
+    category: "data",
+    icon: "🕐",
+    color: "#0891b2",
+    inputs: [D("trigger", "Trigger", "trigger"), D("input", "Input", "any")],
+    outputs: [D("output", "Output", "any")],
+    n8nAliases: ["n8n-nodes-base.dateTime"],
+    n8nVersion: "0.20.0",
+    fields: [
+      { key: "field_name", label: "Field Name", type: "string", default: "created_at", placeholder: "created_at, createdAt, dateCreated..." },
+      { key: "format", label: "Format", type: "select", default: "iso", options: [{ label: "ISO 8601", value: "iso" }, { label: "Unix Timestamp", value: "unix" }, { label: "YYYY-MM-DD HH:mm:ss", value: "datetime" }, { label: "Custom", value: "custom" }] },
+      { key: "custom_format", label: "Custom Format String", type: "string", placeholder: "YYYY-MM-DD", showIf: { format: ["custom"] } },
+      { key: "timezone", label: "Timezone", type: "string", default: "UTC", placeholder: "UTC, America/New_York..." },
+    ],
+    executor: "code_exec",
+    tags: ["timestamp", "created", "date", "metadata"],
   },
 
   {
@@ -1742,6 +2022,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("value_in", "Value", "string")],
     outputs: [D("hash", "Hash", "string"), D("verified", "Verified", "boolean")],
+    n8nAliases: ["n8n-nodes-base.crypto"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "algorithm", label: "Algorithm", type: "select", required: true, default: "sha256", options: ["md5", "sha1", "sha256", "sha512", "bcrypt", "aes_encrypt", "aes_decrypt"].map(v => ({ label: v.toUpperCase(), value: v })) },
       { key: "secret", label: "Secret / Key", type: "string", placeholder: "only needed for AES / HMAC" },
@@ -1760,6 +2042,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("date_in", "Date Input", "string")],
     outputs: [D("iso", "ISO String", "string"), D("unix", "Unix Timestamp", "number"), D("formatted", "Formatted", "string"), D("parts", "Parts", "object")],
+    n8nAliases: ["n8n-nodes-base.dateTime"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", default: "now", options: [
         { label: "Current Time", value: "now" },
@@ -1787,6 +2071,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("a", "A", "number"), D("b", "B", "number")],
     outputs: [D("result", "Result", "number"), D("formatted", "Formatted", "string")],
+    n8nAliases: ["n8n-nodes-base.math"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "add", options: [
         { label: "Add (a + b)", value: "add" },
@@ -1820,6 +2106,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("array_in", "Array", "array")],
     outputs: [D("result", "Result", "any"), D("count", "Count", "number"), D("grouped", "Grouped", "object")],
+    n8nAliases: ["n8n-nodes-base.aggregate"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "sum", options: [
         { label: "Sum", value: "sum" },
@@ -1853,6 +2141,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("input_in", "Input", "string")],
     outputs: [D("output", "Output", "any"), D("error", "Error", "string")],
+    n8nAliases: ["n8n-nodes-base.xml"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "xml_to_json", options: [{ label: "XML → JSON", value: "xml_to_json" }, { label: "JSON → XML", value: "json_to_xml" }] },
       { key: "root_tag", label: "Root Tag (for JSON→XML)", type: "string", default: "root", showIf: { operation: ["json_to_xml"] } },
@@ -1874,6 +2164,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("token_in", "Device Token", "string")],
     outputs: [D("result", "Result", "object"), D("success", "Success", "boolean")],
     credentials: ["push"],
+    n8nAliases: ["n8n-nodes-base.pushover", "n8n-nodes-base.pushbullet"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", required: true, default: "fcm", options: [{ label: "Firebase (FCM)", value: "fcm" }, { label: "OneSignal", value: "onesignal" }, { label: "Expo Push", value: "expo" }] },
       { key: "title", label: "Title", type: "string", required: true },
@@ -1895,6 +2187,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("incident", "Incident", "object"), D("id", "Incident ID", "string")],
     credentials: ["pagerduty"],
+    n8nAliases: ["n8n-nodes-base.pagerduty"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "create_incident", options: [
         { label: "Create Incident", value: "create_incident" },
@@ -1924,6 +2218,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("output", "Output", "string"), D("exit_code", "Exit Code", "number")],
     credentials: ["docker"],
+    n8nAliases: ["n8n-nodes-base.docker"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "run", options: [
         { label: "Run Container", value: "run" },
@@ -1954,6 +2250,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("deployment", "Deployment", "object"), D("url", "URL", "string")],
     credentials: ["railway"],
+    n8nAliases: ["n8n-nodes-base.railway"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "list_projects", options: [
         { label: "List Projects", value: "list_projects" },
@@ -1982,6 +2280,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("text_in", "Text", "string")],
     outputs: [D("message_id", "Message ID", "number"), D("result", "Result", "object")],
     credentials: ["telegram"],
+    n8nAliases: ["n8n-nodes-base.telegram"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "send_message", options: [
         { label: "Send Message", value: "send_message" },
@@ -2018,6 +2318,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("data_in", "Data", "any")],
     outputs: [D("data", "Data", "any"), D("count", "Count", "number"), D("error", "Error", "string")],
     credentials: ["supabase"],
+    n8nAliases: ["n8n-nodes-base.supabase"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "select", options: [
         { label: "Select Rows", value: "select" },
@@ -2058,6 +2360,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("text_in", "Text", "string")],
     outputs: [D("message_id", "Message ID", "string"), D("success", "Success", "boolean")],
     credentials: ["twilio"],
+    n8nAliases: ["n8n-nodes-base.twilio"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "provider", label: "Provider", type: "select", required: true, default: "twilio", options: [{ label: "Twilio", value: "twilio" }, { label: "Meta Cloud API", value: "meta" }] },
       { key: "to", label: "To Number", type: "string", required: true, placeholder: "+1234567890" },
@@ -2080,6 +2384,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("run", "Run", "object"), D("run_id", "Run ID", "number"), D("status", "Status", "string")],
     credentials: ["github"],
+    n8nAliases: ["n8n-nodes-base.github"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "trigger_dispatch", options: [
         { label: "Trigger Workflow Dispatch", value: "trigger_dispatch" },
@@ -2110,6 +2416,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("rows_in", "Rows", "array")],
     outputs: [D("rows", "Rows", "array"), D("count", "Count", "number")],
     credentials: ["google"],
+    n8nAliases: ["n8n-nodes-base.googleSheets"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "read", options: [
         { label: "Read Rows", value: "read" },
@@ -2139,6 +2447,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("data_in", "Data", "object")],
     outputs: [D("message_id", "Message ID", "string"), D("messages", "Messages", "array")],
     credentials: ["google"],
+    n8nAliases: ["n8n-nodes-base.gmail"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "send", options: [
         { label: "Send Email", value: "send" },
@@ -2173,6 +2483,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("text", "Text", "string")],
     outputs: [D("summary", "Summary", "string"), D("bullets", "Bullet Points", "array")],
     credentials: ["ai_provider"],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "text", label: "Text to Summarize", type: "textarea", placeholder: "{{$input.content}}" },
       { key: "max_words", label: "Max Words", type: "number", default: 100 },
@@ -2194,6 +2506,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("text", "Text", "string")],
     outputs: [D("translated", "Translated", "string"), D("detected_lang", "Detected Language", "string")],
     credentials: ["ai_provider"],
+    n8nAliases: ["n8n-nodes-base.openAi", "n8n-nodes-base.deepl"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "text", label: "Text", type: "textarea", placeholder: "{{$input.text}}" },
       { key: "target_language", label: "Target Language", type: "string", required: true, default: "English", placeholder: "Spanish, French, Japanese..." },
@@ -2215,6 +2529,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("text", "Text", "string")],
     outputs: [D("rewritten", "Rewritten", "string")],
     credentials: ["ai_provider"],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "text", label: "Original Text", type: "textarea", placeholder: "{{$input.text}}" },
       { key: "style", label: "Rewrite Style", type: "select", default: "professional", options: [
@@ -2243,6 +2559,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("code", "Code", "string")],
     outputs: [D("review", "Review", "string"), D("issues", "Issues", "array"), D("score", "Quality Score", "number")],
     credentials: ["ai_provider"],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "code", label: "Code to Review", type: "code", placeholder: "// paste code here or use {{$input.code}}" },
       { key: "language", label: "Language", type: "string", default: "auto-detect", placeholder: "TypeScript, Python, Go..." },
@@ -2264,6 +2582,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("image_url", "Image URL", "string")],
     outputs: [D("description", "Description", "string"), D("objects", "Objects Found", "array")],
     credentials: ["ai_provider"],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "image_url", label: "Image URL", type: "url", required: true, placeholder: "https://example.com/image.jpg" },
       { key: "prompt", label: "Analysis Prompt", type: "textarea", default: "Describe this image in detail.", placeholder: "What objects are in this image?" },
@@ -2284,6 +2604,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("prompt", "Prompt", "string")],
     outputs: [D("result", "Structured Result", "object"), D("raw", "Raw JSON", "string")],
     credentials: ["ai_provider"],
+    n8nAliases: ["n8n-nodes-base.openAi"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "prompt", label: "Prompt", type: "textarea", required: true, placeholder: "Extract the event details from this text: {{$input.text}}" },
       { key: "schema", label: "Output Schema (JSON)", type: "json", required: true, default: { name: "string", date: "string", location: "string" } },
@@ -2306,6 +2628,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#e535ab",
     inputs: [D("trigger", "Trigger", "trigger"), D("variables", "Variables", "object")],
     outputs: [D("data", "Data", "object"), D("errors", "Errors", "array")],
+    n8nAliases: ["n8n-nodes-base.graphql"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "endpoint", label: "GraphQL Endpoint", type: "url", required: true, placeholder: "https://api.example.com/graphql" },
       { key: "query", label: "Query / Mutation", type: "code", required: true, placeholder: "query { users { id name } }" },
@@ -2326,6 +2650,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#2563eb",
     inputs: [D("trigger", "Trigger", "trigger"), D("payload", "Payload", "object")],
     outputs: [D("token", "JWT Token", "string"), D("decoded", "Decoded Payload", "object"), D("valid", "Is Valid", "boolean")],
+    n8nAliases: ["n8n-nodes-base.crypto"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "sign", options: [{ label: "Sign (Create Token)", value: "sign" }, { label: "Verify & Decode", value: "verify" }] },
       { key: "payload", label: "Payload (JSON)", type: "json", showIf: { operation: ["sign"] } },
@@ -2347,6 +2673,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#2563eb",
     inputs: [D("trigger", "Trigger", "trigger"), D("input", "Input", "string")],
     outputs: [D("result", "Result", "string"), D("hex", "Hex", "string")],
+    n8nAliases: ["n8n-nodes-base.crypto"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "sha256", options: [
         { label: "SHA-256 Hash", value: "sha256" },
@@ -2376,6 +2704,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#2563eb",
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("uuid", "UUID", "string"), D("batch", "UUID Array", "array")],
+    n8nAliases: ["n8n-nodes-base.set"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "version", label: "Version", type: "select", default: "v4", options: [{ label: "UUID v4 (random)", value: "v4" }, { label: "NanoID", value: "nanoid" }, { label: "ULID", value: "ulid" }] },
       { key: "count", label: "Count", type: "number", default: 1, description: "Generate multiple IDs at once" },
@@ -2394,6 +2724,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#2563eb",
     inputs: [D("trigger", "Trigger", "trigger"), D("date_in", "Date Input", "string")],
     outputs: [D("formatted", "Formatted", "string"), D("unix", "Unix Timestamp", "number"), D("iso", "ISO 8601", "string"), D("parts", "Date Parts", "object")],
+    n8nAliases: ["n8n-nodes-base.dateTime"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", default: "now", options: [
         { label: "Current Date/Time", value: "now" },
@@ -2423,6 +2755,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#2563eb",
     inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "object")],
     outputs: [D("rendered", "Rendered HTML/Text", "string")],
+    n8nAliases: ["n8n-nodes-base.set"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "template", label: "Template", type: "textarea", required: true, placeholder: "Hello {{name}}! Your order #{{order_id}} is ready." },
       { key: "data", label: "Template Variables (JSON)", type: "json", placeholder: '{"name": "{{$input.user}}", "order_id": "{{$input.id}}"}' },
@@ -2443,6 +2777,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("array", "Array", "array")],
     outputs: [D("result", "Result", "number"), D("count", "Count", "number"), D("min", "Min", "number"), D("max", "Max", "number")],
+    n8nAliases: ["n8n-nodes-base.aggregate"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Aggregation", type: "select", required: true, default: "sum", options: [
         { label: "Sum", value: "sum" },
@@ -2469,12 +2805,70 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("array", "Array", "array")],
     outputs: [D("unique", "Unique Items", "array"), D("duplicates", "Duplicates", "array"), D("removed_count", "Removed Count", "number")],
+    n8nAliases: ["n8n-nodes-base.removeDuplicates"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "key", label: "Dedup Key", type: "string", required: true, placeholder: "id, email, name..." },
       { key: "keep", label: "Keep", type: "select", default: "first", options: [{ label: "First Occurrence", value: "first" }, { label: "Last Occurrence", value: "last" }] },
     ],
     executor: "filter_array",
     tags: ["data", "dedupe", "unique", "clean"],
+  },
+
+  {
+    id: "data.rename_keys",
+    name: "Rename Keys",
+    description: "Rename object keys in the data structure.",
+    category: "data",
+    icon: "🏷",
+    color: "#0891b2",
+    inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "object")],
+    outputs: [D("output", "Output", "object")],
+    n8nAliases: ["n8n-nodes-base.renameKeys"],
+    n8nVersion: "0.20.0",
+    fields: [
+      { key: "renames", label: "Key Renames (JSON)", type: "json", required: true, default: { oldKey: "newKey" }, description: "Map old key names to new key names" },
+    ],
+    executor: "code_exec",
+    tags: ["data", "transform", "rename", "keys"],
+  },
+
+  {
+    id: "logic.stop",
+    name: "Stop and Error",
+    description: "Stop workflow execution with an optional error message.",
+    category: "logic",
+    icon: "⛔",
+    color: "#ef4444",
+    inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "any")],
+    outputs: [],
+    n8nAliases: ["n8n-nodes-base.stopAndError"],
+    n8nVersion: "0.20.0",
+    fields: [
+      { key: "error_message", label: "Error Message", type: "string", placeholder: "Workflow stopped due to condition" },
+      { key: "stop_on_error", label: "Stop on Error", type: "boolean", default: true },
+    ],
+    executor: "stop_workflow",
+    tags: ["logic", "stop", "error", "halt"],
+  },
+
+  {
+    id: "data.limit",
+    name: "Limit",
+    description: "Limit the number of items in an array.",
+    category: "data",
+    icon: "⊢",
+    color: "#0891b2",
+    inputs: [D("trigger", "Trigger", "trigger"), D("array", "Array", "array")],
+    outputs: [D("limited", "Limited Array", "array"), D("skipped", "Skipped Count", "number")],
+    n8nAliases: ["n8n-nodes-base.limit"],
+    n8nVersion: "0.20.0",
+    fields: [
+      { key: "max_items", label: "Max Items", type: "number", required: true, default: 10 },
+      { key: "offset", label: "Offset", type: "number", default: 0, description: "Skip first N items" },
+    ],
+    executor: "code_exec",
+    tags: ["data", "limit", "slice", "array"],
   },
 
   {
@@ -2486,6 +2880,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("input", "Input", "string")],
     outputs: [D("result", "Result", "any"), D("json", "JSON", "object"), D("xml", "XML", "string")],
+    n8nAliases: ["n8n-nodes-base.xml"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "xml_to_json", options: [{ label: "XML → JSON", value: "xml_to_json" }, { label: "JSON → XML", value: "json_to_xml" }] },
       { key: "input", label: "Input Data", type: "textarea", placeholder: "{{$input.xml}} or <root><item>...</item></root>" },
@@ -2504,6 +2900,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("array", "Array", "array")],
     outputs: [D("chunks", "Chunks", "array"), D("chunk_count", "Chunk Count", "number"), D("total_items", "Total Items", "number")],
+    n8nAliases: ["n8n-nodes-base.splitInBatches"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "size", label: "Batch Size", type: "number", required: true, default: 10 },
       { key: "field", label: "Array Field", type: "string", placeholder: "items (leave blank to use input directly)" },
@@ -2521,6 +2919,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("a", "Object A", "any"), D("b", "Object B", "any")],
     outputs: [D("added", "Added", "array"), D("removed", "Removed", "array"), D("changed", "Changed", "array"), D("same", "Unchanged", "array")],
+    n8nAliases: ["n8n-nodes-base.merge"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "a", label: "Object A (JSON)", type: "json", placeholder: "{{$input.before}}" },
       { key: "b", label: "Object B (JSON)", type: "json", placeholder: "{{$input.after}}" },
@@ -2539,6 +2939,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#0891b2",
     inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "any")],
     outputs: [D("valid", "Is Valid", "boolean"), D("errors", "Errors", "array"), D("data_out", "Data", "any")],
+    n8nAliases: ["n8n-nodes-base.set"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "schema", label: "JSON Schema", type: "json", required: true, default: { type: "object", properties: { name: { type: "string" } }, required: ["name"] } },
       { key: "data", label: "Data to Validate (JSON)", type: "json", placeholder: "{{$input}}" },
@@ -2559,6 +2961,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#22c55e",
     inputs: [D("trigger", "Trigger", "trigger")],
     outputs: [D("rate", "Rate", "number"), D("amount_converted", "Converted Amount", "number"), D("rates", "All Rates", "object")],
+    n8nAliases: ["n8n-nodes-base.httpRequest"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "from", label: "From Currency", type: "string", required: true, default: "USD", placeholder: "USD, EUR, GBP..." },
       { key: "to", label: "To Currency", type: "string", required: true, default: "EUR" },
@@ -2578,6 +2982,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#22c55e",
     inputs: [D("trigger", "Trigger", "trigger"), D("items", "Line Items", "array")],
     outputs: [D("pdf_url", "PDF URL", "string"), D("total", "Total Amount", "number"), D("invoice_id", "Invoice ID", "string")],
+    n8nAliases: ["n8n-nodes-base.set"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "company_name", label: "Company Name", type: "string", required: true },
       { key: "client_name", label: "Client Name", type: "string", required: true },
@@ -2603,6 +3009,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "object")],
     outputs: [D("issue", "Issue", "object"), D("issues", "Issues", "array"), D("key", "Issue Key", "string")],
     credentials: ["jira"],
+    n8nAliases: ["n8n-nodes-base.jira"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "create_issue", options: [
         { label: "Create Issue", value: "create_issue" },
@@ -2637,6 +3045,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "object")],
     outputs: [D("contact", "Contact", "object"), D("deal", "Deal", "object"), D("id", "ID", "string")],
     credentials: ["hubspot"],
+    n8nAliases: ["n8n-nodes-base.hubspot"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "create_contact", options: [
         { label: "Create Contact", value: "create_contact" },
@@ -2671,6 +3081,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("records", "Records", "array")],
     outputs: [D("records", "Records", "array"), D("record", "Record", "object"), D("id", "Record ID", "string")],
     credentials: ["airtable"],
+    n8nAliases: ["n8n-nodes-base.airtable"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "list_records", options: [
         { label: "List Records", value: "list_records" },
@@ -2693,6 +3105,42 @@ export const NODE_REGISTRY: NodeDefinition[] = [
   },
 
   {
+    id: "crm.trello",
+    name: "Trello",
+    description: "Create, update, and manage Trello boards, lists, and cards.",
+    category: "crm",
+    icon: "trello",
+    color: "#0079bf",
+    inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "object")],
+    outputs: [D("card", "Card", "object"), D("cards", "Cards", "array"), D("id", "Card ID", "string")],
+    credentials: ["trello"],
+    n8nAliases: ["n8n-nodes-base.trello"],
+    n8nVersion: "0.20.0",
+    fields: [
+      { key: "operation", label: "Operation", type: "select", required: true, default: "create_card", options: [
+        { label: "Create Card", value: "create_card" },
+        { label: "Get Card", value: "get_card" },
+        { label: "Update Card", value: "update_card" },
+        { label: "Delete Card", value: "delete_card" },
+        { label: "List Cards", value: "list_cards" },
+        { label: "Add Comment", value: "add_comment" },
+        { label: "Move Card", value: "move_card" },
+        { label: "Add Attachment", value: "add_attachment" },
+      ]},
+      { key: "board_id", label: "Board ID", type: "string", required: true, placeholder: "boardId" },
+      { key: "list_id", label: "List ID", type: "string", placeholder: "listId", showIf: { operation: ["create_card", "list_cards", "move_card"] } },
+      { key: "card_id", label: "Card ID", type: "string", placeholder: "cardId", showIf: { operation: ["get_card", "update_card", "delete_card", "add_comment", "move_card", "add_attachment"] } },
+      { key: "name", label: "Card Name", type: "string", showIf: { operation: ["create_card", "update_card"] } },
+      { key: "description", label: "Description", type: "textarea", showIf: { operation: ["create_card", "update_card"] } },
+      { key: "position", label: "Position", type: "select", default: "bottom", options: [{ label: "Top", value: "top" }, { label: "Bottom", value: "bottom" }], showIf: { operation: ["create_card", "move_card"] } },
+      { key: "comment", label: "Comment Text", type: "textarea", showIf: { operation: ["add_comment"] } },
+      { key: "attachment_url", label: "Attachment URL", type: "url", showIf: { operation: ["add_attachment"] } },
+    ],
+    executor: "http_request",
+    tags: ["trello", "project", "kanban", "board"],
+  },
+
+  {
     id: "crm.google_calendar",
     name: "Google Calendar",
     description: "Create and manage Google Calendar events.",
@@ -2702,6 +3150,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("event_data", "Event Data", "object")],
     outputs: [D("event", "Event", "object"), D("events", "Events", "array"), D("event_id", "Event ID", "string")],
     credentials: ["google"],
+    n8nAliases: ["n8n-nodes-base.googleCalendar"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "list_events", options: [
         { label: "List Events", value: "list_events" },
@@ -2734,6 +3184,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("data", "Data", "object")],
     outputs: [D("task", "Task", "object"), D("tasks", "Tasks", "array"), D("gid", "Task GID", "string")],
     credentials: ["asana"],
+    n8nAliases: ["n8n-nodes-base.asana"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "create_task", options: [
         { label: "Create Task", value: "create_task" },
@@ -2766,6 +3218,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("payload", "Payload", "object")],
     outputs: [D("response", "Response", "any"), D("status_code", "Status Code", "number"), D("logs", "Logs", "string")],
     credentials: ["aws"],
+    n8nAliases: ["n8n-nodes-base.awsLambda"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "function_name", label: "Function Name / ARN", type: "string", required: true, placeholder: "my-function or arn:aws:lambda:..." },
       { key: "payload", label: "Payload (JSON)", type: "json" },
@@ -2787,6 +3241,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("message", "Message", "any")],
     outputs: [D("message_id", "Message ID", "string"), D("messages", "Messages", "array")],
     credentials: ["aws"],
+    n8nAliases: ["n8n-nodes-base.awsSqs"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "send", options: [{ label: "Send Message", value: "send" }, { label: "Receive Messages", value: "receive" }, { label: "Delete Message", value: "delete" }] },
       { key: "queue_url", label: "Queue URL", type: "url", required: true, placeholder: "https://sqs.us-east-1.amazonaws.com/..." },
@@ -2812,6 +3268,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     inputs: [D("trigger", "Trigger", "trigger"), D("text", "Text", "string")],
     outputs: [D("ok", "Success", "boolean"), D("activity_id", "Activity ID", "string")],
     credentials: ["teams"],
+    n8nAliases: ["n8n-nodes-base.microsoftTeams"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "webhook_url", label: "Incoming Webhook URL", type: "url", required: true, placeholder: "https://outlook.office.com/webhook/..." },
       { key: "text", label: "Message Text", type: "textarea", placeholder: "{{$input.message}}" },
@@ -2833,6 +3291,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#f22f46",
     inputs: [D("trigger", "Trigger", "trigger"), D("to", "To Number", "string")],
     outputs: [D("sid", "Message SID", "string"), D("status", "Status", "string")],
+    n8nAliases: ["n8n-nodes-base.twilio"],
+    n8nVersion: "0.20.0",
     credentials: ["twilio"],
     fields: [
       { key: "operation", label: "Operation", type: "select", required: true, default: "sms", options: [
@@ -2863,6 +3323,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#06b6d4",
     inputs: [D("trigger", "Trigger", "trigger"), D("url", "URL", "string")],
     outputs: [D("html", "HTML", "string"), D("text", "Text Content", "string"), D("status", "HTTP Status", "number"), D("title", "Page Title", "string")],
+    n8nAliases: ["n8n-nodes-base.httpRequest"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "url", label: "URL", type: "url", required: true, placeholder: "https://example.com" },
       { key: "method", label: "HTTP Method", type: "select", default: "GET", options: [{ label: "GET", value: "GET" }, { label: "POST", value: "POST" }] },
@@ -2883,6 +3345,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#06b6d4",
     inputs: [D("trigger", "Trigger", "trigger"), D("html", "HTML", "string")],
     outputs: [D("links", "Links", "array"), D("count", "Count", "number")],
+    n8nAliases: ["n8n-nodes-base.set"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "html", label: "HTML Input", type: "textarea", placeholder: "{{$input.html}}" },
       { key: "filter", label: "Filter Pattern", type: "string", placeholder: "https://example.com (filter by domain)" },
@@ -2904,6 +3368,8 @@ export const NODE_REGISTRY: NodeDefinition[] = [
     color: "#f59e0b",
     inputs: [],
     outputs: [],
+    n8nAliases: ["n8n-nodes-base.noOp"],
+    n8nVersion: "0.20.0",
     fields: [
       { key: "text", label: "Note text", type: "textarea", required: false, placeholder: "Add a note…", default: "" },
       { key: "color", label: "Color", type: "select", required: false, default: "amber",
@@ -2943,6 +3409,8 @@ export const CATEGORY_META: Record<NodeCategory, { label: string; color: string;
   devops:        { label: "DevOps",         color: "#14b8a6", description: "CI/CD, containers, and deployment" },
   finance:       { label: "Finance",        color: "#22c55e", description: "Payments and financial APIs" },
   utility:       { label: "Utility",        color: "#a3a3a3", description: "Canvas annotations and utilities" },
+  marketing:     { label: "Marketing",      color: "#f43f5e", description: "Email marketing, campaigns, and automation" },
+  productivity:  { label: "Productivity",   color: "#0ea5e9", description: "Productivity tools, notes, and task management" },
 }
 
 export const CUSTOM_NODE_REGISTRY: NodeDefinition[] = []

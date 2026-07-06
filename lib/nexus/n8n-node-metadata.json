@@ -1,0 +1,6898 @@
+[
+  {
+    "name": "ActionNetwork",
+    "displayName": "ActionNetwork",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.actionNetwork",
+    "nodePath": "packages/nodes-base/nodes/ActionNetwork/ActionNetwork.node.json"
+  },
+  {
+    "name": "ActiveCampaign",
+    "displayName": "ActiveCampaign",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.activeCampaign",
+    "nodePath": "packages/nodes-base/nodes/ActiveCampaign/ActiveCampaign.node.json"
+  },
+  {
+    "name": "ActiveCampaignTrigger",
+    "displayName": "ActiveCampaignTrigger",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.activeCampaignTrigger",
+    "nodePath": "packages/nodes-base/nodes/ActiveCampaign/ActiveCampaignTrigger.node.json"
+  },
+  {
+    "name": "AcuitySchedulingTrigger",
+    "displayName": "AcuitySchedulingTrigger",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.acuitySchedulingTrigger",
+    "nodePath": "packages/nodes-base/nodes/AcuityScheduling/AcuitySchedulingTrigger.node.json"
+  },
+  {
+    "name": "Adalo",
+    "displayName": "Adalo",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.adalo",
+    "nodePath": "packages/nodes-base/nodes/Adalo/Adalo.node.json"
+  },
+  {
+    "name": "Affinity",
+    "displayName": "Affinity",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.affinity",
+    "nodePath": "packages/nodes-base/nodes/Affinity/Affinity.node.json"
+  },
+  {
+    "name": "AffinityTrigger",
+    "displayName": "AffinityTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.affinityTrigger",
+    "nodePath": "packages/nodes-base/nodes/Affinity/AffinityTrigger.node.json"
+  },
+  {
+    "name": "AgileCrm",
+    "displayName": "AgileCrm",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.agileCrm",
+    "nodePath": "packages/nodes-base/nodes/AgileCrm/AgileCrm.node.json"
+  },
+  {
+    "name": "AiTransform",
+    "displayName": "AiTransform",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.aiTransform",
+    "nodePath": "packages/nodes-base/nodes/AiTransform/AiTransform.node.json"
+  },
+  {
+    "name": "Airtable",
+    "displayName": "Airtable",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.airtable",
+    "nodePath": "packages/nodes-base/nodes/Airtable/Airtable.node.json"
+  },
+  {
+    "name": "AirtableTrigger",
+    "displayName": "AirtableTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.airtableTrigger",
+    "nodePath": "packages/nodes-base/nodes/Airtable/AirtableTrigger.node.json"
+  },
+  {
+    "name": "Airtop",
+    "displayName": "Airtop",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.airtop",
+    "nodePath": "packages/nodes-base/nodes/Airtop/Airtop.node.json"
+  },
+  {
+    "name": "Amqp",
+    "displayName": "Amqp",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.amqp",
+    "nodePath": "packages/nodes-base/nodes/Amqp/Amqp.node.json"
+  },
+  {
+    "name": "AmqpTrigger",
+    "displayName": "AmqpTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.amqpTrigger",
+    "nodePath": "packages/nodes-base/nodes/Amqp/AmqpTrigger.node.json"
+  },
+  {
+    "name": "ApiTemplateIo",
+    "displayName": "ApiTemplateIo",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.apiTemplateIo",
+    "nodePath": "packages/nodes-base/nodes/ApiTemplateIo/ApiTemplateIo.node.json"
+  },
+  {
+    "name": "Asana",
+    "displayName": "Asana",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.asana",
+    "nodePath": "packages/nodes-base/nodes/Asana/Asana.node.json"
+  },
+  {
+    "name": "AsanaTrigger",
+    "displayName": "AsanaTrigger",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.asanaTrigger",
+    "nodePath": "packages/nodes-base/nodes/Asana/AsanaTrigger.node.json"
+  },
+  {
+    "name": "Autopilot",
+    "displayName": "Autopilot",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.autopilot",
+    "nodePath": "packages/nodes-base/nodes/Autopilot/Autopilot.node.json"
+  },
+  {
+    "name": "AutopilotTrigger",
+    "displayName": "AutopilotTrigger",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.autopilotTrigger",
+    "nodePath": "packages/nodes-base/nodes/Autopilot/AutopilotTrigger.node.json"
+  },
+  {
+    "name": "AwsLambda",
+    "displayName": "AwsLambda",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsLambda",
+    "nodePath": "packages/nodes-base/nodes/Aws/AwsLambda.node.json"
+  },
+  {
+    "name": "AwsSns",
+    "displayName": "AwsSns",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsSns",
+    "nodePath": "packages/nodes-base/nodes/Aws/AwsSns.node.json"
+  },
+  {
+    "name": "AwsSnsTrigger",
+    "displayName": "AwsSnsTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsSnsTrigger",
+    "nodePath": "packages/nodes-base/nodes/Aws/AwsSnsTrigger.node.json"
+  },
+  {
+    "name": "AwsCertificateManager",
+    "displayName": "AwsCertificateManager",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsCertificateManager",
+    "nodePath": "packages/nodes-base/nodes/Aws/CertificateManager/AwsCertificateManager.node.json"
+  },
+  {
+    "name": "AwsCognito",
+    "displayName": "AwsCognito",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsCognito",
+    "nodePath": "packages/nodes-base/nodes/Aws/Cognito/AwsCognito.node.json"
+  },
+  {
+    "name": "AwsComprehend",
+    "displayName": "AwsComprehend",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsComprehend",
+    "nodePath": "packages/nodes-base/nodes/Aws/Comprehend/AwsComprehend.node.json"
+  },
+  {
+    "name": "AwsDynamoDB",
+    "displayName": "AwsDynamoDB",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsDynamoDb",
+    "nodePath": "packages/nodes-base/nodes/Aws/DynamoDB/AwsDynamoDB.node.json"
+  },
+  {
+    "name": "AwsElb",
+    "displayName": "AwsElb",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsElb",
+    "nodePath": "packages/nodes-base/nodes/Aws/ELB/AwsElb.node.json"
+  },
+  {
+    "name": "AwsIam",
+    "displayName": "AwsIam",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsiam",
+    "nodePath": "packages/nodes-base/nodes/Aws/IAM/AwsIam.node.json"
+  },
+  {
+    "name": "AwsRekognition",
+    "displayName": "AwsRekognition",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsRekognition",
+    "nodePath": "packages/nodes-base/nodes/Aws/Rekognition/AwsRekognition.node.json"
+  },
+  {
+    "name": "AwsS3",
+    "displayName": "AwsS3",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsS3",
+    "nodePath": "packages/nodes-base/nodes/Aws/S3/AwsS3.node.json"
+  },
+  {
+    "name": "AwsSes",
+    "displayName": "AwsSes",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsSes",
+    "nodePath": "packages/nodes-base/nodes/Aws/SES/AwsSes.node.json"
+  },
+  {
+    "name": "AwsSqs",
+    "displayName": "AwsSqs",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsSqs",
+    "nodePath": "packages/nodes-base/nodes/Aws/SQS/AwsSqs.node.json"
+  },
+  {
+    "name": "AwsTextract",
+    "displayName": "AwsTextract",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsTextract",
+    "nodePath": "packages/nodes-base/nodes/Aws/Textract/AwsTextract.node.json"
+  },
+  {
+    "name": "AwsTranscribe",
+    "displayName": "AwsTranscribe",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.awsTranscribe",
+    "nodePath": "packages/nodes-base/nodes/Aws/Transcribe/AwsTranscribe.node.json"
+  },
+  {
+    "name": "BambooHr",
+    "displayName": "BambooHr",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.bambooHr",
+    "nodePath": "packages/nodes-base/nodes/BambooHr/BambooHr.node.json"
+  },
+  {
+    "name": "Bannerbear",
+    "displayName": "Bannerbear",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.bannerbear",
+    "nodePath": "packages/nodes-base/nodes/Bannerbear/Bannerbear.node.json"
+  },
+  {
+    "name": "Baserow",
+    "displayName": "Baserow",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.baserow",
+    "nodePath": "packages/nodes-base/nodes/Baserow/Baserow.node.json"
+  },
+  {
+    "name": "Beeminder",
+    "displayName": "Beeminder",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.beeminder",
+    "nodePath": "packages/nodes-base/nodes/Beeminder/Beeminder.node.json"
+  },
+  {
+    "name": "BitbucketTrigger",
+    "displayName": "BitbucketTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.bitbucketTrigger",
+    "nodePath": "packages/nodes-base/nodes/Bitbucket/BitbucketTrigger.node.json"
+  },
+  {
+    "name": "Bitly",
+    "displayName": "Bitly",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.bitly",
+    "nodePath": "packages/nodes-base/nodes/Bitly/Bitly.node.json"
+  },
+  {
+    "name": "Bitwarden",
+    "displayName": "Bitwarden",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.bitwarden",
+    "nodePath": "packages/nodes-base/nodes/Bitwarden/Bitwarden.node.json"
+  },
+  {
+    "name": "Box",
+    "displayName": "Box",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.box",
+    "nodePath": "packages/nodes-base/nodes/Box/Box.node.json"
+  },
+  {
+    "name": "BoxTrigger",
+    "displayName": "BoxTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.boxTrigger",
+    "nodePath": "packages/nodes-base/nodes/Box/BoxTrigger.node.json"
+  },
+  {
+    "name": "Brandfetch",
+    "displayName": "Brandfetch",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.Brandfetch",
+    "nodePath": "packages/nodes-base/nodes/Brandfetch/Brandfetch.node.json"
+  },
+  {
+    "name": "Brevo",
+    "displayName": "Brevo",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.brevo",
+    "nodePath": "packages/nodes-base/nodes/Brevo/Brevo.node.json"
+  },
+  {
+    "name": "BrevoTrigger",
+    "displayName": "BrevoTrigger",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.brevoTrigger",
+    "nodePath": "packages/nodes-base/nodes/Brevo/BrevoTrigger.node.json"
+  },
+  {
+    "name": "Bubble",
+    "displayName": "Bubble",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.bubble",
+    "nodePath": "packages/nodes-base/nodes/Bubble/Bubble.node.json"
+  },
+  {
+    "name": "CalTrigger",
+    "displayName": "CalTrigger",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.calTrigger",
+    "nodePath": "packages/nodes-base/nodes/Cal/CalTrigger.node.json"
+  },
+  {
+    "name": "CalendlyTrigger",
+    "displayName": "CalendlyTrigger",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.calendlyTrigger",
+    "nodePath": "packages/nodes-base/nodes/Calendly/CalendlyTrigger.node.json"
+  },
+  {
+    "name": "Chargebee",
+    "displayName": "Chargebee",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.chargebee",
+    "nodePath": "packages/nodes-base/nodes/Chargebee/Chargebee.node.json"
+  },
+  {
+    "name": "ChargebeeTrigger",
+    "displayName": "ChargebeeTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.chargebeeTrigger",
+    "nodePath": "packages/nodes-base/nodes/Chargebee/ChargebeeTrigger.node.json"
+  },
+  {
+    "name": "CircleCi",
+    "displayName": "CircleCi",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.circleCi",
+    "nodePath": "packages/nodes-base/nodes/CircleCi/CircleCi.node.json"
+  },
+  {
+    "name": "CiscoWebex",
+    "displayName": "CiscoWebex",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.ciscoWebex",
+    "nodePath": "packages/nodes-base/nodes/Cisco/Webex/CiscoWebex.node.json"
+  },
+  {
+    "name": "CiscoWebexTrigger",
+    "displayName": "CiscoWebexTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.ciscoWebexTrigger",
+    "nodePath": "packages/nodes-base/nodes/Cisco/Webex/CiscoWebexTrigger.node.json"
+  },
+  {
+    "name": "Clearbit",
+    "displayName": "Clearbit",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.clearbit",
+    "nodePath": "packages/nodes-base/nodes/Clearbit/Clearbit.node.json"
+  },
+  {
+    "name": "ClickUp",
+    "displayName": "ClickUp",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.clickUp",
+    "nodePath": "packages/nodes-base/nodes/ClickUp/ClickUp.node.json"
+  },
+  {
+    "name": "ClickUpTrigger",
+    "displayName": "ClickUpTrigger",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.clickUpTrigger",
+    "nodePath": "packages/nodes-base/nodes/ClickUp/ClickUpTrigger.node.json"
+  },
+  {
+    "name": "Clockify",
+    "displayName": "Clockify",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.clockify",
+    "nodePath": "packages/nodes-base/nodes/Clockify/Clockify.node.json"
+  },
+  {
+    "name": "ClockifyTrigger",
+    "displayName": "ClockifyTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.clockifyTrigger",
+    "nodePath": "packages/nodes-base/nodes/Clockify/ClockifyTrigger.node.json"
+  },
+  {
+    "name": "Cloudflare",
+    "displayName": "Cloudflare",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.cloudflare",
+    "nodePath": "packages/nodes-base/nodes/Cloudflare/Cloudflare.node.json"
+  },
+  {
+    "name": "Cockpit",
+    "displayName": "Cockpit",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.cockpit",
+    "nodePath": "packages/nodes-base/nodes/Cockpit/Cockpit.node.json"
+  },
+  {
+    "name": "Coda",
+    "displayName": "Coda",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.coda",
+    "nodePath": "packages/nodes-base/nodes/Coda/Coda.node.json"
+  },
+  {
+    "name": "Code",
+    "displayName": "Code",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.code",
+    "nodePath": "packages/nodes-base/nodes/Code/Code.node.json"
+  },
+  {
+    "name": "CoinGecko",
+    "displayName": "CoinGecko",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.coinGecko",
+    "nodePath": "packages/nodes-base/nodes/CoinGecko/CoinGecko.node.json"
+  },
+  {
+    "name": "CompareDatasets",
+    "displayName": "CompareDatasets",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.compareDatasets",
+    "nodePath": "packages/nodes-base/nodes/CompareDatasets/CompareDatasets.node.json"
+  },
+  {
+    "name": "Compression",
+    "displayName": "Compression",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.compression",
+    "nodePath": "packages/nodes-base/nodes/Compression/Compression.node.json"
+  },
+  {
+    "name": "Contentful",
+    "displayName": "Contentful",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.contentful",
+    "nodePath": "packages/nodes-base/nodes/Contentful/Contentful.node.json"
+  },
+  {
+    "name": "ConvertKit",
+    "displayName": "ConvertKit",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.convertKit",
+    "nodePath": "packages/nodes-base/nodes/ConvertKit/ConvertKit.node.json"
+  },
+  {
+    "name": "ConvertKitTrigger",
+    "displayName": "ConvertKitTrigger",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.convertKitTrigger",
+    "nodePath": "packages/nodes-base/nodes/ConvertKit/ConvertKitTrigger.node.json"
+  },
+  {
+    "name": "Copper",
+    "displayName": "Copper",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.copper",
+    "nodePath": "packages/nodes-base/nodes/Copper/Copper.node.json"
+  },
+  {
+    "name": "CopperTrigger",
+    "displayName": "CopperTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.copperTrigger",
+    "nodePath": "packages/nodes-base/nodes/Copper/CopperTrigger.node.json"
+  },
+  {
+    "name": "Cortex",
+    "displayName": "Cortex",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.cortex",
+    "nodePath": "packages/nodes-base/nodes/Cortex/Cortex.node.json"
+  },
+  {
+    "name": "CrateDb",
+    "displayName": "CrateDb",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.crateDb",
+    "nodePath": "packages/nodes-base/nodes/CrateDb/CrateDb.node.json"
+  },
+  {
+    "name": "Cron",
+    "displayName": "Cron",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.cron",
+    "nodePath": "packages/nodes-base/nodes/Cron/Cron.node.json"
+  },
+  {
+    "name": "Crypto",
+    "displayName": "Crypto",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.crypto",
+    "nodePath": "packages/nodes-base/nodes/Crypto/Crypto.node.json"
+  },
+  {
+    "name": "CustomerIo",
+    "displayName": "CustomerIo",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.customerIo",
+    "nodePath": "packages/nodes-base/nodes/CustomerIo/CustomerIo.node.json"
+  },
+  {
+    "name": "CustomerIoTrigger",
+    "displayName": "CustomerIoTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.customerIoTrigger",
+    "nodePath": "packages/nodes-base/nodes/CustomerIo/CustomerIoTrigger.node.json"
+  },
+  {
+    "name": "DataTable",
+    "displayName": "DataTable",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.dataTable",
+    "nodePath": "packages/nodes-base/nodes/DataTable/DataTable.node.json"
+  },
+  {
+    "name": "Databricks",
+    "displayName": "Databricks",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.databricks",
+    "nodePath": "packages/nodes-base/nodes/Databricks/Databricks.node.json"
+  },
+  {
+    "name": "DateTime",
+    "displayName": "DateTime",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.dateTime",
+    "nodePath": "packages/nodes-base/nodes/DateTime/DateTime.node.json"
+  },
+  {
+    "name": "DebugHelper",
+    "displayName": "DebugHelper",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.debughelper",
+    "nodePath": "packages/nodes-base/nodes/DebugHelper/DebugHelper.node.json"
+  },
+  {
+    "name": "DeepL",
+    "displayName": "DeepL",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.deepL",
+    "nodePath": "packages/nodes-base/nodes/DeepL/DeepL.node.json"
+  },
+  {
+    "name": "Demio",
+    "displayName": "Demio",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.demio",
+    "nodePath": "packages/nodes-base/nodes/Demio/Demio.node.json"
+  },
+  {
+    "name": "Dhl",
+    "displayName": "Dhl",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.dhl",
+    "nodePath": "packages/nodes-base/nodes/Dhl/Dhl.node.json"
+  },
+  {
+    "name": "Discord",
+    "displayName": "Discord",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.discord",
+    "nodePath": "packages/nodes-base/nodes/Discord/Discord.node.json"
+  },
+  {
+    "name": "Discourse",
+    "displayName": "Discourse",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.discourse",
+    "nodePath": "packages/nodes-base/nodes/Discourse/Discourse.node.json"
+  },
+  {
+    "name": "Disqus",
+    "displayName": "Disqus",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.disqus",
+    "nodePath": "packages/nodes-base/nodes/Disqus/Disqus.node.json"
+  },
+  {
+    "name": "Drift",
+    "displayName": "Drift",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.drift",
+    "nodePath": "packages/nodes-base/nodes/Drift/Drift.node.json"
+  },
+  {
+    "name": "Dropbox",
+    "displayName": "Dropbox",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.dropbox",
+    "nodePath": "packages/nodes-base/nodes/Dropbox/Dropbox.node.json"
+  },
+  {
+    "name": "Dropcontact",
+    "displayName": "Dropcontact",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.dropcontact",
+    "nodePath": "packages/nodes-base/nodes/Dropcontact/Dropcontact.node.json"
+  },
+  {
+    "name": "E2eTest",
+    "displayName": "E2eTest",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.e2eTest",
+    "nodePath": "packages/nodes-base/nodes/E2eTest/E2eTest.node.json"
+  },
+  {
+    "name": "ERPNext",
+    "displayName": "ERPNext",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.erpNext",
+    "nodePath": "packages/nodes-base/nodes/ERPNext/ERPNext.node.json"
+  },
+  {
+    "name": "EditImage",
+    "displayName": "EditImage",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.editImage",
+    "nodePath": "packages/nodes-base/nodes/EditImage/EditImage.node.json"
+  },
+  {
+    "name": "Egoi",
+    "displayName": "Egoi",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.egoi",
+    "nodePath": "packages/nodes-base/nodes/Egoi/Egoi.node.json"
+  },
+  {
+    "name": "ElasticSecurity",
+    "displayName": "ElasticSecurity",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.elasticSecurity",
+    "nodePath": "packages/nodes-base/nodes/Elastic/ElasticSecurity/ElasticSecurity.node.json"
+  },
+  {
+    "name": "Elasticsearch",
+    "displayName": "Elasticsearch",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.elasticsearch",
+    "nodePath": "packages/nodes-base/nodes/Elastic/Elasticsearch/Elasticsearch.node.json"
+  },
+  {
+    "name": "EmailReadImap",
+    "displayName": "EmailReadImap",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.emailReadImap",
+    "nodePath": "packages/nodes-base/nodes/EmailReadImap/EmailReadImap.node.json"
+  },
+  {
+    "name": "EmailSend",
+    "displayName": "EmailSend",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.emailSend",
+    "nodePath": "packages/nodes-base/nodes/EmailSend/EmailSend.node.json"
+  },
+  {
+    "name": "Emelia",
+    "displayName": "Emelia",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.emelia",
+    "nodePath": "packages/nodes-base/nodes/Emelia/Emelia.node.json"
+  },
+  {
+    "name": "EmeliaTrigger",
+    "displayName": "EmeliaTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.emeliaTrigger",
+    "nodePath": "packages/nodes-base/nodes/Emelia/EmeliaTrigger.node.json"
+  },
+  {
+    "name": "ErrorTrigger",
+    "displayName": "ErrorTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.errorTrigger",
+    "nodePath": "packages/nodes-base/nodes/ErrorTrigger/ErrorTrigger.node.json"
+  },
+  {
+    "name": "EventbriteTrigger",
+    "displayName": "EventbriteTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.eventbriteTrigger",
+    "nodePath": "packages/nodes-base/nodes/Eventbrite/EventbriteTrigger.node.json"
+  },
+  {
+    "name": "ExecuteCommand",
+    "displayName": "ExecuteCommand",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.executeCommand",
+    "nodePath": "packages/nodes-base/nodes/ExecuteCommand/ExecuteCommand.node.json"
+  },
+  {
+    "name": "ExecuteWorkflow",
+    "displayName": "ExecuteWorkflow",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.executeWorkflow",
+    "nodePath": "packages/nodes-base/nodes/ExecuteWorkflow/ExecuteWorkflow/ExecuteWorkflow.node.json"
+  },
+  {
+    "name": "ExecuteWorkflowTrigger",
+    "displayName": "ExecuteWorkflowTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.executeWorkflowTrigger",
+    "nodePath": "packages/nodes-base/nodes/ExecuteWorkflow/ExecuteWorkflowTrigger/ExecuteWorkflowTrigger.node.json"
+  },
+  {
+    "name": "ExecutionData",
+    "displayName": "ExecutionData",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.executionData",
+    "nodePath": "packages/nodes-base/nodes/ExecutionData/ExecutionData.node.json"
+  },
+  {
+    "name": "FacebookGraphApi",
+    "displayName": "FacebookGraphApi",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.facebookGraphApi",
+    "nodePath": "packages/nodes-base/nodes/Facebook/FacebookGraphApi.node.json"
+  },
+  {
+    "name": "FacebookTrigger",
+    "displayName": "FacebookTrigger",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.facebookTrigger",
+    "nodePath": "packages/nodes-base/nodes/Facebook/FacebookTrigger.node.json"
+  },
+  {
+    "name": "FacebookLeadAdsTrigger",
+    "displayName": "FacebookLeadAdsTrigger",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.facebookLeadAdsTrigger",
+    "nodePath": "packages/nodes-base/nodes/FacebookLeadAds/FacebookLeadAdsTrigger.node.json"
+  },
+  {
+    "name": "FigmaTrigger",
+    "displayName": "FigmaTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.figmaTrigger",
+    "nodePath": "packages/nodes-base/nodes/Figma/FigmaTrigger.node.json"
+  },
+  {
+    "name": "FileMaker",
+    "displayName": "FileMaker",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.filemaker",
+    "nodePath": "packages/nodes-base/nodes/FileMaker/FileMaker.node.json"
+  },
+  {
+    "name": "ConvertToFile",
+    "displayName": "ConvertToFile",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.convertToFile",
+    "nodePath": "packages/nodes-base/nodes/Files/ConvertToFile/ConvertToFile.node.json"
+  },
+  {
+    "name": "ExtractFromFile",
+    "displayName": "ExtractFromFile",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.extractFromFile",
+    "nodePath": "packages/nodes-base/nodes/Files/ExtractFromFile/ExtractFromFile.node.json"
+  },
+  {
+    "name": "ReadWriteFile",
+    "displayName": "ReadWriteFile",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.readWriteFile",
+    "nodePath": "packages/nodes-base/nodes/Files/ReadWriteFile/ReadWriteFile.node.json"
+  },
+  {
+    "name": "Filter",
+    "displayName": "Filter",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.filter",
+    "nodePath": "packages/nodes-base/nodes/Filter/Filter.node.json"
+  },
+  {
+    "name": "Flow",
+    "displayName": "Flow",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.flow",
+    "nodePath": "packages/nodes-base/nodes/Flow/Flow.node.json"
+  },
+  {
+    "name": "FlowTrigger",
+    "displayName": "FlowTrigger",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.flowTrigger",
+    "nodePath": "packages/nodes-base/nodes/Flow/FlowTrigger.node.json"
+  },
+  {
+    "name": "Form",
+    "displayName": "Form",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.form",
+    "nodePath": "packages/nodes-base/nodes/Form/Form.node.json"
+  },
+  {
+    "name": "FormTrigger",
+    "displayName": "FormTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.formTrigger",
+    "nodePath": "packages/nodes-base/nodes/Form/FormTrigger.node.json"
+  },
+  {
+    "name": "FormIoTrigger",
+    "displayName": "FormIoTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.formIoTrigger",
+    "nodePath": "packages/nodes-base/nodes/FormIo/FormIoTrigger.node.json"
+  },
+  {
+    "name": "FormstackTrigger",
+    "displayName": "FormstackTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.formstackTrigger",
+    "nodePath": "packages/nodes-base/nodes/Formstack/FormstackTrigger.node.json"
+  },
+  {
+    "name": "Freshdesk",
+    "displayName": "Freshdesk",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.freshdesk",
+    "nodePath": "packages/nodes-base/nodes/Freshdesk/Freshdesk.node.json"
+  },
+  {
+    "name": "Freshservice",
+    "displayName": "Freshservice",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.freshservice",
+    "nodePath": "packages/nodes-base/nodes/Freshservice/Freshservice.node.json"
+  },
+  {
+    "name": "FreshworksCrm",
+    "displayName": "FreshworksCrm",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.freshworksCrm",
+    "nodePath": "packages/nodes-base/nodes/FreshworksCrm/FreshworksCrm.node.json"
+  },
+  {
+    "name": "Ftp",
+    "displayName": "Ftp",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.ftp",
+    "nodePath": "packages/nodes-base/nodes/Ftp/Ftp.node.json"
+  },
+  {
+    "name": "Function",
+    "displayName": "Function",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.function",
+    "nodePath": "packages/nodes-base/nodes/Function/Function.node.json"
+  },
+  {
+    "name": "FunctionItem",
+    "displayName": "FunctionItem",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.functionItem",
+    "nodePath": "packages/nodes-base/nodes/FunctionItem/FunctionItem.node.json"
+  },
+  {
+    "name": "GetResponse",
+    "displayName": "GetResponse",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.getResponse",
+    "nodePath": "packages/nodes-base/nodes/GetResponse/GetResponse.node.json"
+  },
+  {
+    "name": "GetResponseTrigger",
+    "displayName": "GetResponseTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.getResponseTrigger",
+    "nodePath": "packages/nodes-base/nodes/GetResponse/GetResponseTrigger.node.json"
+  },
+  {
+    "name": "Ghost",
+    "displayName": "Ghost",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.ghost",
+    "nodePath": "packages/nodes-base/nodes/Ghost/Ghost.node.json"
+  },
+  {
+    "name": "Git",
+    "displayName": "Git",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.git",
+    "nodePath": "packages/nodes-base/nodes/Git/Git.node.json"
+  },
+  {
+    "name": "Github",
+    "displayName": "Github",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.github",
+    "nodePath": "packages/nodes-base/nodes/Github/Github.node.json"
+  },
+  {
+    "name": "GithubTrigger",
+    "displayName": "GithubTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.githubTrigger",
+    "nodePath": "packages/nodes-base/nodes/Github/GithubTrigger.node.json"
+  },
+  {
+    "name": "Gitlab",
+    "displayName": "Gitlab",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.gitlab",
+    "nodePath": "packages/nodes-base/nodes/Gitlab/Gitlab.node.json"
+  },
+  {
+    "name": "GitlabTrigger",
+    "displayName": "GitlabTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.gitlabTrigger",
+    "nodePath": "packages/nodes-base/nodes/Gitlab/GitlabTrigger.node.json"
+  },
+  {
+    "name": "GoToWebinar",
+    "displayName": "GoToWebinar",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.goToWebinar",
+    "nodePath": "packages/nodes-base/nodes/GoToWebinar/GoToWebinar.node.json"
+  },
+  {
+    "name": "Gong",
+    "displayName": "Gong",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.gong",
+    "nodePath": "packages/nodes-base/nodes/Gong/Gong.node.json"
+  },
+  {
+    "name": "GoogleAds",
+    "displayName": "GoogleAds",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleAds",
+    "nodePath": "packages/nodes-base/nodes/Google/Ads/GoogleAds.node.json"
+  },
+  {
+    "name": "GoogleAnalytics",
+    "displayName": "GoogleAnalytics",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleAnalytics",
+    "nodePath": "packages/nodes-base/nodes/Google/Analytics/GoogleAnalytics.node.json"
+  },
+  {
+    "name": "GoogleBigQuery",
+    "displayName": "GoogleBigQuery",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleBigQuery",
+    "nodePath": "packages/nodes-base/nodes/Google/BigQuery/GoogleBigQuery.node.json"
+  },
+  {
+    "name": "GoogleBooks",
+    "displayName": "GoogleBooks",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleBooks",
+    "nodePath": "packages/nodes-base/nodes/Google/Books/GoogleBooks.node.json"
+  },
+  {
+    "name": "GoogleBusinessProfile",
+    "displayName": "GoogleBusinessProfile",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleBusinessProfile",
+    "nodePath": "packages/nodes-base/nodes/Google/BusinessProfile/GoogleBusinessProfile.node.json"
+  },
+  {
+    "name": "GoogleBusinessProfileTrigger",
+    "displayName": "GoogleBusinessProfileTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleBusinessProfileTrigger",
+    "nodePath": "packages/nodes-base/nodes/Google/BusinessProfile/GoogleBusinessProfileTrigger.node.json"
+  },
+  {
+    "name": "GoogleCalendar",
+    "displayName": "GoogleCalendar",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleCalendar",
+    "nodePath": "packages/nodes-base/nodes/Google/Calendar/GoogleCalendar.node.json"
+  },
+  {
+    "name": "GoogleCalendarTrigger",
+    "displayName": "GoogleCalendarTrigger",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleCalendarTrigger",
+    "nodePath": "packages/nodes-base/nodes/Google/Calendar/GoogleCalendarTrigger.node.json"
+  },
+  {
+    "name": "GoogleChat",
+    "displayName": "GoogleChat",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleChat",
+    "nodePath": "packages/nodes-base/nodes/Google/Chat/GoogleChat.node.json"
+  },
+  {
+    "name": "GoogleCloudNaturalLanguage",
+    "displayName": "GoogleCloudNaturalLanguage",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleCloudNaturalLanguage",
+    "nodePath": "packages/nodes-base/nodes/Google/CloudNaturalLanguage/GoogleCloudNaturalLanguage.node.json"
+  },
+  {
+    "name": "GoogleCloudStorage",
+    "displayName": "GoogleCloudStorage",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleCloudStorage",
+    "nodePath": "packages/nodes-base/nodes/Google/CloudStorage/GoogleCloudStorage.node.json"
+  },
+  {
+    "name": "GoogleContacts",
+    "displayName": "GoogleContacts",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleContacts",
+    "nodePath": "packages/nodes-base/nodes/Google/Contacts/GoogleContacts.node.json"
+  },
+  {
+    "name": "GoogleDocs",
+    "displayName": "GoogleDocs",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleDocs",
+    "nodePath": "packages/nodes-base/nodes/Google/Docs/GoogleDocs.node.json"
+  },
+  {
+    "name": "GoogleDrive",
+    "displayName": "GoogleDrive",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleDrive",
+    "nodePath": "packages/nodes-base/nodes/Google/Drive/GoogleDrive.node.json"
+  },
+  {
+    "name": "GoogleDriveTrigger",
+    "displayName": "GoogleDriveTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleDriveTrigger",
+    "nodePath": "packages/nodes-base/nodes/Google/Drive/GoogleDriveTrigger.node.json"
+  },
+  {
+    "name": "GoogleFirebaseCloudFirestore",
+    "displayName": "GoogleFirebaseCloudFirestore",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleFirebaseCloudFirestore",
+    "nodePath": "packages/nodes-base/nodes/Google/Firebase/CloudFirestore/GoogleFirebaseCloudFirestore.node.json"
+  },
+  {
+    "name": "GoogleFirebaseRealtimeDatabase",
+    "displayName": "GoogleFirebaseRealtimeDatabase",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleFirebaseRealtimeDatabase",
+    "nodePath": "packages/nodes-base/nodes/Google/Firebase/RealtimeDatabase/GoogleFirebaseRealtimeDatabase.node.json"
+  },
+  {
+    "name": "GSuiteAdmin",
+    "displayName": "GSuiteAdmin",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.gSuiteAdmin",
+    "nodePath": "packages/nodes-base/nodes/Google/GSuiteAdmin/GSuiteAdmin.node.json"
+  },
+  {
+    "name": "Gmail",
+    "displayName": "Gmail",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.gmail",
+    "nodePath": "packages/nodes-base/nodes/Google/Gmail/Gmail.node.json"
+  },
+  {
+    "name": "GmailTrigger",
+    "displayName": "GmailTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.gmailTrigger",
+    "nodePath": "packages/nodes-base/nodes/Google/Gmail/GmailTrigger.node.json"
+  },
+  {
+    "name": "GooglePerspective",
+    "displayName": "GooglePerspective",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googlePerspective",
+    "nodePath": "packages/nodes-base/nodes/Google/Perspective/GooglePerspective.node.json"
+  },
+  {
+    "name": "GoogleSheets",
+    "displayName": "GoogleSheets",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleSheets",
+    "nodePath": "packages/nodes-base/nodes/Google/Sheet/GoogleSheets.node.json"
+  },
+  {
+    "name": "GoogleSheetsTrigger",
+    "displayName": "GoogleSheetsTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleSheetsTrigger",
+    "nodePath": "packages/nodes-base/nodes/Google/Sheet/GoogleSheetsTrigger.node.json"
+  },
+  {
+    "name": "GoogleSlides",
+    "displayName": "GoogleSlides",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleSlides",
+    "nodePath": "packages/nodes-base/nodes/Google/Slides/GoogleSlides.node.json"
+  },
+  {
+    "name": "GoogleTasks",
+    "displayName": "GoogleTasks",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleTasks",
+    "nodePath": "packages/nodes-base/nodes/Google/Task/GoogleTasks.node.json"
+  },
+  {
+    "name": "GoogleTranslate",
+    "displayName": "GoogleTranslate",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.googleTranslate",
+    "nodePath": "packages/nodes-base/nodes/Google/Translate/GoogleTranslate.node.json"
+  },
+  {
+    "name": "YouTube",
+    "displayName": "YouTube",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.youTube",
+    "nodePath": "packages/nodes-base/nodes/Google/YouTube/YouTube.node.json"
+  },
+  {
+    "name": "Gotify",
+    "displayName": "Gotify",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.gotify",
+    "nodePath": "packages/nodes-base/nodes/Gotify/Gotify.node.json"
+  },
+  {
+    "name": "Grafana",
+    "displayName": "Grafana",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.grafana",
+    "nodePath": "packages/nodes-base/nodes/Grafana/Grafana.node.json"
+  },
+  {
+    "name": "GraphQL",
+    "displayName": "GraphQL",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.graphql",
+    "nodePath": "packages/nodes-base/nodes/GraphQL/GraphQL.node.json"
+  },
+  {
+    "name": "Grist",
+    "displayName": "Grist",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.grist",
+    "nodePath": "packages/nodes-base/nodes/Grist/Grist.node.json"
+  },
+  {
+    "name": "GumroadTrigger",
+    "displayName": "GumroadTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.gumroadTrigger",
+    "nodePath": "packages/nodes-base/nodes/Gumroad/GumroadTrigger.node.json"
+  },
+  {
+    "name": "HackerNews",
+    "displayName": "HackerNews",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.hackerNews",
+    "nodePath": "packages/nodes-base/nodes/HackerNews/HackerNews.node.json"
+  },
+  {
+    "name": "HaloPSA",
+    "displayName": "HaloPSA",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.haloPSA",
+    "nodePath": "packages/nodes-base/nodes/HaloPSA/HaloPSA.node.json"
+  },
+  {
+    "name": "Harvest",
+    "displayName": "Harvest",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.harvest",
+    "nodePath": "packages/nodes-base/nodes/Harvest/Harvest.node.json"
+  },
+  {
+    "name": "HelpScout",
+    "displayName": "HelpScout",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.helpScout",
+    "nodePath": "packages/nodes-base/nodes/HelpScout/HelpScout.node.json"
+  },
+  {
+    "name": "HelpScoutTrigger",
+    "displayName": "HelpScoutTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.helpScoutTrigger",
+    "nodePath": "packages/nodes-base/nodes/HelpScout/HelpScoutTrigger.node.json"
+  },
+  {
+    "name": "HighLevel",
+    "displayName": "HighLevel",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.highLevel",
+    "nodePath": "packages/nodes-base/nodes/HighLevel/HighLevel.node.json"
+  },
+  {
+    "name": "HomeAssistant",
+    "displayName": "HomeAssistant",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.homeAssistant",
+    "nodePath": "packages/nodes-base/nodes/HomeAssistant/HomeAssistant.node.json"
+  },
+  {
+    "name": "Html",
+    "displayName": "Html",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.html",
+    "nodePath": "packages/nodes-base/nodes/Html/Html.node.json"
+  },
+  {
+    "name": "HtmlExtract",
+    "displayName": "HtmlExtract",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.htmlExtract",
+    "nodePath": "packages/nodes-base/nodes/HtmlExtract/HtmlExtract.node.json"
+  },
+  {
+    "name": "HttpRequest",
+    "displayName": "HttpRequest",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.httpRequest",
+    "nodePath": "packages/nodes-base/nodes/HttpRequest/HttpRequest.node.json"
+  },
+  {
+    "name": "Hubspot",
+    "displayName": "Hubspot",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.hubspot",
+    "nodePath": "packages/nodes-base/nodes/Hubspot/Hubspot.node.json"
+  },
+  {
+    "name": "HubspotTrigger",
+    "displayName": "HubspotTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.hubspotTrigger",
+    "nodePath": "packages/nodes-base/nodes/Hubspot/HubspotTrigger.node.json"
+  },
+  {
+    "name": "HumanticAi",
+    "displayName": "HumanticAi",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.humanticAi",
+    "nodePath": "packages/nodes-base/nodes/HumanticAI/HumanticAi.node.json"
+  },
+  {
+    "name": "Hunter",
+    "displayName": "Hunter",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.hunter",
+    "nodePath": "packages/nodes-base/nodes/Hunter/Hunter.node.json"
+  },
+  {
+    "name": "ICalendar",
+    "displayName": "ICalendar",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.iCal",
+    "nodePath": "packages/nodes-base/nodes/ICalendar/ICalendar.node.json"
+  },
+  {
+    "name": "If",
+    "displayName": "If",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.if",
+    "nodePath": "packages/nodes-base/nodes/If/If.node.json"
+  },
+  {
+    "name": "Intercom",
+    "displayName": "Intercom",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.intercom",
+    "nodePath": "packages/nodes-base/nodes/Intercom/Intercom.node.json"
+  },
+  {
+    "name": "Interval",
+    "displayName": "Interval",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.interval",
+    "nodePath": "packages/nodes-base/nodes/Interval/Interval.node.json"
+  },
+  {
+    "name": "InvoiceNinja",
+    "displayName": "InvoiceNinja",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.invoiceNinja",
+    "nodePath": "packages/nodes-base/nodes/InvoiceNinja/InvoiceNinja.node.json"
+  },
+  {
+    "name": "InvoiceNinjaTrigger",
+    "displayName": "InvoiceNinjaTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.invoiceNinjaTrigger",
+    "nodePath": "packages/nodes-base/nodes/InvoiceNinja/InvoiceNinjaTrigger.node.json"
+  },
+  {
+    "name": "ItemLists",
+    "displayName": "ItemLists",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.itemLists",
+    "nodePath": "packages/nodes-base/nodes/ItemLists/ItemLists.node.json"
+  },
+  {
+    "name": "Iterable",
+    "displayName": "Iterable",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.iterable",
+    "nodePath": "packages/nodes-base/nodes/Iterable/Iterable.node.json"
+  },
+  {
+    "name": "Jenkins",
+    "displayName": "Jenkins",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.jenkins",
+    "nodePath": "packages/nodes-base/nodes/Jenkins/Jenkins.node.json"
+  },
+  {
+    "name": "JinaAi",
+    "displayName": "JinaAi",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.jinaAi",
+    "nodePath": "packages/nodes-base/nodes/JinaAI/JinaAi.node.json"
+  },
+  {
+    "name": "Jira",
+    "displayName": "Jira",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.jira",
+    "nodePath": "packages/nodes-base/nodes/Jira/Jira.node.json"
+  },
+  {
+    "name": "JiraTrigger",
+    "displayName": "JiraTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.jiraTrigger",
+    "nodePath": "packages/nodes-base/nodes/Jira/JiraTrigger.node.json"
+  },
+  {
+    "name": "JotFormTrigger",
+    "displayName": "JotFormTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.jotFormTrigger",
+    "nodePath": "packages/nodes-base/nodes/JotForm/JotFormTrigger.node.json"
+  },
+  {
+    "name": "Jwt",
+    "displayName": "Jwt",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.jwt",
+    "nodePath": "packages/nodes-base/nodes/Jwt/Jwt.node.json"
+  },
+  {
+    "name": "Kafka",
+    "displayName": "Kafka",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.kafka",
+    "nodePath": "packages/nodes-base/nodes/Kafka/Kafka.node.json"
+  },
+  {
+    "name": "KafkaTrigger",
+    "displayName": "KafkaTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.kafkaTrigger",
+    "nodePath": "packages/nodes-base/nodes/Kafka/KafkaTrigger.node.json"
+  },
+  {
+    "name": "Keap",
+    "displayName": "Keap",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.keap",
+    "nodePath": "packages/nodes-base/nodes/Keap/Keap.node.json"
+  },
+  {
+    "name": "KeapTrigger",
+    "displayName": "KeapTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.keapTrigger",
+    "nodePath": "packages/nodes-base/nodes/Keap/KeapTrigger.node.json"
+  },
+  {
+    "name": "KoBoToolbox",
+    "displayName": "KoBoToolbox",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.koBoToolbox",
+    "nodePath": "packages/nodes-base/nodes/KoBoToolbox/KoBoToolbox.node.json"
+  },
+  {
+    "name": "KoBoToolboxTrigger",
+    "displayName": "KoBoToolboxTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.koBoToolboxTrigger",
+    "nodePath": "packages/nodes-base/nodes/KoBoToolbox/KoBoToolboxTrigger.node.json"
+  },
+  {
+    "name": "Ldap",
+    "displayName": "Ldap",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.ldap",
+    "nodePath": "packages/nodes-base/nodes/Ldap/Ldap.node.json"
+  },
+  {
+    "name": "Lemlist",
+    "displayName": "Lemlist",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.lemlist",
+    "nodePath": "packages/nodes-base/nodes/Lemlist/Lemlist.node.json"
+  },
+  {
+    "name": "LemlistTrigger",
+    "displayName": "LemlistTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.lemlistTrigger",
+    "nodePath": "packages/nodes-base/nodes/Lemlist/LemlistTrigger.node.json"
+  },
+  {
+    "name": "Line",
+    "displayName": "Line",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.line",
+    "nodePath": "packages/nodes-base/nodes/Line/Line.node.json"
+  },
+  {
+    "name": "Linear",
+    "displayName": "Linear",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.linear",
+    "nodePath": "packages/nodes-base/nodes/Linear/Linear.node.json"
+  },
+  {
+    "name": "LinearTrigger",
+    "displayName": "LinearTrigger",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.linearTrigger",
+    "nodePath": "packages/nodes-base/nodes/Linear/LinearTrigger.node.json"
+  },
+  {
+    "name": "LingvaNex",
+    "displayName": "LingvaNex",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.lingvaNex",
+    "nodePath": "packages/nodes-base/nodes/LingvaNex/LingvaNex.node.json"
+  },
+  {
+    "name": "LinkedIn",
+    "displayName": "LinkedIn",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.linkedIn",
+    "nodePath": "packages/nodes-base/nodes/LinkedIn/LinkedIn.node.json"
+  },
+  {
+    "name": "LocalFileTrigger",
+    "displayName": "LocalFileTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.localFileTrigger",
+    "nodePath": "packages/nodes-base/nodes/LocalFileTrigger/LocalFileTrigger.node.json"
+  },
+  {
+    "name": "LoneScale",
+    "displayName": "LoneScale",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.lonescale",
+    "nodePath": "packages/nodes-base/nodes/LoneScale/LoneScale.node.json"
+  },
+  {
+    "name": "LoneScaleTrigger",
+    "displayName": "LoneScaleTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.lonescaleTrigger",
+    "nodePath": "packages/nodes-base/nodes/LoneScale/LoneScaleTrigger.node.json"
+  },
+  {
+    "name": "Mqtt",
+    "displayName": "Mqtt",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mqtt",
+    "nodePath": "packages/nodes-base/nodes/MQTT/Mqtt.node.json"
+  },
+  {
+    "name": "MqttTrigger",
+    "displayName": "MqttTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mqttTrigger",
+    "nodePath": "packages/nodes-base/nodes/MQTT/MqttTrigger.node.json"
+  },
+  {
+    "name": "Magento2",
+    "displayName": "Magento2",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.magento2",
+    "nodePath": "packages/nodes-base/nodes/Magento/Magento2.node.json"
+  },
+  {
+    "name": "Mailcheck",
+    "displayName": "Mailcheck",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mailcheck",
+    "nodePath": "packages/nodes-base/nodes/Mailcheck/Mailcheck.node.json"
+  },
+  {
+    "name": "Mailchimp",
+    "displayName": "Mailchimp",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mailchimp",
+    "nodePath": "packages/nodes-base/nodes/Mailchimp/Mailchimp.node.json"
+  },
+  {
+    "name": "MailchimpTrigger",
+    "displayName": "MailchimpTrigger",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mailchimpTrigger",
+    "nodePath": "packages/nodes-base/nodes/Mailchimp/MailchimpTrigger.node.json"
+  },
+  {
+    "name": "MailerLite",
+    "displayName": "MailerLite",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mailerLite",
+    "nodePath": "packages/nodes-base/nodes/MailerLite/MailerLite.node.json"
+  },
+  {
+    "name": "MailerLiteTrigger",
+    "displayName": "MailerLiteTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mailerLiteTrigger",
+    "nodePath": "packages/nodes-base/nodes/MailerLite/MailerLiteTrigger.node.json"
+  },
+  {
+    "name": "Mailgun",
+    "displayName": "Mailgun",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mailgun",
+    "nodePath": "packages/nodes-base/nodes/Mailgun/Mailgun.node.json"
+  },
+  {
+    "name": "Mailjet",
+    "displayName": "Mailjet",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mailjet",
+    "nodePath": "packages/nodes-base/nodes/Mailjet/Mailjet.node.json"
+  },
+  {
+    "name": "MailjetTrigger",
+    "displayName": "MailjetTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mailjetTrigger",
+    "nodePath": "packages/nodes-base/nodes/Mailjet/MailjetTrigger.node.json"
+  },
+  {
+    "name": "Mandrill",
+    "displayName": "Mandrill",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mandrill",
+    "nodePath": "packages/nodes-base/nodes/Mandrill/Mandrill.node.json"
+  },
+  {
+    "name": "ManualTrigger",
+    "displayName": "ManualTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.manualTrigger",
+    "nodePath": "packages/nodes-base/nodes/ManualTrigger/ManualTrigger.node.json"
+  },
+  {
+    "name": "Markdown",
+    "displayName": "Markdown",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.markdown",
+    "nodePath": "packages/nodes-base/nodes/Markdown/Markdown.node.json"
+  },
+  {
+    "name": "Marketstack",
+    "displayName": "Marketstack",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.marketstack",
+    "nodePath": "packages/nodes-base/nodes/Marketstack/Marketstack.node.json"
+  },
+  {
+    "name": "Matrix",
+    "displayName": "Matrix",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.matrix",
+    "nodePath": "packages/nodes-base/nodes/Matrix/Matrix.node.json"
+  },
+  {
+    "name": "Mattermost",
+    "displayName": "Mattermost",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mattermost",
+    "nodePath": "packages/nodes-base/nodes/Mattermost/Mattermost.node.json"
+  },
+  {
+    "name": "Mautic",
+    "displayName": "Mautic",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mautic",
+    "nodePath": "packages/nodes-base/nodes/Mautic/Mautic.node.json"
+  },
+  {
+    "name": "MauticTrigger",
+    "displayName": "MauticTrigger",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mauticTrigger",
+    "nodePath": "packages/nodes-base/nodes/Mautic/MauticTrigger.node.json"
+  },
+  {
+    "name": "Medium",
+    "displayName": "Medium",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.medium",
+    "nodePath": "packages/nodes-base/nodes/Medium/Medium.node.json"
+  },
+  {
+    "name": "Merge",
+    "displayName": "Merge",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.merge",
+    "nodePath": "packages/nodes-base/nodes/Merge/Merge.node.json"
+  },
+  {
+    "name": "MessageAnAgent",
+    "displayName": "MessageAnAgent",
+    "description": "",
+    "category": "ai",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.messageAnAgent",
+    "nodePath": "packages/nodes-base/nodes/MessageAnAgent/MessageAnAgent.node.json"
+  },
+  {
+    "name": "MessageBird",
+    "displayName": "MessageBird",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.messageBird",
+    "nodePath": "packages/nodes-base/nodes/MessageBird/MessageBird.node.json"
+  },
+  {
+    "name": "Metabase",
+    "displayName": "Metabase",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.metabase",
+    "nodePath": "packages/nodes-base/nodes/Metabase/Metabase.node.json"
+  },
+  {
+    "name": "AzureCosmosDb",
+    "displayName": "AzureCosmosDb",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.azureCosmosDb",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/AzureCosmosDb/AzureCosmosDb.node.json"
+  },
+  {
+    "name": "MicrosoftDynamicsCrm",
+    "displayName": "MicrosoftDynamicsCrm",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.microsoftDynamicsCrm",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/Dynamics/MicrosoftDynamicsCrm.node.json"
+  },
+  {
+    "name": "MicrosoftEntra",
+    "displayName": "MicrosoftEntra",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.microsoftEntra",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/Entra/MicrosoftEntra.node.json"
+  },
+  {
+    "name": "MicrosoftExcel",
+    "displayName": "MicrosoftExcel",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.microsoftExcel",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/Excel/MicrosoftExcel.node.json"
+  },
+  {
+    "name": "MicrosoftGraphSecurity",
+    "displayName": "MicrosoftGraphSecurity",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.microsoftGraphSecurity",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/GraphSecurity/MicrosoftGraphSecurity.node.json"
+  },
+  {
+    "name": "MicrosoftOneDrive",
+    "displayName": "MicrosoftOneDrive",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.microsoftOneDrive",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/OneDrive/MicrosoftOneDrive.node.json"
+  },
+  {
+    "name": "MicrosoftOneDriveTrigger",
+    "displayName": "MicrosoftOneDriveTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.microsoftOneDriveTrigger",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/OneDrive/MicrosoftOneDriveTrigger.node.json"
+  },
+  {
+    "name": "MicrosoftOutlook",
+    "displayName": "MicrosoftOutlook",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.microsoftOutlook",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/Outlook/MicrosoftOutlook.node.json"
+  },
+  {
+    "name": "MicrosoftOutlookTrigger",
+    "displayName": "MicrosoftOutlookTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.microsoftOutlookTrigger",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/Outlook/MicrosoftOutlookTrigger.node.json"
+  },
+  {
+    "name": "MicrosoftSharepoint",
+    "displayName": "MicrosoftSharepoint",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.microsoftSharePoint",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/SharePoint/MicrosoftSharepoint.node.json"
+  },
+  {
+    "name": "MicrosoftSql",
+    "displayName": "MicrosoftSql",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.microsoftSql",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/Sql/MicrosoftSql.node.json"
+  },
+  {
+    "name": "AzureStorage",
+    "displayName": "AzureStorage",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.azureStorage",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/Storage/AzureStorage.node.json"
+  },
+  {
+    "name": "MicrosoftTeams",
+    "displayName": "MicrosoftTeams",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.microsoftTeams",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/Teams/MicrosoftTeams.node.json"
+  },
+  {
+    "name": "MicrosoftTeamsTrigger",
+    "displayName": "MicrosoftTeamsTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.microsoftTeamsTrigger",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/Teams/MicrosoftTeamsTrigger.node.json"
+  },
+  {
+    "name": "MicrosoftToDo",
+    "displayName": "MicrosoftToDo",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.microsoftToDo",
+    "nodePath": "packages/nodes-base/nodes/Microsoft/ToDo/MicrosoftToDo.node.json"
+  },
+  {
+    "name": "Mindee",
+    "displayName": "Mindee",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mindee",
+    "nodePath": "packages/nodes-base/nodes/Mindee/Mindee.node.json"
+  },
+  {
+    "name": "Misp",
+    "displayName": "Misp",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.misp",
+    "nodePath": "packages/nodes-base/nodes/Misp/Misp.node.json"
+  },
+  {
+    "name": "MistralAi",
+    "displayName": "MistralAi",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mistralAi",
+    "nodePath": "packages/nodes-base/nodes/MistralAI/MistralAi.node.json"
+  },
+  {
+    "name": "Mocean",
+    "displayName": "Mocean",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mocean",
+    "nodePath": "packages/nodes-base/nodes/Mocean/Mocean.node.json"
+  },
+  {
+    "name": "MondayCom",
+    "displayName": "MondayCom",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mondayCom",
+    "nodePath": "packages/nodes-base/nodes/MondayCom/MondayCom.node.json"
+  },
+  {
+    "name": "MongoDb",
+    "displayName": "MongoDb",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mongoDb",
+    "nodePath": "packages/nodes-base/nodes/MongoDb/MongoDb.node.json"
+  },
+  {
+    "name": "MonicaCrm",
+    "displayName": "MonicaCrm",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.monicaCrm",
+    "nodePath": "packages/nodes-base/nodes/MonicaCrm/MonicaCrm.node.json"
+  },
+  {
+    "name": "MoveBinaryData",
+    "displayName": "MoveBinaryData",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.moveBinaryData",
+    "nodePath": "packages/nodes-base/nodes/MoveBinaryData/MoveBinaryData.node.json"
+  },
+  {
+    "name": "Msg91",
+    "displayName": "Msg91",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.msg91",
+    "nodePath": "packages/nodes-base/nodes/Msg91/Msg91.node.json"
+  },
+  {
+    "name": "MySql",
+    "displayName": "MySql",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.mySql",
+    "nodePath": "packages/nodes-base/nodes/MySql/MySql.node.json"
+  },
+  {
+    "name": "N8n",
+    "displayName": "N8n",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.n8n",
+    "nodePath": "packages/nodes-base/nodes/N8n/N8n.node.json"
+  },
+  {
+    "name": "N8nTrigger",
+    "displayName": "N8nTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.n8nTrigger",
+    "nodePath": "packages/nodes-base/nodes/N8nTrigger/N8nTrigger.node.json"
+  },
+  {
+    "name": "Nasa",
+    "displayName": "Nasa",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.nasa",
+    "nodePath": "packages/nodes-base/nodes/Nasa/Nasa.node.json"
+  },
+  {
+    "name": "Netlify",
+    "displayName": "Netlify",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.netlify",
+    "nodePath": "packages/nodes-base/nodes/Netlify/Netlify.node.json"
+  },
+  {
+    "name": "NetlifyTrigger",
+    "displayName": "NetlifyTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.netlifyTrigger",
+    "nodePath": "packages/nodes-base/nodes/Netlify/NetlifyTrigger.node.json"
+  },
+  {
+    "name": "NetscalerAdc",
+    "displayName": "NetscalerAdc",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.netscalerAdc",
+    "nodePath": "packages/nodes-base/nodes/Netscaler/ADC/NetscalerAdc.node.json"
+  },
+  {
+    "name": "NextCloud",
+    "displayName": "NextCloud",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.nextCloud",
+    "nodePath": "packages/nodes-base/nodes/NextCloud/NextCloud.node.json"
+  },
+  {
+    "name": "NoOp",
+    "displayName": "NoOp",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.noOp",
+    "nodePath": "packages/nodes-base/nodes/NoOp/NoOp.node.json"
+  },
+  {
+    "name": "NocoDB",
+    "displayName": "NocoDB",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.nocoDb",
+    "nodePath": "packages/nodes-base/nodes/NocoDB/NocoDB.node.json"
+  },
+  {
+    "name": "Notion",
+    "displayName": "Notion",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.notion",
+    "nodePath": "packages/nodes-base/nodes/Notion/Notion.node.json"
+  },
+  {
+    "name": "NotionTrigger",
+    "displayName": "NotionTrigger",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.notionTrigger",
+    "nodePath": "packages/nodes-base/nodes/Notion/NotionTrigger.node.json"
+  },
+  {
+    "name": "Npm",
+    "displayName": "Npm",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.npm",
+    "nodePath": "packages/nodes-base/nodes/Npm/Npm.node.json"
+  },
+  {
+    "name": "Odoo",
+    "displayName": "Odoo",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.odoo",
+    "nodePath": "packages/nodes-base/nodes/Odoo/Odoo.node.json"
+  },
+  {
+    "name": "Okta",
+    "displayName": "Okta",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.okta",
+    "nodePath": "packages/nodes-base/nodes/Okta/Okta.node.json"
+  },
+  {
+    "name": "OneSimpleApi",
+    "displayName": "OneSimpleApi",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.oneSimpleApi",
+    "nodePath": "packages/nodes-base/nodes/OneSimpleApi/OneSimpleApi.node.json"
+  },
+  {
+    "name": "Onfleet",
+    "displayName": "Onfleet",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.onfleet",
+    "nodePath": "packages/nodes-base/nodes/Onfleet/Onfleet.node.json"
+  },
+  {
+    "name": "OnfleetTrigger",
+    "displayName": "OnfleetTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.onfleetTrigger",
+    "nodePath": "packages/nodes-base/nodes/Onfleet/OnfleetTrigger.node.json"
+  },
+  {
+    "name": "OpenAi",
+    "displayName": "OpenAi",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.openAi",
+    "nodePath": "packages/nodes-base/nodes/OpenAi/OpenAi.node.json"
+  },
+  {
+    "name": "OpenThesaurus",
+    "displayName": "OpenThesaurus",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.openThesaurus",
+    "nodePath": "packages/nodes-base/nodes/OpenThesaurus/OpenThesaurus.node.json"
+  },
+  {
+    "name": "OpenWeatherMap",
+    "displayName": "OpenWeatherMap",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.openWeatherMap",
+    "nodePath": "packages/nodes-base/nodes/OpenWeatherMap/OpenWeatherMap.node.json"
+  },
+  {
+    "name": "Orbit",
+    "displayName": "Orbit",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.orbit",
+    "nodePath": "packages/nodes-base/nodes/Orbit/Orbit.node.json"
+  },
+  {
+    "name": "Oura",
+    "displayName": "Oura",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.oura",
+    "nodePath": "packages/nodes-base/nodes/Oura/Oura.node.json"
+  },
+  {
+    "name": "Paddle",
+    "displayName": "Paddle",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.paddle",
+    "nodePath": "packages/nodes-base/nodes/Paddle/Paddle.node.json"
+  },
+  {
+    "name": "PagerDuty",
+    "displayName": "PagerDuty",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.pagerDuty",
+    "nodePath": "packages/nodes-base/nodes/PagerDuty/PagerDuty.node.json"
+  },
+  {
+    "name": "PayPal",
+    "displayName": "PayPal",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.payPal",
+    "nodePath": "packages/nodes-base/nodes/PayPal/PayPal.node.json"
+  },
+  {
+    "name": "PayPalTrigger",
+    "displayName": "PayPalTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.payPalTrigger",
+    "nodePath": "packages/nodes-base/nodes/PayPal/PayPalTrigger.node.json"
+  },
+  {
+    "name": "Peekalink",
+    "displayName": "Peekalink",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.peekalink",
+    "nodePath": "packages/nodes-base/nodes/Peekalink/Peekalink.node.json"
+  },
+  {
+    "name": "Perplexity",
+    "displayName": "Perplexity",
+    "description": "",
+    "category": "ai",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.1",
+    "n8nAlias": "n8n-nodes-base.perplexity",
+    "nodePath": "packages/nodes-base/nodes/Perplexity/Perplexity.node.json"
+  },
+  {
+    "name": "Phantombuster",
+    "displayName": "Phantombuster",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.phantombuster",
+    "nodePath": "packages/nodes-base/nodes/Phantombuster/Phantombuster.node.json"
+  },
+  {
+    "name": "PhilipsHue",
+    "displayName": "PhilipsHue",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.philipsHue",
+    "nodePath": "packages/nodes-base/nodes/PhilipsHue/PhilipsHue.node.json"
+  },
+  {
+    "name": "Pipedrive",
+    "displayName": "Pipedrive",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.pipedrive",
+    "nodePath": "packages/nodes-base/nodes/Pipedrive/Pipedrive.node.json"
+  },
+  {
+    "name": "PipedriveTrigger",
+    "displayName": "PipedriveTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.pipedriveTrigger",
+    "nodePath": "packages/nodes-base/nodes/Pipedrive/PipedriveTrigger.node.json"
+  },
+  {
+    "name": "Plivo",
+    "displayName": "Plivo",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.plivo",
+    "nodePath": "packages/nodes-base/nodes/Plivo/Plivo.node.json"
+  },
+  {
+    "name": "PostBin",
+    "displayName": "PostBin",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.postbin",
+    "nodePath": "packages/nodes-base/nodes/PostBin/PostBin.node.json"
+  },
+  {
+    "name": "PostHog",
+    "displayName": "PostHog",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.postHog",
+    "nodePath": "packages/nodes-base/nodes/PostHog/PostHog.node.json"
+  },
+  {
+    "name": "Postgres",
+    "displayName": "Postgres",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.postgres",
+    "nodePath": "packages/nodes-base/nodes/Postgres/Postgres.node.json"
+  },
+  {
+    "name": "PostgresTrigger",
+    "displayName": "PostgresTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.postgresTrigger",
+    "nodePath": "packages/nodes-base/nodes/Postgres/PostgresTrigger.node.json"
+  },
+  {
+    "name": "PostmarkTrigger",
+    "displayName": "PostmarkTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.postmarkTrigger",
+    "nodePath": "packages/nodes-base/nodes/Postmark/PostmarkTrigger.node.json"
+  },
+  {
+    "name": "ProfitWell",
+    "displayName": "ProfitWell",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.profitWell",
+    "nodePath": "packages/nodes-base/nodes/ProfitWell/ProfitWell.node.json"
+  },
+  {
+    "name": "Pushbullet",
+    "displayName": "Pushbullet",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.pushbullet",
+    "nodePath": "packages/nodes-base/nodes/Pushbullet/Pushbullet.node.json"
+  },
+  {
+    "name": "Pushcut",
+    "displayName": "Pushcut",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.pushcut",
+    "nodePath": "packages/nodes-base/nodes/Pushcut/Pushcut.node.json"
+  },
+  {
+    "name": "PushcutTrigger",
+    "displayName": "PushcutTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.pushcutTrigger",
+    "nodePath": "packages/nodes-base/nodes/Pushcut/PushcutTrigger.node.json"
+  },
+  {
+    "name": "Pushover",
+    "displayName": "Pushover",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.pushover",
+    "nodePath": "packages/nodes-base/nodes/Pushover/Pushover.node.json"
+  },
+  {
+    "name": "QuestDb",
+    "displayName": "QuestDb",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.questDb",
+    "nodePath": "packages/nodes-base/nodes/QuestDb/QuestDb.node.json"
+  },
+  {
+    "name": "QuickBase",
+    "displayName": "QuickBase",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.quickbase",
+    "nodePath": "packages/nodes-base/nodes/QuickBase/QuickBase.node.json"
+  },
+  {
+    "name": "QuickBooks",
+    "displayName": "QuickBooks",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.quickbooks",
+    "nodePath": "packages/nodes-base/nodes/QuickBooks/QuickBooks.node.json"
+  },
+  {
+    "name": "QuickChart",
+    "displayName": "QuickChart",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.quickChart",
+    "nodePath": "packages/nodes-base/nodes/QuickChart/QuickChart.node.json"
+  },
+  {
+    "name": "RabbitMQ",
+    "displayName": "RabbitMQ",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.rabbitmq",
+    "nodePath": "packages/nodes-base/nodes/RabbitMQ/RabbitMQ.node.json"
+  },
+  {
+    "name": "RabbitMQTrigger",
+    "displayName": "RabbitMQTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.rabbitmqTrigger",
+    "nodePath": "packages/nodes-base/nodes/RabbitMQ/RabbitMQTrigger.node.json"
+  },
+  {
+    "name": "Raindrop",
+    "displayName": "Raindrop",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.raindrop",
+    "nodePath": "packages/nodes-base/nodes/Raindrop/Raindrop.node.json"
+  },
+  {
+    "name": "ReadBinaryFile",
+    "displayName": "ReadBinaryFile",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.readBinaryFile",
+    "nodePath": "packages/nodes-base/nodes/ReadBinaryFile/ReadBinaryFile.node.json"
+  },
+  {
+    "name": "ReadBinaryFiles",
+    "displayName": "ReadBinaryFiles",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.readBinaryFiles",
+    "nodePath": "packages/nodes-base/nodes/ReadBinaryFiles/ReadBinaryFiles.node.json"
+  },
+  {
+    "name": "ReadPDF",
+    "displayName": "ReadPDF",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.readPDF",
+    "nodePath": "packages/nodes-base/nodes/ReadPdf/ReadPDF.node.json"
+  },
+  {
+    "name": "Reddit",
+    "displayName": "Reddit",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.reddit",
+    "nodePath": "packages/nodes-base/nodes/Reddit/Reddit.node.json"
+  },
+  {
+    "name": "Redis",
+    "displayName": "Redis",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.redis",
+    "nodePath": "packages/nodes-base/nodes/Redis/Redis.node.json"
+  },
+  {
+    "name": "RedisTrigger",
+    "displayName": "RedisTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.redisTrigger",
+    "nodePath": "packages/nodes-base/nodes/Redis/RedisTrigger.node.json"
+  },
+  {
+    "name": "RenameKeys",
+    "displayName": "RenameKeys",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.renameKeys",
+    "nodePath": "packages/nodes-base/nodes/RenameKeys/RenameKeys.node.json"
+  },
+  {
+    "name": "RespondToWebhook",
+    "displayName": "RespondToWebhook",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.respondToWebhook",
+    "nodePath": "packages/nodes-base/nodes/RespondToWebhook/RespondToWebhook.node.json"
+  },
+  {
+    "name": "Rocketchat",
+    "displayName": "Rocketchat",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.rocketchat",
+    "nodePath": "packages/nodes-base/nodes/Rocketchat/Rocketchat.node.json"
+  },
+  {
+    "name": "RssFeedRead",
+    "displayName": "RssFeedRead",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.rssFeedRead",
+    "nodePath": "packages/nodes-base/nodes/RssFeedRead/RssFeedRead.node.json"
+  },
+  {
+    "name": "RssFeedReadTrigger",
+    "displayName": "RssFeedReadTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.rssFeedReadTrigger",
+    "nodePath": "packages/nodes-base/nodes/RssFeedRead/RssFeedReadTrigger.node.json"
+  },
+  {
+    "name": "Rundeck",
+    "displayName": "Rundeck",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.rundeck",
+    "nodePath": "packages/nodes-base/nodes/Rundeck/Rundeck.node.json"
+  },
+  {
+    "name": "S3",
+    "displayName": "S3",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.s3",
+    "nodePath": "packages/nodes-base/nodes/S3/S3.node.json"
+  },
+  {
+    "name": "Salesforce",
+    "displayName": "Salesforce",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.salesforce",
+    "nodePath": "packages/nodes-base/nodes/Salesforce/Salesforce.node.json"
+  },
+  {
+    "name": "SalesforceTrigger",
+    "displayName": "SalesforceTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.salesforceTrigger",
+    "nodePath": "packages/nodes-base/nodes/Salesforce/SalesforceTrigger.node.json"
+  },
+  {
+    "name": "Salesmate",
+    "displayName": "Salesmate",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.salesmate",
+    "nodePath": "packages/nodes-base/nodes/Salesmate/Salesmate.node.json"
+  },
+  {
+    "name": "ScheduleTrigger",
+    "displayName": "ScheduleTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.scheduleTrigger",
+    "nodePath": "packages/nodes-base/nodes/Schedule/ScheduleTrigger.node.json"
+  },
+  {
+    "name": "SeaTable",
+    "displayName": "SeaTable",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.seaTable",
+    "nodePath": "packages/nodes-base/nodes/SeaTable/SeaTable.node.json"
+  },
+  {
+    "name": "SeaTableTrigger",
+    "displayName": "SeaTableTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.seaTableTrigger",
+    "nodePath": "packages/nodes-base/nodes/SeaTable/SeaTableTrigger.node.json"
+  },
+  {
+    "name": "SecurityScorecard",
+    "displayName": "SecurityScorecard",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.securityScorecard",
+    "nodePath": "packages/nodes-base/nodes/SecurityScorecard/SecurityScorecard.node.json"
+  },
+  {
+    "name": "Segment",
+    "displayName": "Segment",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.segment",
+    "nodePath": "packages/nodes-base/nodes/Segment/Segment.node.json"
+  },
+  {
+    "name": "SendGrid",
+    "displayName": "SendGrid",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.sendGrid",
+    "nodePath": "packages/nodes-base/nodes/SendGrid/SendGrid.node.json"
+  },
+  {
+    "name": "Sendy",
+    "displayName": "Sendy",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.sendy",
+    "nodePath": "packages/nodes-base/nodes/Sendy/Sendy.node.json"
+  },
+  {
+    "name": "SentryIo",
+    "displayName": "SentryIo",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.sentryIo",
+    "nodePath": "packages/nodes-base/nodes/SentryIo/SentryIo.node.json"
+  },
+  {
+    "name": "ServiceNow",
+    "displayName": "ServiceNow",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.serviceNow",
+    "nodePath": "packages/nodes-base/nodes/ServiceNow/ServiceNow.node.json"
+  },
+  {
+    "name": "Set",
+    "displayName": "Set",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.set",
+    "nodePath": "packages/nodes-base/nodes/Set/Set.node.json"
+  },
+  {
+    "name": "Shopify",
+    "displayName": "Shopify",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.shopify",
+    "nodePath": "packages/nodes-base/nodes/Shopify/Shopify.node.json"
+  },
+  {
+    "name": "ShopifyTrigger",
+    "displayName": "ShopifyTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.shopifyTrigger",
+    "nodePath": "packages/nodes-base/nodes/Shopify/ShopifyTrigger.node.json"
+  },
+  {
+    "name": "Signl4",
+    "displayName": "Signl4",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.signl4",
+    "nodePath": "packages/nodes-base/nodes/Signl4/Signl4.node.json"
+  },
+  {
+    "name": "Simulate",
+    "displayName": "Simulate",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.simulate",
+    "nodePath": "packages/nodes-base/nodes/Simulate/Simulate.node.json"
+  },
+  {
+    "name": "SimulateTrigger",
+    "displayName": "SimulateTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.simulateTrigger",
+    "nodePath": "packages/nodes-base/nodes/Simulate/SimulateTrigger.node.json"
+  },
+  {
+    "name": "Slack",
+    "displayName": "Slack",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.slack",
+    "nodePath": "packages/nodes-base/nodes/Slack/Slack.node.json"
+  },
+  {
+    "name": "SlackTrigger",
+    "displayName": "SlackTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.slackTrigger",
+    "nodePath": "packages/nodes-base/nodes/Slack/SlackTrigger.node.json"
+  },
+  {
+    "name": "Sms77",
+    "displayName": "Sms77",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.sms77",
+    "nodePath": "packages/nodes-base/nodes/Sms77/Sms77.node.json"
+  },
+  {
+    "name": "Snowflake",
+    "displayName": "Snowflake",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.snowflake",
+    "nodePath": "packages/nodes-base/nodes/Snowflake/Snowflake.node.json"
+  },
+  {
+    "name": "SplitInBatches",
+    "displayName": "SplitInBatches",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.splitInBatches",
+    "nodePath": "packages/nodes-base/nodes/SplitInBatches/SplitInBatches.node.json"
+  },
+  {
+    "name": "Splunk",
+    "displayName": "Splunk",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.splunk",
+    "nodePath": "packages/nodes-base/nodes/Splunk/Splunk.node.json"
+  },
+  {
+    "name": "Spotify",
+    "displayName": "Spotify",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.spotify",
+    "nodePath": "packages/nodes-base/nodes/Spotify/Spotify.node.json"
+  },
+  {
+    "name": "SpreadsheetFile",
+    "displayName": "SpreadsheetFile",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.spreadsheetFile",
+    "nodePath": "packages/nodes-base/nodes/SpreadsheetFile/SpreadsheetFile.node.json"
+  },
+  {
+    "name": "SseTrigger",
+    "displayName": "SseTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.sseTrigger",
+    "nodePath": "packages/nodes-base/nodes/SseTrigger/SseTrigger.node.json"
+  },
+  {
+    "name": "Ssh",
+    "displayName": "Ssh",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.ssh",
+    "nodePath": "packages/nodes-base/nodes/Ssh/Ssh.node.json"
+  },
+  {
+    "name": "Stackby",
+    "displayName": "Stackby",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.stackby",
+    "nodePath": "packages/nodes-base/nodes/Stackby/Stackby.node.json"
+  },
+  {
+    "name": "StickyNote",
+    "displayName": "StickyNote",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.stickyNote",
+    "nodePath": "packages/nodes-base/nodes/StickyNote/StickyNote.node.json"
+  },
+  {
+    "name": "StopAndError",
+    "displayName": "StopAndError",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.stopAndError",
+    "nodePath": "packages/nodes-base/nodes/StopAndError/StopAndError.node.json"
+  },
+  {
+    "name": "Storyblok",
+    "displayName": "Storyblok",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.storyblok",
+    "nodePath": "packages/nodes-base/nodes/Storyblok/Storyblok.node.json"
+  },
+  {
+    "name": "Strapi",
+    "displayName": "Strapi",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.strapi",
+    "nodePath": "packages/nodes-base/nodes/Strapi/Strapi.node.json"
+  },
+  {
+    "name": "Strava",
+    "displayName": "Strava",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.strava",
+    "nodePath": "packages/nodes-base/nodes/Strava/Strava.node.json"
+  },
+  {
+    "name": "StravaTrigger",
+    "displayName": "StravaTrigger",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.stravaTrigger",
+    "nodePath": "packages/nodes-base/nodes/Strava/StravaTrigger.node.json"
+  },
+  {
+    "name": "Stripe",
+    "displayName": "Stripe",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.stripe",
+    "nodePath": "packages/nodes-base/nodes/Stripe/Stripe.node.json"
+  },
+  {
+    "name": "StripeTrigger",
+    "displayName": "StripeTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.stripeTrigger",
+    "nodePath": "packages/nodes-base/nodes/Stripe/StripeTrigger.node.json"
+  },
+  {
+    "name": "Supabase",
+    "displayName": "Supabase",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.supabase",
+    "nodePath": "packages/nodes-base/nodes/Supabase/Supabase.node.json"
+  },
+  {
+    "name": "SurveyMonkeyTrigger",
+    "displayName": "SurveyMonkeyTrigger",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.surveyMonkeyTrigger",
+    "nodePath": "packages/nodes-base/nodes/SurveyMonkey/SurveyMonkeyTrigger.node.json"
+  },
+  {
+    "name": "Switch",
+    "displayName": "Switch",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.switch",
+    "nodePath": "packages/nodes-base/nodes/Switch/Switch.node.json"
+  },
+  {
+    "name": "SyncroMsp",
+    "displayName": "SyncroMsp",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.syncroMsp",
+    "nodePath": "packages/nodes-base/nodes/SyncroMSP/SyncroMsp.node.json"
+  },
+  {
+    "name": "Taiga",
+    "displayName": "Taiga",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.taiga",
+    "nodePath": "packages/nodes-base/nodes/Taiga/Taiga.node.json"
+  },
+  {
+    "name": "TaigaTrigger",
+    "displayName": "TaigaTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.taigaTrigger",
+    "nodePath": "packages/nodes-base/nodes/Taiga/TaigaTrigger.node.json"
+  },
+  {
+    "name": "Tapfiliate",
+    "displayName": "Tapfiliate",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.tapfiliate",
+    "nodePath": "packages/nodes-base/nodes/Tapfiliate/Tapfiliate.node.json"
+  },
+  {
+    "name": "Telegram",
+    "displayName": "Telegram",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.telegram",
+    "nodePath": "packages/nodes-base/nodes/Telegram/Telegram.node.json"
+  },
+  {
+    "name": "TelegramTrigger",
+    "displayName": "TelegramTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.telegramTrigger",
+    "nodePath": "packages/nodes-base/nodes/Telegram/TelegramTrigger.node.json"
+  },
+  {
+    "name": "TheHive",
+    "displayName": "TheHive",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.theHive",
+    "nodePath": "packages/nodes-base/nodes/TheHive/TheHive.node.json"
+  },
+  {
+    "name": "TheHiveTrigger",
+    "displayName": "TheHiveTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.theHiveTrigger",
+    "nodePath": "packages/nodes-base/nodes/TheHive/TheHiveTrigger.node.json"
+  },
+  {
+    "name": "TheHiveProject",
+    "displayName": "TheHiveProject",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.theHiveProject",
+    "nodePath": "packages/nodes-base/nodes/TheHiveProject/TheHiveProject.node.json"
+  },
+  {
+    "name": "TheHiveProjectTrigger",
+    "displayName": "TheHiveProjectTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.theHiveProjectTrigger",
+    "nodePath": "packages/nodes-base/nodes/TheHiveProject/TheHiveProjectTrigger.node.json"
+  },
+  {
+    "name": "TimeSaved",
+    "displayName": "TimeSaved",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.timeSaved",
+    "nodePath": "packages/nodes-base/nodes/TimeSaved/TimeSaved.node.json"
+  },
+  {
+    "name": "TimescaleDb",
+    "displayName": "TimescaleDb",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.timescaleDb",
+    "nodePath": "packages/nodes-base/nodes/TimescaleDb/TimescaleDb.node.json"
+  },
+  {
+    "name": "Todoist",
+    "displayName": "Todoist",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.todoist",
+    "nodePath": "packages/nodes-base/nodes/Todoist/Todoist.node.json"
+  },
+  {
+    "name": "TogglTrigger",
+    "displayName": "TogglTrigger",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.togglTrigger",
+    "nodePath": "packages/nodes-base/nodes/Toggl/TogglTrigger.node.json"
+  },
+  {
+    "name": "Totp",
+    "displayName": "Totp",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.totp",
+    "nodePath": "packages/nodes-base/nodes/Totp/Totp.node.json"
+  },
+  {
+    "name": "Aggregate",
+    "displayName": "Aggregate",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.aggregate",
+    "nodePath": "packages/nodes-base/nodes/Transform/Aggregate/Aggregate.node.json"
+  },
+  {
+    "name": "Limit",
+    "displayName": "Limit",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.limit",
+    "nodePath": "packages/nodes-base/nodes/Transform/Limit/Limit.node.json"
+  },
+  {
+    "name": "RemoveDuplicates",
+    "displayName": "RemoveDuplicates",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.removeDuplicates",
+    "nodePath": "packages/nodes-base/nodes/Transform/RemoveDuplicates/RemoveDuplicates.node.json"
+  },
+  {
+    "name": "Sort",
+    "displayName": "Sort",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.sort",
+    "nodePath": "packages/nodes-base/nodes/Transform/Sort/Sort.node.json"
+  },
+  {
+    "name": "SplitOut",
+    "displayName": "SplitOut",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.splitOut",
+    "nodePath": "packages/nodes-base/nodes/Transform/SplitOut/SplitOut.node.json"
+  },
+  {
+    "name": "Summarize",
+    "displayName": "Summarize",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.summarize",
+    "nodePath": "packages/nodes-base/nodes/Transform/Summarize/Summarize.node.json"
+  },
+  {
+    "name": "TravisCi",
+    "displayName": "TravisCi",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.travisCi",
+    "nodePath": "packages/nodes-base/nodes/TravisCi/TravisCi.node.json"
+  },
+  {
+    "name": "Trello",
+    "displayName": "Trello",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.trello",
+    "nodePath": "packages/nodes-base/nodes/Trello/Trello.node.json"
+  },
+  {
+    "name": "TrelloTrigger",
+    "displayName": "TrelloTrigger",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.trelloTrigger",
+    "nodePath": "packages/nodes-base/nodes/Trello/TrelloTrigger.node.json"
+  },
+  {
+    "name": "Twake",
+    "displayName": "Twake",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.twake",
+    "nodePath": "packages/nodes-base/nodes/Twake/Twake.node.json"
+  },
+  {
+    "name": "Twilio",
+    "displayName": "Twilio",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.twilio",
+    "nodePath": "packages/nodes-base/nodes/Twilio/Twilio.node.json"
+  },
+  {
+    "name": "TwilioTrigger",
+    "displayName": "TwilioTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.twilioTrigger",
+    "nodePath": "packages/nodes-base/nodes/Twilio/TwilioTrigger.node.json"
+  },
+  {
+    "name": "Twist",
+    "displayName": "Twist",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.twist",
+    "nodePath": "packages/nodes-base/nodes/Twist/Twist.node.json"
+  },
+  {
+    "name": "Twitter",
+    "displayName": "Twitter",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.twitter",
+    "nodePath": "packages/nodes-base/nodes/Twitter/Twitter.node.json"
+  },
+  {
+    "name": "TypeformTrigger",
+    "displayName": "TypeformTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.typeformTrigger",
+    "nodePath": "packages/nodes-base/nodes/Typeform/TypeformTrigger.node.json"
+  },
+  {
+    "name": "UProc",
+    "displayName": "UProc",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.uproc",
+    "nodePath": "packages/nodes-base/nodes/UProc/UProc.node.json"
+  },
+  {
+    "name": "UnleashedSoftware",
+    "displayName": "UnleashedSoftware",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.unleashedSoftware",
+    "nodePath": "packages/nodes-base/nodes/UnleashedSoftware/UnleashedSoftware.node.json"
+  },
+  {
+    "name": "Uplead",
+    "displayName": "Uplead",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.uplead",
+    "nodePath": "packages/nodes-base/nodes/Uplead/Uplead.node.json"
+  },
+  {
+    "name": "UptimeRobot",
+    "displayName": "UptimeRobot",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.uptimeRobot",
+    "nodePath": "packages/nodes-base/nodes/UptimeRobot/UptimeRobot.node.json"
+  },
+  {
+    "name": "UrlScanIo",
+    "displayName": "UrlScanIo",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.urlScanIo",
+    "nodePath": "packages/nodes-base/nodes/UrlScanIo/UrlScanIo.node.json"
+  },
+  {
+    "name": "VenafiTlsProtectDatacenter",
+    "displayName": "VenafiTlsProtectDatacenter",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.venafiTlsProtectDatacenter",
+    "nodePath": "packages/nodes-base/nodes/Venafi/Datacenter/VenafiTlsProtectDatacenter.node.json"
+  },
+  {
+    "name": "VenafiTlsProtectCloud",
+    "displayName": "VenafiTlsProtectCloud",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.venafiTlsProtectCloud",
+    "nodePath": "packages/nodes-base/nodes/Venafi/ProtectCloud/VenafiTlsProtectCloud.node.json"
+  },
+  {
+    "name": "VenafiTlsProtectCloudTrigger",
+    "displayName": "VenafiTlsProtectCloudTrigger",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.venafiTlsProtectCloudTrigger",
+    "nodePath": "packages/nodes-base/nodes/Venafi/ProtectCloud/VenafiTlsProtectCloudTrigger.node.json"
+  },
+  {
+    "name": "Vero",
+    "displayName": "Vero",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.vero",
+    "nodePath": "packages/nodes-base/nodes/Vero/Vero.node.json"
+  },
+  {
+    "name": "Vonage",
+    "displayName": "Vonage",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.vonage",
+    "nodePath": "packages/nodes-base/nodes/Vonage/Vonage.node.json"
+  },
+  {
+    "name": "Wait",
+    "displayName": "Wait",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.wait",
+    "nodePath": "packages/nodes-base/nodes/Wait/Wait.node.json"
+  },
+  {
+    "name": "Webflow",
+    "displayName": "Webflow",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.webflow",
+    "nodePath": "packages/nodes-base/nodes/Webflow/Webflow.node.json"
+  },
+  {
+    "name": "WebflowTrigger",
+    "displayName": "WebflowTrigger",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.webflowTrigger",
+    "nodePath": "packages/nodes-base/nodes/Webflow/WebflowTrigger.node.json"
+  },
+  {
+    "name": "Webhook",
+    "displayName": "Webhook",
+    "description": "",
+    "category": "developer",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.webhook",
+    "nodePath": "packages/nodes-base/nodes/Webhook/Webhook.node.json"
+  },
+  {
+    "name": "Wekan",
+    "displayName": "Wekan",
+    "description": "",
+    "category": "productivity",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.wekan",
+    "nodePath": "packages/nodes-base/nodes/Wekan/Wekan.node.json"
+  },
+  {
+    "name": "WhatsApp",
+    "displayName": "WhatsApp",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.whatsApp",
+    "nodePath": "packages/nodes-base/nodes/WhatsApp/WhatsApp.node.json"
+  },
+  {
+    "name": "WhatsAppTrigger",
+    "displayName": "WhatsAppTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.whatsAppTrigger",
+    "nodePath": "packages/nodes-base/nodes/WhatsApp/WhatsAppTrigger.node.json"
+  },
+  {
+    "name": "Wise",
+    "displayName": "Wise",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.wise",
+    "nodePath": "packages/nodes-base/nodes/Wise/Wise.node.json"
+  },
+  {
+    "name": "WiseTrigger",
+    "displayName": "WiseTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.wiseTrigger",
+    "nodePath": "packages/nodes-base/nodes/Wise/WiseTrigger.node.json"
+  },
+  {
+    "name": "WooCommerce",
+    "displayName": "WooCommerce",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.wooCommerce",
+    "nodePath": "packages/nodes-base/nodes/WooCommerce/WooCommerce.node.json"
+  },
+  {
+    "name": "WooCommerceTrigger",
+    "displayName": "WooCommerceTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.wooCommerceTrigger",
+    "nodePath": "packages/nodes-base/nodes/WooCommerce/WooCommerceTrigger.node.json"
+  },
+  {
+    "name": "Wordpress",
+    "displayName": "Wordpress",
+    "description": "",
+    "category": "marketing",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.wordpress",
+    "nodePath": "packages/nodes-base/nodes/Wordpress/Wordpress.node.json"
+  },
+  {
+    "name": "WorkableTrigger",
+    "displayName": "WorkableTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.workableTrigger",
+    "nodePath": "packages/nodes-base/nodes/Workable/WorkableTrigger.node.json"
+  },
+  {
+    "name": "WorkflowTrigger",
+    "displayName": "WorkflowTrigger",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.WorkflowTrigger",
+    "nodePath": "packages/nodes-base/nodes/WorkflowTrigger/WorkflowTrigger.node.json"
+  },
+  {
+    "name": "WriteBinaryFile",
+    "displayName": "WriteBinaryFile",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.writeBinaryFile",
+    "nodePath": "packages/nodes-base/nodes/WriteBinaryFile/WriteBinaryFile.node.json"
+  },
+  {
+    "name": "WufooTrigger",
+    "displayName": "WufooTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.wufooTrigger",
+    "nodePath": "packages/nodes-base/nodes/Wufoo/WufooTrigger.node.json"
+  },
+  {
+    "name": "Xero",
+    "displayName": "Xero",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.xero",
+    "nodePath": "packages/nodes-base/nodes/Xero/Xero.node.json"
+  },
+  {
+    "name": "Xml",
+    "displayName": "Xml",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.xml",
+    "nodePath": "packages/nodes-base/nodes/Xml/Xml.node.json"
+  },
+  {
+    "name": "Yourls",
+    "displayName": "Yourls",
+    "description": "",
+    "category": "utility",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.yourls",
+    "nodePath": "packages/nodes-base/nodes/Yourls/Yourls.node.json"
+  },
+  {
+    "name": "Zammad",
+    "displayName": "Zammad",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.zammad",
+    "nodePath": "packages/nodes-base/nodes/Zammad/Zammad.node.json"
+  },
+  {
+    "name": "Zendesk",
+    "displayName": "Zendesk",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.zendesk",
+    "nodePath": "packages/nodes-base/nodes/Zendesk/Zendesk.node.json"
+  },
+  {
+    "name": "ZendeskTrigger",
+    "displayName": "ZendeskTrigger",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.zendeskTrigger",
+    "nodePath": "packages/nodes-base/nodes/Zendesk/ZendeskTrigger.node.json"
+  },
+  {
+    "name": "ZohoCrm",
+    "displayName": "ZohoCrm",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.zohoCrm",
+    "nodePath": "packages/nodes-base/nodes/Zoho/ZohoCrm.node.json"
+  },
+  {
+    "name": "Zoom",
+    "displayName": "Zoom",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.zoom",
+    "nodePath": "packages/nodes-base/nodes/Zoom/Zoom.node.json"
+  },
+  {
+    "name": "Zulip",
+    "displayName": "Zulip",
+    "description": "",
+    "category": "communication",
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "version": "1.0",
+    "n8nAlias": "n8n-nodes-base.zulip",
+    "nodePath": "packages/nodes-base/nodes/Zulip/Zulip.node.json"
+  }
+]
