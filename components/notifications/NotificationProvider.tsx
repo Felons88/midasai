@@ -36,6 +36,13 @@ interface NotificationContextValue {
   loading: boolean
 }
 
+// Stable singleton client — avoids stale closure on supabase across re-renders
+let _browserClient: ReturnType<typeof createBrowserSupabaseClient> | null = null
+function getStableClient() {
+  if (!_browserClient) _browserClient = createBrowserSupabaseClient()
+  return _browserClient
+}
+
 const NotificationContext = createContext<NotificationContextValue>({
   notifications: [],
   toasts: [],
@@ -58,23 +65,17 @@ export function NotificationProvider({ children, userId }: { children: React.Rea
   const [toasts, setToasts] = useState<ToastNotification[]>([])
   const [selectedNotification, setSelectedNotification] = useState<AppNotification | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createBrowserSupabaseClient()
+  const supabase = getStableClient()
   const toastTimeouts = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
   const initialToastDone = useRef(false)
+  const userIdRef = useRef(userId)
+  useEffect(() => { userIdRef.current = userId }, [userId])
 
   const unreadCount = notifications.filter(n => !n.read).length
 
   const shouldToast = useCallback((n: AppNotification) => {
     const p = (n.priority ?? "NORMAL").toUpperCase()
     return p === "NORMAL" || p === "HIGH" || p === "URGENT"
-  }, [])
-
-  const openNotification = useCallback((n: AppNotification) => {
-    setSelectedNotification(n)
-  }, [])
-
-  const closeNotification = useCallback(() => {
-    setSelectedNotification(null)
   }, [])
 
   const dismissToast = useCallback((toastId: string) => {
@@ -93,6 +94,38 @@ export function NotificationProvider({ children, userId }: { children: React.Rea
     const t = setTimeout(() => dismissToast(toastId), 8000)
     toastTimeouts.current.set(toastId, t)
   }, [dismissToast])
+
+  const markRead = useCallback(async (id: string) => {
+    const uid = userIdRef.current
+    if (!uid) return
+    const now = new Date().toISOString()
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true, read_at: now } : n))
+    setSelectedNotification(prev => prev?.id === id ? { ...prev, read: true, read_at: now } : prev)
+    await supabase
+      .from("notifications")
+      .update({ read: true, read_at: now })
+      .eq("id", id)
+      .eq("user_id", uid)
+  }, [supabase])
+
+  const markAllRead = useCallback(async () => {
+    const uid = userIdRef.current
+    if (!uid) return
+    const now = new Date().toISOString()
+    setNotifications(prev => prev.map(n => ({ ...n, read: true, read_at: now })))
+    await supabase.rpc("mark_all_notifications_read", { p_user_id: uid })
+  }, [supabase])
+
+  const openNotification = useCallback((n: AppNotification) => {
+    setSelectedNotification(n)
+    if (!n.read) {
+      markRead(n.id)
+    }
+  }, [markRead])
+
+  const closeNotification = useCallback(() => {
+    setSelectedNotification(null)
+  }, [])
 
   // Initial load
   useEffect(() => {
@@ -117,7 +150,7 @@ export function NotificationProvider({ children, userId }: { children: React.Rea
       }
     }
     load()
-  }, [userId, shouldToast, addToast])
+  }, [userId, shouldToast, addToast, supabase])
 
   // Realtime subscription
   useEffect(() => {
@@ -148,18 +181,7 @@ export function NotificationProvider({ children, userId }: { children: React.Rea
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [userId])
-
-  const markRead = useCallback(async (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true, read_at: new Date().toISOString() } : n))
-    await supabase.from("notifications").update({ read: true, read_at: new Date().toISOString() }).eq("id", id)
-  }, [])
-
-  const markAllRead = useCallback(async () => {
-    if (!userId) return
-    setNotifications(prev => prev.map(n => ({ ...n, read: true, read_at: new Date().toISOString() })))
-    await supabase.rpc("mark_all_notifications_read", { p_user_id: userId })
-  }, [userId])
+  }, [userId, supabase, shouldToast, addToast])
 
   return (
     <NotificationContext.Provider

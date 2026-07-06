@@ -11,7 +11,7 @@ import {
   Brain, Code2, Shield, BookOpen, Archive, GitBranch,
   Database, Cpu, Network, Lock, TestTube, Rocket,
   ChevronRight, Activity, Folder, Settings, History, Clock, FolderOpen,
-  AlertTriangle, Hammer
+  AlertTriangle, Hammer, Monitor, Wifi, WifiOff, ChevronDown
 } from "lucide-react"
 
 type Phase = "idle" | "discovering" | "ready" | "creating" | "done"
@@ -543,11 +543,12 @@ function WorkflowGraph({ activeNodes }: { activeNodes: Set<string> }) {
   )
 }
 
-function FileViewer({ files, failedFiles, onDownloadZip, onRetry }: {
+function FileViewer({ files, failedFiles, onDownloadZip, onRetry, onSendToIde }: {
   files: GeneratedFiles
   failedFiles: string[]
   onDownloadZip: () => void
   onRetry: (files: string[]) => void
+  onSendToIde?: React.ReactNode
 }) {
   const [active, setActive] = useState(Object.keys(files)[0] || "")
   const [copied, setCopied] = useState(false)
@@ -579,7 +580,8 @@ function FileViewer({ files, failedFiles, onDownloadZip, onRetry }: {
             <div className="text-sm font-semibold text-white">Project Generated</div>
             <div className="text-xs text-zinc-400">{Object.keys(files).length} files ready</div>
           </div>
-          <div className="ml-auto flex gap-2">
+          <div className="ml-auto flex gap-2 flex-wrap justify-end">
+            {onSendToIde}
             <button
               onClick={copyAll}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-zinc-300 hover:text-white hover:bg-white/10 transition-all"
@@ -659,6 +661,150 @@ function FileViewer({ files, failedFiles, onDownloadZip, onRetry }: {
           </pre>
         </div>
       </div>
+    </div>
+  )
+}
+
+interface BridgeDevice {
+  id: string
+  ide_name: string
+  ide_version: string | null
+  device_name: string | null
+  device_os: string | null
+  bridge_port: number
+  last_seen: string | null
+}
+
+function SendToIdeButton({ files }: { files: GeneratedFiles }) {
+  const [devices, setDevices] = useState<BridgeDevice[]>([])
+  const [open, setOpen] = useState(false)
+  const [loadingDevices, setLoadingDevices] = useState(false)
+  const [sending, setSending] = useState<string | null>(null)
+  const [sent, setSent] = useState<string | null>(null)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
+
+  async function loadDevices() {
+    setLoadingDevices(true)
+    try {
+      const res = await fetch("/api/nexus/bridge/devices")
+      if (res.ok) {
+        const data = await res.json()
+        setDevices(data.devices ?? [])
+      }
+    } catch { /* ignore */ } finally {
+      setLoadingDevices(false)
+    }
+  }
+
+  async function sendToDevice(device: BridgeDevice) {
+    setSending(device.id)
+    try {
+      const fileList = Object.entries(files).map(([filename, content]) => ({ filename, content }))
+      const res = await fetch("/api/nexus/bridge/push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          device_id: device.id,
+          event: {
+            type: "write_files",
+            files: fileList,
+            source: "architect",
+          },
+        }),
+      })
+      if (res.ok) {
+        setSent(device.id)
+        setOpen(false)
+        setTimeout(() => setSent(null), 3000)
+      }
+    } catch { /* ignore */ } finally {
+      setSending(null)
+    }
+  }
+
+  function handleToggle() {
+    if (!open) {
+      setOpen(true)
+      loadDevices()
+    } else {
+      setOpen(false)
+    }
+  }
+
+  if (sent) {
+    return (
+      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500/15 border border-green-500/25 text-xs text-green-300 font-semibold">
+        <Check className="w-3.5 h-3.5" />
+        Sent to IDE
+      </div>
+    )
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={handleToggle}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/15 border border-blue-500/25 text-xs text-blue-300 font-semibold hover:bg-blue-500/25 transition-all"
+      >
+        <Monitor className="w-3.5 h-3.5" />
+        Send to IDE
+        <ChevronDown className="w-3 h-3 opacity-60" />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-white/10 bg-[#0f0f14] shadow-2xl z-50 overflow-hidden">
+          <div className="px-3 py-2.5 border-b border-white/[0.06] flex items-center gap-2">
+            <Monitor className="w-3.5 h-3.5 text-blue-400" />
+            <span className="text-xs font-semibold text-white">Connected IDEs</span>
+          </div>
+          {loadingDevices ? (
+            <div className="flex items-center justify-center py-6">
+              <div className="w-4 h-4 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />
+            </div>
+          ) : devices.length === 0 ? (
+            <div className="px-4 py-5 text-center">
+              <WifiOff className="w-6 h-6 text-white/20 mx-auto mb-2" />
+              <p className="text-xs text-white/40 font-medium">No IDE connected</p>
+              <p className="text-[10px] text-white/25 mt-1">Install the Midas Bridge extension in VS Code or Cursor</p>
+            </div>
+          ) : (
+            <div className="py-1">
+              {devices.map(device => (
+                <button
+                  key={device.id}
+                  onClick={() => sendToDevice(device)}
+                  disabled={!!sending}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.04] transition-colors text-left disabled:opacity-50"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+                    {sending === device.id
+                      ? <RefreshCw className="w-3.5 h-3.5 text-blue-400 animate-spin" />
+                      : <Monitor className="w-3.5 h-3.5 text-blue-400" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-semibold text-white truncate">{device.ide_name}{device.ide_version ? ` ${device.ide_version}` : ""}</div>
+                    <div className="text-[10px] text-white/40 truncate">{device.device_name ?? "Unknown device"} · port {device.bridge_port}</div>
+                  </div>
+                  <Wifi className="w-3 h-3 text-green-400 flex-shrink-0" />
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="px-3 py-2 border-t border-white/[0.06]">
+            <p className="text-[10px] text-white/30 text-center">
+              Sends {Object.keys(files).length} files to your IDE workspace
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -1398,6 +1544,7 @@ export function ArchitectClient() {
                   failedFiles={failedFiles}
                   onDownloadZip={handleDownloadZip}
                   onRetry={handleRetryFailed}
+                  onSendToIde={<SendToIdeButton files={generatedFiles} />}
                 />
               </div>
             )}
@@ -1454,12 +1601,13 @@ export function ArchitectClient() {
         {/* ── Done footer ── */}
         {phase === "done" && (
           <div className="flex-shrink-0 border-t border-white/10 bg-zinc-950 px-5 py-3">
-            <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
+            <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 flex-wrap">
               <div className="flex items-center gap-2 text-sm text-zinc-400">
                 <Check className="w-4 h-4 text-green-400" />
                 <span>{Object.keys(generatedFiles ?? {}).length} files generated</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {generatedFiles && <SendToIdeButton files={generatedFiles} />}
                 <button
                   onClick={handleDownloadZip}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs text-black font-bold transition-all shadow-lg shadow-amber-500/20"
