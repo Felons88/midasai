@@ -675,9 +675,130 @@ interface BridgeDevice {
   last_seen: string | null
 }
 
+function BridgeSetupModal({ onClose }: { onClose: () => void }) {
+  const [copied, setCopied] = useState<string | null>(null)
+  function copy(text: string, key: string) {
+    navigator.clipboard.writeText(text)
+    setCopied(key)
+    setTimeout(() => setCopied(null), 2000)
+  }
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      <button
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+        aria-label="Close"
+      />
+      <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#0c0c12] shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 p-5 border-b border-white/[0.07]">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center flex-shrink-0">
+              <Monitor className="w-5 h-5 text-blue-400" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-white">Connect your IDE</h2>
+              <p className="text-xs text-white/40 mt-0.5">No active bridge connection found</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-white/30 hover:bg-white/[0.06] hover:text-white transition-colors"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        {/* Steps */}
+        <div className="p-5 space-y-4">
+          {/* Step 1 */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-blue-500/20 border border-blue-500/30 text-[10px] font-bold text-blue-400 flex items-center justify-center flex-shrink-0">1</span>
+              <p className="text-xs font-semibold text-white/70">Sign in to MidasAI in your browser</p>
+            </div>
+            <p className="text-[11px] text-white/35 ml-7 leading-relaxed">
+              Make sure you're logged in at{" "}
+              <a href="/auth/login" target="_blank" rel="noreferrer" className="text-blue-400 underline underline-offset-2">midasai.com</a>
+              {" "}— the bridge uses your session to authorize.
+            </p>
+          </div>
+
+          {/* Step 2 */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-blue-500/20 border border-blue-500/30 text-[10px] font-bold text-blue-400 flex items-center justify-center flex-shrink-0">2</span>
+              <p className="text-xs font-semibold text-white/70">Run the bridge in your IDE terminal</p>
+            </div>
+            <div className="ml-7 flex items-center gap-2 rounded-lg bg-black/50 border border-white/[0.07] px-3 py-2.5 font-mono text-[12px] text-emerald-300/90">
+              <span className="text-white/20 select-none">$</span>
+              <span className="flex-1">npx @midasai/bridge</span>
+              <button
+                onClick={() => copy("npx @midasai/bridge", "cmd")}
+                className="text-white/25 hover:text-white/60 transition-colors"
+                title="Copy"
+              >
+                {copied === "cmd" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>}
+              </button>
+            </div>
+            <p className="text-[11px] text-white/30 ml-7 leading-relaxed">
+              A browser tab opens to approve the connection. Once approved, return here and click <span className="text-white/50 font-semibold">Send to IDE</span> again.
+            </p>
+          </div>
+
+          {/* Step 3 — IDE-specific shortcuts */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-blue-500/20 border border-blue-500/30 text-[10px] font-bold text-blue-400 flex items-center justify-center flex-shrink-0">3</span>
+              <p className="text-xs font-semibold text-white/70">IDE-specific install (optional)</p>
+            </div>
+            <div className="ml-7 grid grid-cols-2 gap-1.5">
+              {[
+                { ide: "VS Code",     cmd: "code --install-extension midasai.midas-bridge" },
+                { ide: "Cursor",      cmd: "cursor --install-extension midasai.midas-bridge" },
+                { ide: "Windsurf",    cmd: "windsurf --install-extension midasai.midas-bridge" },
+                { ide: "Claude Code", cmd: "npx @midasai/bridge" },
+              ].map(({ ide, cmd }) => (
+                <button
+                  key={ide}
+                  onClick={() => copy(cmd, ide)}
+                  className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors text-left"
+                >
+                  <span className="text-[10px] text-white/50 truncate">{ide}</span>
+                  {copied === ide ? <Check className="w-3 h-3 text-emerald-400 flex-shrink-0" /> : <svg className="w-3 h-3 text-white/20 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-3 border-t border-white/[0.07] flex items-center justify-between gap-3">
+          <a
+            href="/developer/integrations"
+            target="_blank"
+            rel="noreferrer"
+            className="text-[11px] text-violet-400 hover:text-violet-300 flex items-center gap-1 underline underline-offset-2"
+          >
+            Manage connections
+            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+          <button
+            onClick={onClose}
+            className="px-4 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function SendToIdeButton({ files }: { files: GeneratedFiles }) {
   const [devices, setDevices] = useState<BridgeDevice[]>([])
   const [open, setOpen] = useState(false)
+  const [showSetupModal, setShowSetupModal] = useState(false)
   const [loadingDevices, setLoadingDevices] = useState(false)
   const [sending, setSending] = useState<string | null>(null)
   const [sent, setSent] = useState<string | null>(null)
@@ -713,11 +834,7 @@ function SendToIdeButton({ files }: { files: GeneratedFiles }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           device_id: device.id,
-          event: {
-            type: "write_files",
-            files: fileList,
-            source: "architect",
-          },
+          event: { type: "write_files", files: fileList, source: "architect" },
         }),
       })
       if (res.ok) {
@@ -730,14 +847,19 @@ function SendToIdeButton({ files }: { files: GeneratedFiles }) {
     }
   }
 
-  function handleToggle() {
-    if (!open) {
-      setOpen(true)
-      loadDevices()
-    } else {
-      setOpen(false)
-    }
+  async function handleToggle() {
+    if (open) { setOpen(false); return }
+    setOpen(true)
+    await loadDevices()
   }
+
+  // After loading, if no devices found open the setup modal instead
+  useEffect(() => {
+    if (open && !loadingDevices && devices.length === 0) {
+      setOpen(false)
+      setShowSetupModal(true)
+    }
+  }, [open, loadingDevices, devices.length])
 
   if (sent) {
     return (
@@ -749,33 +871,27 @@ function SendToIdeButton({ files }: { files: GeneratedFiles }) {
   }
 
   return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={handleToggle}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/15 border border-blue-500/25 text-xs text-blue-300 font-semibold hover:bg-blue-500/25 transition-all"
-      >
-        <Monitor className="w-3.5 h-3.5" />
-        Send to IDE
-        <ChevronDown className="w-3 h-3 opacity-60" />
-      </button>
+    <>
+      {showSetupModal && <BridgeSetupModal onClose={() => setShowSetupModal(false)} />}
 
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-white/10 bg-[#0f0f14] shadow-2xl z-50 overflow-hidden">
-          <div className="px-3 py-2.5 border-b border-white/[0.06] flex items-center gap-2">
-            <Monitor className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-xs font-semibold text-white">Connected IDEs</span>
-          </div>
-          {loadingDevices ? (
-            <div className="flex items-center justify-center py-6">
-              <div className="w-4 h-4 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />
+      <div ref={ref} className="relative">
+        <button
+          onClick={handleToggle}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/15 border border-blue-500/25 text-xs text-blue-300 font-semibold hover:bg-blue-500/25 transition-all"
+        >
+          {loadingDevices
+            ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+            : <Monitor className="w-3.5 h-3.5" />}
+          Send to IDE
+          <ChevronDown className="w-3 h-3 opacity-60" />
+        </button>
+
+        {open && devices.length > 0 && (
+          <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-white/10 bg-[#0f0f14] shadow-2xl z-50 overflow-hidden">
+            <div className="px-3 py-2.5 border-b border-white/[0.06] flex items-center gap-2">
+              <Monitor className="w-3.5 h-3.5 text-blue-400" />
+              <span className="text-xs font-semibold text-white">Choose an IDE</span>
             </div>
-          ) : devices.length === 0 ? (
-            <div className="px-4 py-5 text-center">
-              <WifiOff className="w-6 h-6 text-white/20 mx-auto mb-2" />
-              <p className="text-xs text-white/40 font-medium">No IDE connected</p>
-              <p className="text-[10px] text-white/25 mt-1">Install the Midas Bridge extension in VS Code or Cursor</p>
-            </div>
-          ) : (
             <div className="py-1">
               {devices.map(device => (
                 <button
@@ -790,22 +906,32 @@ function SendToIdeButton({ files }: { files: GeneratedFiles }) {
                       : <Monitor className="w-3.5 h-3.5 text-blue-400" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold text-white truncate">{device.ide_name}{device.ide_version ? ` ${device.ide_version}` : ""}</div>
-                    <div className="text-[10px] text-white/40 truncate">{device.device_name ?? "Unknown device"} · port {device.bridge_port}</div>
+                    <div className="text-xs font-semibold text-white truncate">
+                      {device.ide_name}{device.ide_version ? ` ${device.ide_version}` : ""}
+                    </div>
+                    <div className="text-[10px] text-white/40 truncate">
+                      {device.device_name ?? "Unknown device"} · port {device.bridge_port}
+                    </div>
                   </div>
                   <Wifi className="w-3 h-3 text-green-400 flex-shrink-0" />
                 </button>
               ))}
             </div>
-          )}
-          <div className="px-3 py-2 border-t border-white/[0.06]">
-            <p className="text-[10px] text-white/30 text-center">
-              Sends {Object.keys(files).length} files to your IDE workspace
-            </p>
+            <div className="px-3 py-2 border-t border-white/[0.06] flex items-center justify-between">
+              <p className="text-[10px] text-white/25">
+                {Object.keys(files).length} files will be written
+              </p>
+              <button
+                onClick={() => { setOpen(false); setShowSetupModal(true) }}
+                className="text-[10px] text-violet-400 hover:text-violet-300"
+              >
+                Setup help
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   )
 }
 

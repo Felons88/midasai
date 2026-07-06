@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import {
   MonitorCog, Server, Link2, ShieldCheck, Trash2, Loader2,
   Clock, CheckCircle2, XCircle, Terminal, Copy, Check,
-  ExternalLink, RefreshCw, Cpu, Globe, Sparkles, Plus,
+  ExternalLink, RefreshCw, Cpu, Globe, Sparkles, Plus, Wifi, WifiOff,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -17,8 +17,23 @@ interface BridgeDevice {
   device_os?: string | null
   device_arch?: string | null
   bridge_port: number
-  last_seen_at?: string | null
+  last_seen?: string | null
   created_at: string
+}
+
+async function probeDevice(port: number): Promise<boolean> {
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 2500)
+    const res = await fetch(`http://localhost:${port}/midas-bridge/ping`, {
+      signal: controller.signal,
+      mode: "cors",
+    })
+    clearTimeout(timeout)
+    return res.ok
+  } catch {
+    return false
+  }
 }
 
 interface McpServer {
@@ -84,6 +99,96 @@ const IDE_DOT: Record<string, string> = {
   "Claude Code": "bg-amber-400",
 }
 
+function DeviceCard({
+  device, isRevoked, onRevoke,
+}: {
+  device: BridgeDevice
+  isRevoked: boolean
+  onRevoke: (id: string) => void
+}) {
+  const [liveStatus, setLiveStatus] = useState<"probing" | "connected" | "disconnected">("probing")
+
+  const probe = useCallback(async () => {
+    const alive = await probeDevice(device.bridge_port)
+    setLiveStatus(alive ? "connected" : "disconnected")
+  }, [device.bridge_port])
+
+  useEffect(() => {
+    probe()
+    const interval = setInterval(probe, 15_000)
+    return () => clearInterval(interval)
+  }, [probe])
+
+  const colorClass = IDE_COLORS[device.ide_name] ?? "from-white/5 to-white/2 border-white/[0.07]"
+  const dotColor = IDE_DOT[device.ide_name] ?? "bg-white/40"
+
+  return (
+    <div className={cn("rounded-2xl border bg-gradient-to-br p-4", colorClass)}>
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2.5">
+          {liveStatus === "probing" ? (
+            <Loader2 className="h-2.5 w-2.5 text-white/30 animate-spin flex-shrink-0" />
+          ) : liveStatus === "connected" ? (
+            <span className={cn("h-2.5 w-2.5 rounded-full flex-shrink-0 animate-pulse", dotColor)} />
+          ) : (
+            <span className="h-2.5 w-2.5 rounded-full bg-red-500/60 flex-shrink-0" />
+          )}
+          <div>
+            <p className="text-sm font-semibold text-white">{device.ide_name}</p>
+            {device.ide_version && <p className="text-[10px] text-white/30">v{device.ide_version}</p>}
+          </div>
+        </div>
+        <span className={cn(
+          "text-[10px] px-2 py-0.5 rounded-full font-semibold border flex items-center gap-1",
+          liveStatus === "connected"
+            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+            : liveStatus === "probing"
+            ? "bg-white/[0.04] text-white/30 border-white/[0.06]"
+            : "bg-red-500/10 text-red-400 border-red-500/20"
+        )}>
+          {liveStatus === "connected" && <Wifi className="h-2.5 w-2.5" />}
+          {liveStatus === "disconnected" && <WifiOff className="h-2.5 w-2.5" />}
+          {liveStatus === "probing" ? "Checking…" : liveStatus === "connected" ? "Connected" : "Disconnected"}
+        </span>
+      </div>
+
+      <div className="space-y-1 mb-3">
+        <div className="flex items-center gap-1.5 text-[11px] text-white/40">
+          <Globe className="h-3 w-3" />
+          <span className="truncate">{device.device_name}</span>
+          {device.device_os && <span className="text-white/20">· {device.device_os}</span>}
+        </div>
+        {device.device_arch && (
+          <div className="flex items-center gap-1.5 text-[11px] text-white/30">
+            <Cpu className="h-3 w-3" />
+            <span>{device.device_arch}</span>
+            <span className="text-white/20">· port {device.bridge_port}</span>
+          </div>
+        )}
+        <div className="flex items-center gap-1.5 text-[11px] text-white/25">
+          <Clock className="h-3 w-3" />
+          <span>Last seen {formatAgo(device.last_seen)}</span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-2 border-t border-white/[0.05]">
+        <div className="flex items-center gap-1.5 text-[10px] text-white/25">
+          <ShieldCheck className="h-3 w-3 text-emerald-400/40" />
+          Authorized {formatAgo(device.created_at)}
+        </div>
+        <button
+          onClick={() => onRevoke(device.id)}
+          disabled={isRevoked}
+          className="flex items-center gap-1 text-[11px] text-white/20 hover:text-red-400 transition-colors"
+        >
+          {isRevoked ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+          Revoke
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function IntegrationsClient({ bridgeDevices: initialDevices, mcpServers, nexusConnections, siteUrl }: Props) {
   const [devices, setDevices] = useState(initialDevices)
   const [revoking, setRevoking] = useState<string | null>(null)
@@ -95,7 +200,6 @@ export function IntegrationsClient({ bridgeDevices: initialDevices, mcpServers, 
     setRevoking(null)
   }
 
-  const connectedIDEs = new Set(nexusConnections.filter(c => c.status === "connected" && c.type === "IDE").map(c => c.name))
   const activeMcp = mcpServers.filter(s => s.status === "ACTIVE").length
 
   return (
@@ -112,7 +216,7 @@ export function IntegrationsClient({ bridgeDevices: initialDevices, mcpServers, 
         <div className="flex items-center gap-2 text-xs text-white/30">
           <span className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            {connectedIDEs.size} IDE{connectedIDEs.size !== 1 ? "s" : ""} live
+            {devices.length} device{devices.length !== 1 ? "s" : ""} registered
           </span>
           <span className="text-white/10">·</span>
           <span>{activeMcp} MCP agent{activeMcp !== 1 ? "s" : ""}</span>
@@ -159,64 +263,14 @@ export function IntegrationsClient({ bridgeDevices: initialDevices, mcpServers, 
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {devices.map(d => {
-              const colorClass = IDE_COLORS[d.ide_name] ?? "from-white/5 to-white/2 border-white/[0.07]"
-              const dotClass = IDE_DOT[d.ide_name] ?? "bg-white/40"
-              const isLive = connectedIDEs.has(d.ide_name)
-              return (
-                <div key={d.id} className={cn("rounded-2xl border bg-gradient-to-br p-4", colorClass)}>
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className={cn("h-2.5 w-2.5 rounded-full flex-shrink-0", isLive ? dotClass + " animate-pulse" : "bg-white/15")} />
-                      <div>
-                        <p className="text-sm font-semibold text-white">{d.ide_name}</p>
-                        {d.ide_version && <p className="text-[10px] text-white/30">v{d.ide_version}</p>}
-                      </div>
-                    </div>
-                    <span className={cn(
-                      "text-[10px] px-2 py-0.5 rounded-full font-semibold border",
-                      isLive ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-white/[0.04] text-white/30 border-white/[0.06]"
-                    )}>
-                      {isLive ? "Live" : "Offline"}
-                    </span>
-                  </div>
-
-                  <div className="space-y-1 mb-3">
-                    <div className="flex items-center gap-1.5 text-[11px] text-white/40">
-                      <Globe className="h-3 w-3" />
-                      <span className="truncate">{d.device_name}</span>
-                      {d.device_os && <span className="text-white/20">· {d.device_os}</span>}
-                    </div>
-                    {d.device_arch && (
-                      <div className="flex items-center gap-1.5 text-[11px] text-white/30">
-                        <Cpu className="h-3 w-3" />
-                        <span>{d.device_arch}</span>
-                        <span className="text-white/20">· port {d.bridge_port}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1.5 text-[11px] text-white/25">
-                      <Clock className="h-3 w-3" />
-                      <span>Last seen {formatAgo(d.last_seen_at)}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-white/[0.05]">
-                    <div className="flex items-center gap-1.5 text-[10px] text-white/25">
-                      <ShieldCheck className="h-3 w-3 text-emerald-400/40" />
-                      Authorized {formatAgo(d.created_at)}
-                    </div>
-                    <button
-                      onClick={() => revokeDevice(d.id)}
-                      disabled={revoking === d.id}
-                      className="flex items-center gap-1 text-[11px] text-white/20 hover:text-red-400 transition-colors"
-                    >
-                      {revoking === d.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
-                      Revoke
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
+            {devices.map(d => (
+              <DeviceCard
+                key={d.id}
+                device={d}
+                isRevoked={revoking === d.id}
+                onRevoke={revokeDevice}
+              />
+            ))}
           </div>
         )}
       </section>

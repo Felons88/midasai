@@ -22,9 +22,9 @@ export default async function IntegrationsPage() {
   ] = await Promise.all([
     supabase
       .from("bridge_devices")
-      .select("id, ide_name, ide_version, device_name, device_os, device_arch, bridge_port, last_seen_at, created_at")
+      .select("id, ide_name, ide_version, device_name, device_os, device_arch, bridge_port, last_seen, created_at")
       .eq("user_id", user.id)
-      .order("last_seen_at", { ascending: false }),
+      .order("last_seen", { ascending: false }),
     supabase
       .from("mcp_servers")
       .select("id, name, description, endpoint, version, status, total_requests, created_at")
