@@ -1,6 +1,7 @@
-import { convertN8nToNexus, validateN8nWorkflow, type N8nWorkflow } from './n8n-converter'
+import { convertN8nToNexus, validateN8nWorkflow, findUnknownN8nNodeTypes, getUnknownN8nNodeSamples, type N8nWorkflow } from './n8n-converter'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { generateWorkflowTitle, generateFallbackTitle, generateWorkflowDescription, generateFallbackDescription } from '@/lib/ai/gemini'
+import { generateWorkflowTitle, generateFallbackTitle, generateWorkflowDescription, generateFallbackDescription, generateNodeDefinition } from '@/lib/ai/gemini'
+import { saveCustomNode } from './custom-nodes'
 
 const GITHUB_REPO = 'zie619/n8n-workflows'
 const GITHUB_API_BASE = 'https://api.github.com/repos'
@@ -9,6 +10,9 @@ const GITHUB_API_BASE = 'https://api.github.com/repos'
 const REQUEST_DELAY_MS = 350
 const MAX_RETRIES = 5
 const BASE_RETRY_DELAY_MS = 1000
+
+// Cache generated node definitions so we only generate one definition per unknown n8n type
+const generatedNodeCache = new Map<string, boolean>()
 
 interface ScrapeResult {
   success: boolean
@@ -118,6 +122,40 @@ async function fetchGitHubFile(downloadUrl: string): Promise<N8nWorkflow> {
 }
 
 /**
+ * Detects n8n node types that are not in the Nexus registry and generates/saves
+ * placeholder definitions for them. Uses an in-memory cache so each type is only
+ * generated once per process.
+ */
+export async function ensureUnknownNodes(
+  n8nWorkflow: N8nWorkflow,
+  onProgress?: (message: string) => void
+): Promise<string[]> {
+  const unknownTypes = findUnknownN8nNodeTypes(n8nWorkflow)
+  if (unknownTypes.length === 0) return []
+
+  const samples = getUnknownN8nNodeSamples(n8nWorkflow)
+  const generated: string[] = []
+
+  for (const type of unknownTypes) {
+    if (generatedNodeCache.has(type)) continue
+    generatedNodeCache.set(type, true)
+
+    onProgress?.(`Generating node definition for: ${type}`)
+    const result = await generateNodeDefinition(type, samples[type] || {})
+    if (result.success && result.content) {
+      try {
+        await saveCustomNode(result.content, type)
+        generated.push(type)
+      } catch (saveError) {
+        console.warn(`Failed to save custom node ${type}:`, saveError)
+      }
+    }
+  }
+
+  return generated
+}
+
+/**
  * Scrapes all n8n workflows from the GitHub repository
  * and converts them to Nexus format
  */
@@ -186,6 +224,11 @@ export async function scrapeN8nWorkflows(
             if (validation.warnings.length > 0) {
               result.warnings.push(`${file.name}: ${validation.warnings.join(', ')}`)
             }
+
+            // Generate Nexus definitions for any unknown n8n node types
+            await ensureUnknownNodes(n8nWorkflow, (message) => {
+              onProgress?.(processedFiles, totalFiles, message)
+            })
 
             // Convert to Nexus format
             const nexusDefinition = convertN8nToNexus(n8nWorkflow)
@@ -265,6 +308,11 @@ export async function scrapeN8nCategory(
           errors.push(`${file.name}: ${validation.errors.join(', ')}`)
           continue
         }
+
+        // Generate Nexus definitions for any n8n node types we don't have yet
+        await ensureUnknownNodes(n8nWorkflow, (message) => {
+          onProgress?.(i + 1, workflowFiles.length, message)
+        })
 
         const nexusDefinition = convertN8nToNexus(n8nWorkflow)
         const workflowName = file.name.replace('.json', '')
