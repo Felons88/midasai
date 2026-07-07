@@ -360,173 +360,164 @@ export async function scrapeN8nCategory(
   categoryName: string,
   onProgress?: (current: number, total: number, message: string) => void
 ): Promise<{ workflows: Array<{ name: string; definition: any; n8nWorkflow: N8nWorkflow }>; errors: string[] }> {
-  const workflows: Array<{ name: string; definition: any; n8nWorkflow: N8nWorkflow }> = []
-  const errors: string[] = []
-  const serviceClient = createServiceClient()
+    const workflows: Array<{ name: string; definition: any; n8nWorkflow: N8nWorkflow; seoTitle: string; description: string; metadata: any; storagePath: string }> = []
+    const errors: string[] = []
+    const serviceClient = createServiceClient()
 
-  try {
-    onProgress?.(0, 0, `Fetching category: ${categoryName}`)
-    const allFiles = await getN8nWorkflowFiles()
-    const workflowFiles = allFiles.filter((f) => f.category === categoryName)
+    try {
+      onProgress?.(0, 0, `Fetching category: ${categoryName}`)
+      const allFiles = await getN8nWorkflowFiles()
+      const workflowFiles = allFiles.filter((f) => f.category === categoryName)
 
-    onProgress?.(0, workflowFiles.length, `Found ${workflowFiles.length} workflows`)
+      onProgress?.(0, workflowFiles.length, `Found ${workflowFiles.length} workflows`)
 
-    // Pre-fetch existing templates to avoid re-generating AI titles on re-runs
-    const { data: existingTemplates } = await serviceClient
-      .from('nexus_workflow_templates')
-      .select('name, seo_title')
-      .eq('source', 'n8n')
-    const existingTitleMap = new Map(existingTemplates?.map(t => [t.name, t.seo_title]) || [])
-
+    // Phase 1: Process all workflows (fetch, validate, convert, generate AI content)
+    console.log(`Phase 1: Processing ${workflowFiles.length} workflows with AI generation...`)
     for (let i = 0; i < workflowFiles.length; i++) {
-      const file = workflowFiles[i]
-      onProgress?.(i + 1, workflowFiles.length, `Processing: ${file.name}`)
+        const file = workflowFiles[i]
+        onProgress?.(i + 1, workflowFiles.length, `Processing: ${file.name}`)
 
-      try {
-        const n8nWorkflow = await fetchGitHubFile(file.path)
-        const validation = validateN8nWorkflow(n8nWorkflow)
+        try {
+          const n8nWorkflow = await fetchGitHubFile(file.path)
+          const validation = validateN8nWorkflow(n8nWorkflow)
 
-        if (!validation.valid) {
-          errors.push(`${file.name}: ${validation.errors.join(', ')}`)
-          continue
-        }
+          if (!validation.valid) {
+            errors.push(`${file.name}: ${validation.errors.join(', ')}`)
+            continue
+          }
 
-        // Generate Nexus definitions for any n8n node types we don't have yet
-        await ensureUnknownNodes(n8nWorkflow, (message) => {
-          onProgress?.(i + 1, workflowFiles.length, message)
-        })
+          // Generate Nexus definitions for any n8n node types we don't have yet
+          await ensureUnknownNodes(n8nWorkflow, (message) => {
+            onProgress?.(i + 1, workflowFiles.length, message)
+          })
 
-        // Use new compatibility engine pipeline for conversion
-        const importResult = await importN8nWorkflow(n8nWorkflow, {
-          autoLayout: true,
-          preservePositions: false,
-          strictMode: false,
-          debug: false
-        })
+          // Use new compatibility engine pipeline for conversion
+          const importResult = await importN8nWorkflow(n8nWorkflow, {
+            autoLayout: true,
+            preservePositions: false,
+            strictMode: false,
+            debug: false
+          })
 
-        if (!importResult.success || !importResult.definition) {
-          errors.push(`${file.name}: Import failed - ${importResult.error || 'Unknown error'}`)
+          if (!importResult.success || !importResult.definition) {
+            errors.push(`${file.name}: Import failed - ${importResult.error || 'Unknown error'}`)
+            if (importResult.report) {
+              const reportErrors = importResult.report.errors.map(e => `[${e.stage}] ${e.message}`).join('; ')
+              if (reportErrors) errors.push(`${file.name}: ${reportErrors}`)
+            }
+            continue
+          }
+
+          const nexusDefinition = importResult.definition
+          const workflowName = file.name.replace('.json', '')
+          const n8nWorkflowName = n8nWorkflow.name || workflowName
+
+          // Log import report statistics for monitoring
           if (importResult.report) {
-            // Add report details to error for debugging
-            const reportErrors = importResult.report.errors.map(e => `[${e.stage}] ${e.message}`).join('; ')
-            if (reportErrors) errors.push(`${file.name}: ${reportErrors}`)
+            const stats = importResult.report
+            console.log(`Import stats for ${workflowName}: ${stats.mappedNodes} mapped, ${stats.customNodes} custom, ${stats.unsupportedNodes} unsupported, ${stats.reconstructedConnections}/${stats.totalConnections} connections`)
+            if (stats.errors.length > 0) {
+              console.warn(`Import errors for ${workflowName}:`, stats.errors.map(e => e.message))
+            }
           }
-          continue
-        }
 
-        const nexusDefinition = importResult.definition
-        const workflowName = file.name.replace('.json', '')
-        const n8nWorkflowName = n8nWorkflow.name || workflowName
-
-        // Log import report statistics for monitoring
-        if (importResult.report) {
-          const stats = importResult.report
-          console.log(`Import stats for ${workflowName}: ${stats.mappedNodes} mapped, ${stats.customNodes} custom, ${stats.unsupportedNodes} unsupported, ${stats.reconstructedConnections}/${stats.totalConnections} connections`)
-          if (stats.errors.length > 0) {
-            console.warn(`Import errors for ${workflowName}:`, stats.errors.map(e => e.message))
-          }
-        }
-
-        // Use existing AI-generated title if available, otherwise generate one
-        const existingTitle = existingTitleMap.get(workflowName)
-        let seoTitle = existingTitle || generateFallbackTitle(n8nWorkflowName)
-        let titleWasGenerated = !!existingTitle
-
-        // Regenerate if the stored title is still a raw filename (contains underscores / leading numbers)
-        const needsTitleRegeneration = !existingTitle || /^\d+[_-]/.test(existingTitle) || existingTitle.includes('_')
-
-        if (needsTitleRegeneration) {
+          // Generate AI title
           onProgress?.(i + 1, workflowFiles.length, `Generating title for: ${file.name}`)
           const titleResult = await generateWorkflowTitle(n8nWorkflowName, n8nWorkflow)
-          if (titleResult.success && titleResult.content) {
-            seoTitle = titleResult.content
-            titleWasGenerated = true
-          }
-        }
+          const seoTitle = titleResult.success && titleResult.content ? titleResult.content : generateFallbackTitle(n8nWorkflowName)
 
-        // Generate a description based on the title and workflow content
-        let description = n8nWorkflow.description || generateFallbackDescription(seoTitle)
-        const hasRealDescription = n8nWorkflow.description && n8nWorkflow.description.length > 10 && !n8nWorkflow.description.startsWith('Imported')
-        if (!hasRealDescription) {
+          // Generate AI description
           onProgress?.(i + 1, workflowFiles.length, `Generating description for: ${file.name}`)
           const descriptionResult = await generateWorkflowDescription(seoTitle, n8nWorkflow)
-          if (descriptionResult.success && descriptionResult.content) {
-            description = descriptionResult.content
-          }
+          const description = descriptionResult.success && descriptionResult.content ? descriptionResult.content : generateFallbackDescription(seoTitle)
+
+          // Derive metadata
+          const metadata = deriveWorkflowMetadata(n8nWorkflow, categoryName, file.name)
+          const storagePath = `${categoryName}/${workflowName}.json`
+
+          // Store processed workflow for batch operations
+          workflows.push({
+            name: workflowName,
+            definition: nexusDefinition,
+            n8nWorkflow,
+            seoTitle,
+            description,
+            metadata,
+            storagePath
+          })
+
+          console.log(`✓ Processed: ${workflowName}`)
+        } catch (error) {
+          errors.push(`${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
         }
+      }
 
-        // Derive brand-aware metadata (tags, difficulty, icon, color, logo) from workflow name and nodes
-        const metadata = deriveWorkflowMetadata(n8nWorkflow, categoryName, file.name)
-
-        // Upload the raw n8n JSON to Supabase Storage
-        onProgress?.(i + 1, workflowFiles.length, `Uploading JSON for: ${file.name}`)
-        const storagePath = `${categoryName}/${workflowName}.json`
-
+      // Phase 2: Batch upload to storage
+      console.log(`Phase 2: Uploading ${workflows.length} workflows to storage...`)
+      onProgress?.(workflowFiles.length, workflowFiles.length, `Uploading ${workflows.length} workflows to storage...`)
+      for (const workflow of workflows) {
         try {
           const { error: uploadError } = await serviceClient
             .storage
             .from('n8n-workflows')
-            .upload(storagePath, JSON.stringify(n8nWorkflow), {
+            .upload(workflow.storagePath, JSON.stringify(workflow.n8nWorkflow), {
               contentType: 'application/json',
               upsert: true,
             })
 
           if (uploadError) {
-            errors.push(`${file.name}: Storage upload failed - ${uploadError.message}`)
+            errors.push(`${workflow.name}: Storage upload failed - ${uploadError.message}`)
           }
         } catch (uploadError) {
-          errors.push(`${file.name}: Storage upload failed - ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`)
+          errors.push(`${workflow.name}: Storage upload failed - ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`)
         }
-        
-        // Save to database as template using the service role so RLS cannot block admin scraping
-        // Save the FULL converted definition instead of placeholder
-        onProgress?.(i + 1, workflowFiles.length, `Saving to database: ${file.name}`)
-        const { error: insertError } = await serviceClient
-          .from('nexus_workflow_templates')
-          .upsert({
-            name: workflowName,
-            seo_title: seoTitle,
-            description,
-            category: mapN8nCategoryToNexus(categoryName),
-            icon: metadata.icon,
-            color: metadata.color,
-            logo_url: metadata.logoUrl,
-            tags: metadata.tags,
-            difficulty: metadata.difficulty,
-            definition: nexusDefinition, // Full converted definition with all nodes
-            source: 'n8n',
-            source_url: rawGitHubUrl(file.path),
-            storage_path: storagePath,
-            is_active: true, // Ensure templates are visible
-            source_metadata: {
-              original_name: n8nWorkflowName,
-              generated_seo_title: titleWasGenerated,
-              n8n_version: n8nWorkflow.version || '1.0',
-              node_count: n8nWorkflow.nodes?.length || 0,
-              node_types: n8nWorkflow.nodes?.map(n => n.type) || []
-            }
-          }, {
-            onConflict: 'name'
-          })
-
-        if (insertError) {
-          const message = `${file.name}: Failed to save to database - ${insertError.message}`
-          console.error(message, insertError)
-          console.error('Full error details:', JSON.stringify(insertError, null, 2))
-          errors.push(message)
-          continue
-        }
-
-        console.log(`✓ Saved template: ${workflowName}`)
-        workflows.push({
-          name: workflowName,
-          definition: nexusDefinition,
-          n8nWorkflow,
-        })
-      } catch (error) {
-        errors.push(`${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
-    }
+
+      // Phase 3: Batch save to database
+      console.log(`Phase 3: Saving ${workflows.length} workflows to database...`)
+      onProgress?.(workflowFiles.length, workflowFiles.length, `Saving ${workflows.length} workflows to database...`)
+      for (const workflow of workflows) {
+        try {
+          const { error: insertError } = await serviceClient
+            .from('nexus_workflow_templates')
+            .upsert({
+              name: workflow.name,
+              seo_title: workflow.seoTitle,
+              description: workflow.description,
+              category: mapN8nCategoryToNexus(categoryName),
+              icon: workflow.metadata.icon,
+              color: workflow.metadata.color,
+              logo_url: workflow.metadata.logoUrl,
+              tags: workflow.metadata.tags,
+              difficulty: workflow.metadata.difficulty,
+              definition: workflow.definition,
+              source: 'n8n',
+              source_url: rawGitHubUrl(workflow.name + '.json'),
+              storage_path: workflow.storagePath,
+              is_active: true,
+              source_metadata: {
+                original_name: workflow.n8nWorkflow.name || workflow.name,
+                generated_seo_title: true,
+                n8n_version: workflow.n8nWorkflow.version || '1.0',
+                node_count: workflow.n8nWorkflow.nodes?.length || 0,
+                node_types: workflow.n8nWorkflow.nodes?.map(n => n.type) || []
+              }
+            }, {
+              onConflict: 'name'
+            })
+
+          if (insertError) {
+            const message = `${workflow.name}: Failed to save to database - ${insertError.message}`
+            console.error(message, insertError)
+            console.error('Full error details:', JSON.stringify(insertError, null, 2))
+            errors.push(message)
+          } else {
+            console.log(`✓ Saved template: ${workflow.name}`)
+          }
+        } catch (error) {
+          errors.push(`${workflow.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        }
+      }
   } catch (error) {
     errors.push(`Category fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
