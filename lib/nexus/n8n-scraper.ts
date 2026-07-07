@@ -497,6 +497,7 @@ export async function scrapeN8nCategory(
             source: 'n8n',
             source_url: rawGitHubUrl(file.path),
             storage_path: storagePath,
+            is_active: true, // Ensure templates are visible
             source_metadata: {
               original_name: n8nWorkflowName,
               generated_seo_title: titleWasGenerated,
@@ -511,10 +512,12 @@ export async function scrapeN8nCategory(
         if (insertError) {
           const message = `${file.name}: Failed to save to database - ${insertError.message}`
           console.error(message, insertError)
+          console.error('Full error details:', JSON.stringify(insertError, null, 2))
           errors.push(message)
           continue
         }
 
+        console.log(`✓ Saved template: ${workflowName}`)
         workflows.push({
           name: workflowName,
           definition: nexusDefinition,
