@@ -1,6 +1,6 @@
 import { convertN8nToNexus, validateN8nWorkflow, findUnknownN8nNodeTypes, getUnknownN8nNodeSamples, type N8nWorkflow } from './n8n-converter'
 import { importN8nWorkflow, type ImportPipelineResult } from './import'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { generateWorkflowTitle, generateFallbackTitle, generateWorkflowDescription, generateFallbackDescription, generateNodeDefinition } from '@/lib/ai/gemini'
 import { saveCustomNode } from './custom-nodes'
 
@@ -362,7 +362,6 @@ export async function scrapeN8nCategory(
 ): Promise<{ workflows: Array<{ name: string; definition: any; n8nWorkflow: N8nWorkflow }>; errors: string[] }> {
   const workflows: Array<{ name: string; definition: any; n8nWorkflow: N8nWorkflow }> = []
   const errors: string[] = []
-  const supabase = await createClient()
   const serviceClient = createServiceClient()
 
   try {
@@ -373,7 +372,7 @@ export async function scrapeN8nCategory(
     onProgress?.(0, workflowFiles.length, `Found ${workflowFiles.length} workflows`)
 
     // Pre-fetch existing templates to avoid re-generating AI titles on re-runs
-    const { data: existingTemplates } = await supabase
+    const { data: existingTemplates } = await serviceClient
       .from('nexus_workflow_templates')
       .select('name, seo_title')
       .eq('source', 'n8n')
