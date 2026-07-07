@@ -382,7 +382,9 @@ export async function scrapeN8nCategory(
           const validation = validateN8nWorkflow(n8nWorkflow)
 
           if (!validation.valid) {
-            errors.push(`${file.name}: ${validation.errors.join(', ')}`)
+            const message = `${file.name}: ${validation.errors.join(', ')}`
+            console.error(message)
+            errors.push(message)
             continue
           }
 
@@ -400,11 +402,16 @@ export async function scrapeN8nCategory(
           })
 
           if (!importResult.success || !importResult.definition) {
-            errors.push(`${file.name}: Import failed - ${importResult.error || 'Unknown error'}`)
+            const message = `${file.name}: Import failed - ${importResult.error || 'Unknown error'}`
+            console.error(message)
             if (importResult.report) {
               const reportErrors = importResult.report.errors.map(e => `[${e.stage}] ${e.message}`).join('; ')
-              if (reportErrors) errors.push(`${file.name}: ${reportErrors}`)
+              if (reportErrors) {
+                console.error(`${file.name}: ${reportErrors}`)
+                errors.push(`${file.name}: ${reportErrors}`)
+              }
             }
+            errors.push(message)
             continue
           }
 
@@ -448,9 +455,12 @@ export async function scrapeN8nCategory(
 
           console.log(`✓ Processed: ${workflowName}`)
         } catch (error) {
-          errors.push(`${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          const message = `${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`
+          console.error(message, error)
+          errors.push(message)
         }
       }
+      console.log(`Phase 1 complete: ${workflows.length}/${workflowFiles.length} workflows processed successfully`)
 
       // Phase 2: Batch upload to storage
       console.log(`Phase 2: Uploading ${workflows.length} workflows to storage...`)
