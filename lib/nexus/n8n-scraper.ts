@@ -476,8 +476,10 @@ export async function scrapeN8nCategory(
       // Phase 3: Batch save to database
       console.log(`Phase 3: Saving ${workflows.length} workflows to database...`)
       onProgress?.(workflowFiles.length, workflowFiles.length, `Saving ${workflows.length} workflows to database...`)
+      let savedCount = 0
       for (const workflow of workflows) {
         try {
+          console.log(`Attempting to save: ${workflow.name}`)
           const { error: insertError } = await serviceClient
             .from('nexus_workflow_templates')
             .upsert({
@@ -513,11 +515,15 @@ export async function scrapeN8nCategory(
             errors.push(message)
           } else {
             console.log(`✓ Saved template: ${workflow.name}`)
+            savedCount++
           }
         } catch (error) {
-          errors.push(`${workflow.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          const message = `${workflow.name}: ${error instanceof Error ? error.message : 'Unknown error'}`
+          console.error(message, error)
+          errors.push(message)
         }
       }
+      console.log(`Phase 3 complete: ${savedCount}/${workflows.length} templates saved`)
   } catch (error) {
     errors.push(`Category fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
