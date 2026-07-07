@@ -952,6 +952,964 @@ const NODE_EXECUTORS: Record<string, NodeExecutorFn> = {
   // ── Webhook Trigger variant ───────────────────────────────────────────────
   webhook_trigger: async (config, ctx) => ({ payload: ctx.$input, triggered: true, response_code: config.response_code ?? 200 }),
 
+  // ── NoOp (pass-through) ─────────────────────────────────────────────────────
+  no_op: async (config, ctx) => {
+    // Simply passes input through unchanged
+    return { ...ctx.$input, _noOp: true }
+  },
+
+  // ── Stop and Error ─────────────────────────────────────────────────────────
+  stop_and_error: async (config, ctx) => {
+    const message = String(config.message ?? config.error_message ?? "Workflow stopped")
+    throw new Error(message)
+  },
+
+  // ── Split Out (split array into items) ───────────────────────────────────────
+  split_out: async (config, ctx) => {
+    const arr = (config.array ?? ctx.$input.array ?? ctx.$input.items ?? []) as unknown[]
+    const field = String(config.field ?? "")
+    const result = arr.map((item, index) => {
+      if (field && typeof item === "object") {
+        return { index, item: (item as Record<string, unknown>)[field] }
+      }
+      return { index, item }
+    })
+    return { items: result, count: result.length, original: arr }
+  },
+
+  // ── Split In Batches ────────────────────────────────────────────────────────
+  split_in_batches: async (config, ctx) => {
+    const arr = (config.array ?? ctx.$input.array ?? ctx.$input.items ?? []) as unknown[]
+    const batchSize = Number(config.batch_size ?? 10)
+    const batches: unknown[][] = []
+    for (let i = 0; i < arr.length; i += batchSize) {
+      batches.push(arr.slice(i, i + batchSize))
+    }
+    return { batches, count: batches.length, total_items: arr.length, batch_size: batchSize }
+  },
+
+  // ── Respond to Webhook ───────────────────────────────────────────────────────
+  respond_to_webhook: async (config, ctx) => {
+    const responseCode = Number(config.response_code ?? 200)
+    const responseBody = config.response_body ?? ctx.$input
+    const headers = config.response_headers ?? { "Content-Type": "application/json" }
+    return {
+      response: {
+        status: responseCode,
+        body: responseBody,
+        headers,
+      },
+      responded: true,
+    }
+  },
+
+  // ── Aggregate (group by field) ───────────────────────────────────────────────
+  aggregate: async (config, ctx) => {
+    const arr = (config.array ?? ctx.$input.array ?? ctx.$input.items ?? []) as unknown[]
+    const groupBy = String(config.group_by ?? "")
+    const operation = String(config.operation ?? "count")
+    
+    if (!groupBy) {
+      return { result: arr, count: arr.length }
+    }
+
+    const groups: Record<string, unknown[]> = {}
+    for (const item of arr) {
+      if (typeof item === "object" && item !== null) {
+        const key = String((item as Record<string, unknown>)[groupBy] ?? "undefined")
+        if (!groups[key]) groups[key] = []
+        groups[key].push(item)
+      }
+    }
+
+    const result = Object.entries(groups).map(([key, items]) => {
+      let value: unknown
+      switch (operation) {
+        case "count":
+          value = items.length
+          break
+        case "sum":
+          value = items.reduce((sum: number, i) => sum + Number((i as Record<string, unknown>).value ?? 0), 0)
+          break
+        case "avg":
+          value = items.reduce((sum: number, i) => sum + Number((i as Record<string, unknown>).value ?? 0), 0) / items.length
+          break
+        case "first":
+          value = items[0]
+          break
+        case "last":
+          value = items[items.length - 1]
+          break
+        default:
+          value = items
+      }
+      return { key, value, count: items.length }
+    })
+
+    return { result, count: result.length, groups }
+  },
+
+  // ── Function (n8n function node) ──────────────────────────────────────────────
+  function: async (config, ctx) => {
+    const code = String(config.code ?? config.function_code ?? "return $input;")
+    try {
+      // eslint-disable-next-line no-new-func
+      const fn = new Function("$input", "$node", "$json", "items", `"use strict"; ${code}`)
+      const result = fn(ctx.$input, ctx.$node, ctx.$input, ctx.$input.array ?? ctx.$input.items ?? [])
+      return { result: result ?? null, output: result }
+    } catch (err) {
+      throw new Error(`Function error: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  },
+
+  // ── HTML (markdown to HTML) ───────────────────────────────────────────────────
+  html: async (config, ctx) => {
+    const markdown = String(config.markdown ?? config.input ?? ctx.$input.markdown ?? ctx.$input.text ?? "")
+    // Simple markdown to HTML conversion
+    const html = markdown
+      .replace(/^### (.*$)/gim, "<h3>$1</h3>")
+      .replace(/^## (.*$)/gim, "<h2>$1</h2>")
+      .replace(/^# (.*$)/gim, "<h1>$1</h1>")
+      .replace(/\*\*(.*)\*\*/gim, "<strong>$1</strong>")
+      .replace(/\*(.*)\*/gim, "<em>$1</em>")
+      .replace(/`([^`]+)`/gim, "<code>$1</code>")
+      .replace(/\n/gim, "<br>")
+    return { html, markdown, output: html }
+  },
+
+  // ── Markdown (HTML to markdown) ────────────────────────────────────────────────
+  markdown: async (config, ctx) => {
+    const html = String(config.html ?? config.input ?? ctx.$input.html ?? "")
+    // Simple HTML to markdown conversion
+    const markdown = html
+      .replace(/<h1>(.*?)<\/h1>/gim, "# $1")
+      .replace(/<h2>(.*?)<\/h2>/gim, "## $1")
+      .replace(/<h3>(.*?)<\/h3>/gim, "### $1")
+      .replace(/<strong>(.*?)<\/strong>/gim, "**$1**")
+      .replace(/<em>(.*?)<\/em>/gim, "*$1*")
+      .replace(/<code>(.*?)<\/code>/gim, "`$1`")
+      .replace(/<br\s*\/?>/gim, "\n")
+      .replace(/<[^>]+>/gim, "")
+    return { markdown, html, output: markdown }
+  },
+
+  // ── Filter (n8n filter node) ────────────────────────────────────────────────────
+  filter: async (config, ctx) => {
+    const arr = (config.array ?? ctx.$input.array ?? ctx.$input.items ?? []) as unknown[]
+    const conditions = config.conditions ?? []
+    const operation = String(config.operation ?? "keep")
+    
+    const filtered = arr.filter((item) => {
+      if (typeof item !== "object" || item === null) return true
+      
+      let match = true
+      for (const cond of conditions as Array<{ field: string; operator: string; value: unknown }>) {
+        const itemVal = (item as Record<string, unknown>)[cond.field]
+        switch (cond.operator) {
+          case "equals":
+            match = match && itemVal === cond.value
+            break
+          case "not_equals":
+            match = match && itemVal !== cond.value
+            break
+          case "contains":
+            match = match && String(itemVal).includes(String(cond.value))
+            break
+          case "not_contains":
+            match = match && !String(itemVal).includes(String(cond.value))
+            break
+          case "gt":
+            match = match && Number(itemVal) > Number(cond.value)
+            break
+          case "lt":
+            match = match && Number(itemVal) < Number(cond.value)
+            break
+          case "exists":
+            match = match && (itemVal !== undefined && itemVal !== null)
+            break
+          case "empty":
+            match = match && (itemVal === undefined || itemVal === null || itemVal === "")
+            break
+        }
+      }
+      return operation === "keep" ? match : !match
+    })
+    
+    return { result: filtered, count: filtered.length, original_count: arr.length }
+  },
+
+  // ── Wait (delay) ──────────────────────────────────────────────────────────────
+  wait: async (config, ctx) => {
+    const ms = Math.min(Number(config.delay_ms ?? config.wait ?? 1000), 30000)
+    await new Promise(r => setTimeout(r, ms))
+    return { waited_ms: ms, output: ctx.$input }
+  },
+
+  // ── Cron (schedule trigger) ────────────────────────────────────────────────────
+  cron: async (config) => {
+    const expression = String(config.cron_expression ?? "* * * * *")
+    return { triggered: true, cron: expression, timestamp: new Date().toISOString() }
+  },
+
+  // ── Execute Workflow (sub-workflow) ───────────────────────────────────────────
+  execute_workflow: async (config, ctx) => {
+    const workflowId = String(config.workflow_id ?? "")
+    const inputData = config.input_data ?? ctx.$input
+    // In a real implementation, this would call the workflow execution API
+    return { 
+      workflow_id: workflowId, 
+      input: inputData, 
+      result: null, 
+      note: "Sub-workflow execution requires API integration" 
+    }
+  },
+
+  // ── Execute Workflow Trigger ────────────────────────────────────────────────
+  execute_workflow_trigger: async (config, ctx) => {
+    return { triggered: true, workflow_id: config.workflow_id, input: ctx.$input }
+  },
+
+  // ── Form Trigger ───────────────────────────────────────────────────────────────
+  form_trigger: async (config, ctx) => {
+    return { triggered: true, form_data: ctx.$input, form_id: config.form_id }
+  },
+
+  // ── Convert to File ───────────────────────────────────────────────────────────
+  convert_to_file: async (config, ctx) => {
+    const data = config.data ?? ctx.$input.data ?? ctx.$input
+    const fileName = String(config.file_name ?? "file.txt")
+    const mimeType = String(config.mime_type ?? "text/plain")
+    const content = typeof data === "string" ? data : JSON.stringify(data)
+    return { 
+      file_name: fileName, 
+      mime_type: mimeType, 
+      data: content, 
+      size: content.length,
+      binary: Buffer.from(content).toString("base64")
+    }
+  },
+
+  // ── Extract from File ────────────────────────────────────────────────────────
+  extract_from_file: async (config, ctx) => {
+    const data = config.data ?? ctx.$input.data ?? ctx.$input.binary
+    const mimeType = String(config.mime_type ?? "text/plain")
+    let content: string
+    if (typeof data === "string") {
+      content = data
+    } else if (data && typeof data === "object" && "binary" in data) {
+      content = Buffer.from((data as { binary: string }).binary, "base64").toString()
+    } else {
+      content = JSON.stringify(data)
+    }
+    return { content, mime_type: mimeType, size: content.length }
+  },
+
+  // ── Item Lists (split by separator) ───────────────────────────────────────────
+  item_lists: async (config, ctx) => {
+    const input = String(config.input ?? ctx.$input.text ?? ctx.$input.content ?? "")
+    const separator = String(config.separator ?? "\n")
+    const items = input.split(separator).map(s => s.trim()).filter(Boolean)
+    return { items, count: items.length, original: input }
+  },
+
+  // ── Limit (truncate array) ────────────────────────────────────────────────────
+  limit: async (config, ctx) => {
+    const arr = (config.array ?? ctx.$input.array ?? ctx.$input.items ?? []) as unknown[]
+    const maxItems = Number(config.max_items ?? 10)
+    const limited = arr.slice(0, maxItems)
+    return { result: limited, count: limited.length, original_count: arr.length, truncated: arr.length > maxItems }
+  },
+
+  // ── Read Write File ───────────────────────────────────────────────────────────
+  read_write_file: async (config, ctx) => {
+    const operation = String(config.operation ?? "read")
+    const filePath = String(config.file_path ?? "")
+    
+    if (operation === "read") {
+      return { 
+        content: null, 
+        error: "File read requires Midas Bridge for local file system access",
+        path: filePath 
+      }
+    }
+    if (operation === "write") {
+      const content = String(config.content ?? "")
+      return { 
+        written: false, 
+        error: "File write requires Midas Bridge for local file system access",
+        path: filePath,
+        size: content.length
+      }
+    }
+    return { error: "Unknown file operation" }
+  },
+
+  // ── Google Sheets ────────────────────────────────────────────────────────────
+  google_sheets: async (config, ctx) => {
+    const accessToken = String(config.access_token ?? ctx.$env.google_sheets_access_token ?? ctx.$env.google ?? "")
+    const spreadsheetId = String(config.spreadsheet_id ?? "")
+    const op = String(config.operation ?? "read")
+    
+    if (!accessToken) throw new Error("Google Sheets access token required")
+    if (!spreadsheetId) throw new Error("Spreadsheet ID required")
+    
+    const headers = { "Authorization": `Bearer ${accessToken}`, "Content-Type": "application/json" }
+    const base = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`
+    
+    if (op === "read") {
+      const range = String(config.range ?? "Sheet1!A1:Z100")
+      const res = await fetch(`${base}/values/${range}`, { headers })
+      if (!res.ok) throw new Error(`Google Sheets error: ${res.status}`)
+      const data = await res.json() as { values: string[][]; range: string }
+      return { values: data.values, range: data.range, count: data.values.length }
+    }
+    if (op === "append") {
+      const range = String(config.range ?? "Sheet1!A1")
+      const values = config.values ?? []
+      const res = await fetch(`${base}/values/${range}:append?valueInputOption=USER_ENTERED`, {
+        method: "POST", headers, body: JSON.stringify({ values }),
+      })
+      if (!res.ok) throw new Error(`Google Sheets error: ${res.status}`)
+      const data = await res.json() as { updates: { updatedRows: number } }
+      return { updated_rows: data.updates.updatedRows, success: true }
+    }
+    if (op === "update") {
+      const range = String(config.range ?? "Sheet1!A1")
+      const values = config.values ?? []
+      const res = await fetch(`${base}/values/${range}?valueInputOption=USER_ENTERED`, {
+        method: "PUT", headers, body: JSON.stringify({ values }),
+      })
+      if (!res.ok) throw new Error(`Google Sheets error: ${res.status}`)
+      const data = await res.json() as { updatedRows: number }
+      return { updated_rows: data.updatedRows, success: true }
+    }
+    throw new Error(`Unknown Google Sheets operation: ${op}`)
+  },
+
+  // ── Google Drive ─────────────────────────────────────────────────────────────
+  google_drive: async (config, ctx) => {
+    const accessToken = String(config.access_token ?? ctx.$env.google_drive_access_token ?? ctx.$env.google ?? "")
+    const op = String(config.operation ?? "list_files")
+    
+    if (!accessToken) throw new Error("Google Drive access token required")
+    
+    const headers = { "Authorization": `Bearer ${accessToken}`, "Content-Type": "application/json" }
+    
+    if (op === "list_files") {
+      const query = String(config.query ?? "")
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&pageSize=100`, { headers })
+      if (!res.ok) throw new Error(`Google Drive error: ${res.status}`)
+      const data = await res.json() as { files: Array<{ id: string; name: string; mimeType: string }> }
+      return { files: data.files, count: data.files.length }
+    }
+    if (op === "get_file") {
+      const fileId = String(config.file_id ?? "")
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers })
+      if (!res.ok) throw new Error(`Google Drive error: ${res.status}`)
+      const content = await res.text()
+      return { content, file_id: fileId }
+    }
+    if (op === "upload_file") {
+      const fileName = String(config.file_name ?? "file.txt")
+      const mimeType = String(config.mime_type ?? "text/plain")
+      const content = String(config.content ?? "")
+      
+      // Create file metadata
+      const metaRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable", {
+        method: "POST", headers, body: JSON.stringify({ name: fileName, mimeType }),
+      })
+      if (!metaRes.ok) throw new Error(`Google Drive error: ${metaRes.status}`)
+      const uploadUrl = metaRes.headers.get("Location")
+      
+      if (!uploadUrl) throw new Error("Failed to get upload URL from Google Drive")
+      
+      // Upload content
+      const uploadRes = await fetch(uploadUrl, {
+        method: "POST", headers: { ...headers, "Content-Type": mimeType }, body: content,
+      })
+      if (!uploadRes.ok) throw new Error(`Google Drive upload error: ${uploadRes.status}`)
+      const data = await uploadRes.json() as { id: string }
+      return { file_id: data.id, name: fileName, success: true }
+    }
+    throw new Error(`Unknown Google Drive operation: ${op}`)
+  },
+
+  // ── Gmail ───────────────────────────────────────────────────────────────────
+  gmail: async (config, ctx) => {
+    const accessToken = String(config.access_token ?? ctx.$env.gmail_access_token ?? ctx.$env.google ?? "")
+    const op = String(config.operation ?? "list_messages")
+    
+    if (!accessToken) throw new Error("Gmail access token required")
+    
+    const headers = { "Authorization": `Bearer ${accessToken}`, "Content-Type": "application/json" }
+    
+    if (op === "list_messages") {
+      const query = String(config.query ?? "")
+      const maxResults = Number(config.max_results ?? 10)
+      const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=${maxResults}`, { headers })
+      if (!res.ok) throw new Error(`Gmail error: ${res.status}`)
+      const data = await res.json() as { messages: Array<{ id: string; threadId: string }> }
+      return { messages: data.messages, count: data.messages.length }
+    }
+    if (op === "get_message") {
+      const messageId = String(config.message_id ?? "")
+      const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}`, { headers })
+      if (!res.ok) throw new Error(`Gmail error: ${res.status}`)
+      const data = await res.json() as { id: string; threadId: string; snippet: string; payload: Record<string, unknown> }
+      return { message: data, id: data.id, snippet: data.snippet }
+    }
+    if (op === "send_email") {
+      const to = String(config.to ?? "")
+      const subject = String(config.subject ?? "")
+      const body = String(config.body ?? "")
+      const raw = Buffer.from(`To: ${to}\r\nSubject: ${subject}\r\n\r\n${body}`).toString("base64")
+      const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+        method: "POST", headers, body: JSON.stringify({ raw }),
+      })
+      if (!res.ok) throw new Error(`Gmail error: ${res.status}`)
+      const data = await res.json() as { id: string }
+      return { message_id: data.id, to, subject, success: true }
+    }
+    throw new Error(`Unknown Gmail operation: ${op}`)
+  },
+
+  // ── Redis ────────────────────────────────────────────────────────────────────
+  redis: async (config, ctx) => {
+    const host = String(config.host ?? ctx.$env.redis_host ?? "localhost")
+    const port = Number(config.port ?? ctx.$env.redis_port ?? 6379)
+    const password = String(config.password ?? ctx.$env.redis_password ?? "")
+    const op = String(config.operation ?? "get")
+    const key = String(config.key ?? "")
+    
+    // Redis requires a client library - this is a simplified simulation
+    // In production, use ioredis or redis package
+    if (op === "get") {
+      return { value: null, key, note: "Redis operations require Redis client library" }
+    }
+    if (op === "set") {
+      const value = config.value ?? ""
+      return { key, value, note: "Redis operations require Redis client library" }
+    }
+    if (op === "delete") {
+      return { key, deleted: false, note: "Redis operations require Redis client library" }
+    }
+    throw new Error(`Unknown Redis operation: ${op}`)
+  },
+
+  // ── PostgreSQL ───────────────────────────────────────────────────────────────
+  postgres: async (config, ctx) => {
+    const connectionString = String(config.connection_string ?? ctx.$env.postgres_connection_string ?? "")
+    const op = String(config.operation ?? "query")
+    const query = String(config.query ?? "")
+    
+    if (!connectionString) throw new Error("PostgreSQL connection string required")
+    
+    // PostgreSQL requires pg or pg-promise library - this is a simplified simulation
+    if (op === "query") {
+      return { rows: [], count: 0, note: "PostgreSQL operations require pg client library" }
+    }
+    throw new Error(`Unknown PostgreSQL operation: ${op}`)
+  },
+
+  // ── HubSpot ─────────────────────────────────────────────────────────────────
+  hubspot: async (config, ctx) => {
+    const apiKey = String(config.api_key ?? ctx.$env.hubspot_api_key ?? ctx.$env.hubspot ?? "")
+    const op = String(config.operation ?? "get_contact")
+    
+    if (!apiKey) throw new Error("HubSpot API key required")
+    
+    const headers = { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" }
+    
+    if (op === "get_contact") {
+      const contactId = String(config.contact_id ?? "")
+      const res = await fetch(`https://api.hubapi.com/crm/v3/objects/contacts/${contactId}`, { headers })
+      if (!res.ok) throw new Error(`HubSpot error: ${res.status}`)
+      return await res.json() as Record<string, unknown>
+    }
+    if (op === "list_contacts") {
+      const res = await fetch("https://api.hubapi.com/crm/v3/objects/contacts?limit=100", { headers })
+      if (!res.ok) throw new Error(`HubSpot error: ${res.status}`)
+      const data = await res.json() as { results: unknown[] }
+      return { contacts: data.results, count: data.results.length }
+    }
+    throw new Error(`Unknown HubSpot operation: ${op}`)
+  },
+
+  // ── n8n (n8n workflow execution) ─────────────────────────────────────────────
+  n8n: async (config, ctx) => {
+    const webhookUrl = String(config.webhook_url ?? ctx.$env.n8n_webhook_url ?? "")
+    const data = config.data ?? ctx.$input
+    
+    if (!webhookUrl) throw new Error("n8n webhook URL required")
+    
+    const res = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    })
+    
+    if (!res.ok) throw new Error(`n8n error: ${res.status}`)
+    const responseData = await res.json() as Record<string, unknown>
+    return { response: responseData, success: true }
+  },
+
+  // ── Jira ─────────────────────────────────────────────────────────────────────
+  jira: async (config, ctx) => {
+    const email = String(config.email ?? ctx.$env.jira_email ?? "")
+    const apiToken = String(config.api_token ?? ctx.$env.jira_api_token ?? ctx.$env.jira ?? "")
+    const baseUrl = String(config.base_url ?? ctx.$env.jira_base_url ?? "")
+    const op = String(config.operation ?? "get_issue")
+    
+    if (!email || !apiToken || !baseUrl) throw new Error("Jira credentials required")
+    
+    const auth = Buffer.from(`${email}:${apiToken}`).toString("base64")
+    const headers = { "Authorization": `Basic ${auth}`, "Content-Type": "application/json" }
+    
+    if (op === "get_issue") {
+      const issueKey = String(config.issue_key ?? "")
+      const res = await fetch(`${baseUrl}/rest/api/3/issue/${issueKey}`, { headers })
+      if (!res.ok) throw new Error(`Jira error: ${res.status}`)
+      return await res.json() as Record<string, unknown>
+    }
+    if (op === "list_issues") {
+      const jql = String(config.jql ?? "assignee = currentUser()")
+      const res = await fetch(`${baseUrl}/rest/api/3/search?jql=${encodeURIComponent(jql)}&maxResults=50`, { headers })
+      if (!res.ok) throw new Error(`Jira error: ${res.status}`)
+      const data = await res.json() as { issues: unknown[] }
+      return { issues: data.issues, count: data.issues.length }
+    }
+    throw new Error(`Unknown Jira operation: ${op}`)
+  },
+
+  // ── Microsoft Outlook ───────────────────────────────────────────────────────
+  microsoft_outlook: async (config, ctx) => {
+    const accessToken = String(config.access_token ?? ctx.$env.microsoft_outlook_access_token ?? ctx.$env.microsoft ?? "")
+    const op = String(config.operation ?? "list_messages")
+    
+    if (!accessToken) throw new Error("Microsoft Outlook access token required")
+    
+    const headers = { "Authorization": `Bearer ${accessToken}`, "Content-Type": "application/json" }
+    
+    if (op === "list_messages") {
+      const res = await fetch("https://graph.microsoft.com/v1.0/me/messages?$top=50", { headers })
+      if (!res.ok) throw new Error(`Outlook error: ${res.status}`)
+      const data = await res.json() as { value: unknown[] }
+      return { messages: data.value, count: data.value.length }
+    }
+    if (op === "send_email") {
+      const to = String(config.to ?? "")
+      const subject = String(config.subject ?? "")
+      const body = String(config.body ?? "")
+      const res = await fetch("https://graph.microsoft.com/v1.0/me/sendMail", {
+        method: "POST", headers, body: JSON.stringify({
+          message: { subject, body: { content: body, contentType: "Text" } },
+          toRecipients: [{ emailAddress: { address: to } }],
+        }),
+      })
+      if (!res.ok) throw new Error(`Outlook error: ${res.status}`)
+      return { success: true, to, subject }
+    }
+    throw new Error(`Unknown Outlook operation: ${op}`)
+  },
+
+  // ── OpenAI (AI chat) ─────────────────────────────────────────────────────────
+  openai: async (config, ctx) => {
+    const apiKey = String(config.api_key ?? ctx.$env.openai_api_key ?? ctx.$env.ai_provider ?? "")
+    const prompt = String(config.prompt ?? ctx.$input.prompt ?? "")
+    const model = String(config.model ?? "gpt-4o-mini")
+    
+    if (!apiKey) throw new Error("OpenAI API key required")
+    
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 1024,
+      }),
+    })
+    
+    if (!res.ok) throw new Error(`OpenAI error: ${res.status}`)
+    const data = await res.json() as { choices: Array<{ message: { content: string } }> }
+    return { response: data.choices[0].message.content, model }
+  },
+
+  // ── Telegram Trigger ────────────────────────────────────────────────────────
+  telegram_trigger: async (config, ctx) => {
+    const update = ctx.$input as Record<string, unknown>
+    const message = update.message as Record<string, unknown> | undefined
+    const chat = message?.chat as Record<string, unknown> | undefined
+    return { triggered: true, update, chat_id: chat?.id }
+  },
+
+  // ── Form ────────────────────────────────────────────────────────────────────
+  form: async (config, ctx) => {
+    const formData = config.form_data ?? ctx.$input
+    return { form_data: formData, submitted: true }
+  },
+
+  // ── Gmail Trigger ────────────────────────────────────────────────────────────
+  gmail_trigger: async (config, ctx) => {
+    const message = ctx.$input as Record<string, unknown>
+    return { triggered: true, message, message_id: message.id }
+  },
+
+  // ── Gmail Tool ────────────────────────────────────────────────────────────────
+  gmail_tool: async (config, ctx) => {
+    const accessToken = String(config.access_token ?? ctx.$env.gmail_access_token ?? ctx.$env.google ?? "")
+    const op = String(config.operation ?? "get_thread")
+    
+    if (!accessToken) throw new Error("Gmail access token required")
+    
+    const headers = { "Authorization": `Bearer ${accessToken}`, "Content-Type": "application/json" }
+    
+    if (op === "get_thread") {
+      const threadId = String(config.thread_id ?? "")
+      const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}`, { headers })
+      if (!res.ok) throw new Error(`Gmail error: ${res.status}`)
+      return await res.json() as Record<string, unknown>
+    }
+    if (op === "modify_thread") {
+      const threadId = String(config.thread_id ?? "")
+      const addLabels = config.add_labels ?? []
+      const removeLabels = config.remove_labels ?? []
+      const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}/modify`, {
+        method: "POST", headers, body: JSON.stringify({ addLabelIds: addLabels, removeLabelIds: removeLabels }),
+      })
+      if (!res.ok) throw new Error(`Gmail error: ${res.status}`)
+      return await res.json() as Record<string, unknown>
+    }
+    throw new Error(`Unknown Gmail Tool operation: ${op}`)
+  },
+
+  // ── Supabase ─────────────────────────────────────────────────────────────────
+  supabase: async (config, ctx) => {
+    const url = String(config.supabase_url ?? ctx.$env.supabase_url ?? "")
+    const key = String(config.supabase_key ?? ctx.$env.supabase_api_key ?? ctx.$env.supabase ?? "")
+    const table = String(config.table ?? "")
+    const op = String(config.operation ?? "select")
+    
+    if (!url || !key) throw new Error("Supabase URL and API key required")
+    
+    const headers = { "Authorization": `Bearer ${key}`, "apikey": key, "Content-Type": "application/json" }
+    const base = `${url}/rest/v1/${table}`
+    
+    if (op === "select") {
+      const cols = String(config.columns ?? "*")
+      const limit = Number(config.limit ?? 100)
+      const res = await fetch(`${base}?select=${cols}&limit=${limit}`, { headers })
+      if (!res.ok) throw new Error(`Supabase error: ${res.status}`)
+      const data = await res.json() as unknown[]
+      return { data, count: data.length }
+    }
+    if (op === "insert") {
+      const res = await fetch(base, { method: "POST", headers, body: JSON.stringify(config.data ?? {}) })
+      if (!res.ok) throw new Error(`Supabase insert error: ${res.status}`)
+      return await res.json() as Record<string, unknown>
+    }
+    if (op === "update") {
+      const filter = config.filter ? `?${Object.entries(config.filter as Record<string, string>).map(([k, v]) => `${k}=eq.${v}`).join("&")}` : ""
+      const res = await fetch(`${base}${filter}`, { method: "PATCH", headers, body: JSON.stringify(config.data ?? {}) })
+      if (!res.ok) throw new Error(`Supabase update error: ${res.status}`)
+      return await res.json() as Record<string, unknown>
+    }
+    if (op === "delete") {
+      const filter = config.filter ? `?${Object.entries(config.filter as Record<string, string>).map(([k, v]) => `${k}=eq.${v}`).join("&")}` : ""
+      const res = await fetch(`${base}${filter}`, { method: "DELETE", headers })
+      if (!res.ok) throw new Error(`Supabase delete error: ${res.status}`)
+      return { deleted: true }
+    }
+    throw new Error(`Unknown Supabase operation: ${op}`)
+  },
+
+  // ── Spotify ───────────────────────────────────────────────────────────────────
+  spotify: async (config, ctx) => {
+    const accessToken = String(config.access_token ?? ctx.$env.spotify_access_token ?? ctx.$env.spotify ?? "")
+    const op = String(config.operation ?? "get_track")
+    
+    if (!accessToken) throw new Error("Spotify access token required")
+    
+    const headers = { "Authorization": `Bearer ${accessToken}`, "Content-Type": "application/json" }
+    
+    if (op === "get_track") {
+      const trackId = String(config.track_id ?? "")
+      const res = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, { headers })
+      if (!res.ok) throw new Error(`Spotify error: ${res.status}`)
+      return await res.json() as Record<string, unknown>
+    }
+    if (op === "search") {
+      const query = String(config.query ?? "")
+      const type = String(config.type ?? "track")
+      const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=${type}&limit=20`, { headers })
+      if (!res.ok) throw new Error(`Spotify error: ${res.status}`)
+      return await res.json() as Record<string, unknown>
+    }
+    throw new Error(`Unknown Spotify operation: ${op}`)
+  },
+
+  // ── Google Calendar ─────────────────────────────────────────────────────────
+  google_calendar: async (config, ctx) => {
+    const accessToken = String(config.access_token ?? ctx.$env.google_calendar_access_token ?? ctx.$env.google ?? "")
+    const op = String(config.operation ?? "list_events")
+    
+    if (!accessToken) throw new Error("Google Calendar access token required")
+    
+    const headers = { "Authorization": `Bearer ${accessToken}`, "Content-Type": "application/json" }
+    
+    if (op === "list_events") {
+      const calendarId = String(config.calendar_id ?? "primary")
+      const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?maxResults=50`, { headers })
+      if (!res.ok) throw new Error(`Google Calendar error: ${res.status}`)
+      const data = await res.json() as { items: unknown[] }
+      return { events: data.items, count: data.items.length }
+    }
+    if (op === "create_event") {
+      const calendarId = String(config.calendar_id ?? "primary")
+      const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`, {
+        method: "POST", headers, body: JSON.stringify({
+          summary: config.summary,
+          start: config.start,
+          end: config.end,
+        }),
+      })
+      if (!res.ok) throw new Error(`Google Calendar error: ${res.status}`)
+      return await res.json() as Record<string, unknown>
+    }
+    throw new Error(`Unknown Google Calendar operation: ${op}`)
+  },
+
+  // ── Pipedrive ────────────────────────────────────────────────────────────────
+  pipedrive: async (config, ctx) => {
+    const apiKey = String(config.api_key ?? ctx.$env.pipedrive_api_key ?? ctx.$env.pipedrive ?? "")
+    const companyDomain = String(config.company_domain ?? ctx.$env.pipedrive_company_domain ?? "")
+    const op = String(config.operation ?? "get_deal")
+    
+    if (!apiKey || !companyDomain) throw new Error("Pipedrive API key and company domain required")
+    
+    const headers = { "Content-Type": "application/json" }
+    
+    if (op === "get_deal") {
+      const dealId = String(config.deal_id ?? "")
+      const res = await fetch(`https://${companyDomain}.pipedrive.com/api/v1/deals/${dealId}?api_token=${apiKey}`, { headers })
+      if (!res.ok) throw new Error(`Pipedrive error: ${res.status}`)
+      return await res.json() as Record<string, unknown>
+    }
+    if (op === "list_deals") {
+      const res = await fetch(`https://${companyDomain}.pipedrive.com/api/v1/deals?api_token=${apiKey}&limit=50`, { headers })
+      if (!res.ok) throw new Error(`Pipedrive error: ${res.status}`)
+      const data = await res.json() as { data: unknown[] }
+      return { deals: data.data, count: data.data.length }
+    }
+    throw new Error(`Unknown Pipedrive operation: ${op}`)
+  },
+
+  // ── Edit Image ─────────────────────────────────────────────────────────────
+  edit_image: async (config, ctx) => {
+    const imageData = config.image_data ?? ctx.$input.image_data ?? ctx.$input.binary
+    const operation = String(config.operation ?? "resize")
+    
+    // Image editing requires image processing library - this is a placeholder
+    return { 
+      image_data: imageData, 
+      operation, 
+      processed: false, 
+      note: "Image editing requires canvas or sharp library for full functionality"
+    }
+  },
+
+  // ── Mattermost ───────────────────────────────────────────────────────────────
+  mattermost: async (config, ctx) => {
+    const webhookUrl = String(config.webhook_url ?? ctx.$env.mattermost_webhook_url ?? ctx.$env.mattermost ?? "")
+    const op = String(config.operation ?? "send_message")
+    
+    if (!webhookUrl) throw new Error("Mattermost webhook URL required")
+    
+    if (op === "send_message") {
+      const text = String(config.text ?? ctx.$input.text ?? "")
+      const channel = String(config.channel ?? "")
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, channel }),
+      })
+      if (!res.ok) throw new Error(`Mattermost error: ${res.status}`)
+      return await res.json() as Record<string, unknown>
+    }
+    throw new Error(`Unknown Mattermost operation: ${op}`)
+  },
+
+  // ── YouTube ────────────────────────────────────────────────────────────────
+  youtube: async (config, ctx) => {
+    const apiKey = String(config.api_key ?? ctx.$env.youtube_api_key ?? ctx.$env.google ?? "")
+    const op = String(config.operation ?? "get_video")
+    
+    if (!apiKey) throw new Error("YouTube API key required")
+    
+    if (op === "get_video") {
+      const videoId = String(config.video_id ?? "")
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${apiKey}&part=snippet,contentDetails`)
+      if (!res.ok) throw new Error(`YouTube error: ${res.status}`)
+      const data = await res.json() as { items: unknown[] }
+      return { video: data.items[0] ?? null, video_id: videoId }
+    }
+    if (op === "search") {
+      const query = String(config.query ?? "")
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/search?q=${encodeURIComponent(query)}&key=${apiKey}&part=snippet&maxResults=25`)
+      if (!res.ok) throw new Error(`YouTube error: ${res.status}`)
+      const data = await res.json() as { items: unknown[] }
+      return { results: data.items, count: data.items.length }
+    }
+    throw new Error(`Unknown YouTube operation: ${op}`)
+  },
+
+  // ── Function Item ────────────────────────────────────────────────────────────
+  function_item: async (config, ctx) => {
+    const code = String(config.code ?? config.function_code ?? "return $input;")
+    const item = config.item ?? ctx.$input.item ?? ctx.$input
+    
+    try {
+      // eslint-disable-next-line no-new-func
+      const fn = new Function("$item", "$input", "$node", `"use strict"; ${code}`)
+      const result = fn(item, ctx.$input, ctx.$node)
+      return { result: result ?? null, item, output: result }
+    } catch (err) {
+      throw new Error(`Function Item error: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  },
+
+  // ── WordPress ────────────────────────────────────────────────────────────────
+  wordpress: async (config, ctx) => {
+    const apiUrl = String(config.api_url ?? ctx.$env.wordpress_api_url ?? "")
+    const username = String(config.username ?? ctx.$env.wordpress_username ?? "")
+    const password = String(config.password ?? ctx.$env.wordpress_password ?? "")
+    const op = String(config.operation ?? "get_posts")
+    
+    if (!apiUrl) throw new Error("WordPress API URL required")
+    
+    const auth = Buffer.from(`${username}:${password}`).toString("base64")
+    const headers = { "Authorization": `Basic ${auth}`, "Content-Type": "application/json" }
+    
+    if (op === "get_posts") {
+      const res = await fetch(`${apiUrl}/wp/v2/posts?per_page=20`, { headers })
+      if (!res.ok) throw new Error(`WordPress error: ${res.status}`)
+      const data = await res.json() as unknown[]
+      return { posts: data, count: data.length }
+    }
+    if (op === "create_post") {
+      const res = await fetch(`${apiUrl}/wp/v2/posts`, {
+        method: "POST", headers, body: JSON.stringify({
+          title: config.title,
+          content: config.content,
+          status: config.status ?? "draft",
+        }),
+      })
+      if (!res.ok) throw new Error(`WordPress error: ${res.status}`)
+      return await res.json() as Record<string, unknown>
+    }
+    throw new Error(`Unknown WordPress operation: ${op}`)
+  },
+
+  // ── Summarize ───────────────────────────────────────────────────────────────
+  summarize: async (config, ctx) => {
+    const text = String(config.text ?? ctx.$input.text ?? ctx.$input.content ?? "")
+    const maxLength = Number(config.max_length ?? 200)
+    
+    // Simple summarization - truncate to max length
+    const summary = text.length > maxLength 
+      ? text.substring(0, maxLength).trim() + "..." 
+      : text
+    
+    return { 
+      summary, 
+      original_length: text.length, 
+      summary_length: summary.length,
+      note: "Full summarization requires AI integration"
+    }
+  },
+
+  // ── WhatsApp ────────────────────────────────────────────────────────────────
+  whatsapp: async (config, ctx) => {
+    const apiKey = String(config.api_key ?? ctx.$env.whatsapp_api_key ?? ctx.$env.whatsapp ?? "")
+    const phoneNumber = String(config.phone_number ?? ctx.$input.phone_number ?? "")
+    const op = String(config.operation ?? "send_message")
+    
+    if (!apiKey) throw new Error("WhatsApp API key required")
+    
+    const headers = { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" }
+    
+    if (op === "send_message") {
+      const message = String(config.message ?? ctx.$input.message ?? "")
+      const res = await fetch(`https://graph.facebook.com/v17.0/${phoneNumber}/messages`, {
+        method: "POST", headers, body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: phoneNumber,
+          text: { body: message },
+        }),
+      })
+      if (!res.ok) throw new Error(`WhatsApp error: ${res.status}`)
+      return await res.json() as Record<string, unknown>
+    }
+    throw new Error(`Unknown WhatsApp operation: ${op}`)
+  },
+
+  // ── Read Binary File ────────────────────────────────────────────────────────
+  read_binary_file: async (config, ctx) => {
+    const filePath = String(config.file_path ?? ctx.$input.file_path ?? "")
+    
+    if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
+      const res = await fetch(filePath)
+      if (!res.ok) throw new Error(`Could not fetch: ${res.status}`)
+      const buffer = await res.arrayBuffer()
+      const base64 = Buffer.from(buffer).toString("base64")
+      return { 
+        binary: base64, 
+        size: buffer.byteLength, 
+        path: filePath,
+        mime_type: res.headers.get("content-type") ?? "application/octet-stream"
+      }
+    }
+    
+    return { 
+      binary: null, 
+      error: "Local file read requires Midas Bridge", 
+      path: filePath 
+    }
+  },
+
+  // ── Clockify ────────────────────────────────────────────────────────────────
+  clockify: async (config, ctx) => {
+    const apiKey = String(config.api_key ?? ctx.$env.clockify_api_key ?? ctx.$env.clockify ?? "")
+    const workspaceId = String(config.workspace_id ?? ctx.$env.clockify_workspace_id ?? "")
+    const op = String(config.operation ?? "list_time_entries")
+    
+    if (!apiKey || !workspaceId) throw new Error("Clockify API key and workspace ID required")
+    
+    const headers = { "X-Api-Key": apiKey, "Content-Type": "application/json" }
+    
+    if (op === "list_time_entries") {
+      const res = await fetch(`https://api.clockify.me/api/v1/workspaces/${workspaceId}/time-entries`, { headers })
+      if (!res.ok) throw new Error(`Clockify error: ${res.status}`)
+      const data = await res.json() as unknown[]
+      return { time_entries: data, count: data.length }
+    }
+    throw new Error(`Unknown Clockify operation: ${op}`)
+  },
+
+  // ── MongoDB ────────────────────────────────────────────────────────────────
+  mongo_db: async (config, ctx) => {
+    const connectionString = String(config.connection_string ?? ctx.$env.mongo_connection_string ?? "")
+    const op = String(config.operation ?? "find")
+    
+    if (!connectionString) throw new Error("MongoDB connection string required")
+    
+    // MongoDB requires mongodb driver - this is a placeholder
+    if (op === "find") {
+      return { documents: [], count: 0, note: "MongoDB operations require mongodb driver" }
+    }
+    throw new Error(`Unknown MongoDB operation: ${op}`)
+  },
+
   // ── Default: pass-through for unimplemented executors ──────────────────────
   default: async (config, ctx) => ({
     result: null,
