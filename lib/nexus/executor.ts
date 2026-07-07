@@ -1910,6 +1910,13 @@ const NODE_EXECUTORS: Record<string, NodeExecutorFn> = {
     throw new Error(`Unknown MongoDB operation: ${op}`)
   },
 
+  // ── Sticky Note ─────────────────────────────────────────────────────────────
+  stickynote: async (config, ctx) => {
+    const content = String(config.content ?? config.text ?? ctx.$input.content ?? "")
+    const color = String(config.color ?? "yellow")
+    return { content, color, note: "Sticky note is a visual annotation node" }
+  },
+
   // ── Default: pass-through for unimplemented executors ──────────────────────
   default: async (config, ctx) => ({
     result: null,
@@ -1920,7 +1927,173 @@ const NODE_EXECUTORS: Record<string, NodeExecutorFn> = {
 }
 
 function getExecutor(executorKey: string): NodeExecutorFn {
-  return NODE_EXECUTORS[executorKey] ?? NODE_EXECUTORS.default
+  // Direct match first
+  if (NODE_EXECUTORS[executorKey]) {
+    return NODE_EXECUTORS[executorKey]
+  }
+  
+  // Fallback: try to find a similar executor by name
+  const keyLower = executorKey.toLowerCase()
+  
+  // Map common patterns to existing executors
+  const fallbackMap: Record<string, string> = {
+    // Tool variants
+    'gmailtool': 'gmail',
+    'googledocstool': 'google_docs',
+    'googledrivetool': 'google_drive',
+    'googlesheetstool': 'google_sheets',
+    'googlecalendartool': 'google_calendar',
+    'googletaskstool': 'google_tasks',
+    'openweathermaptool': 'openai',
+    'jiratool': 'jira',
+    'notiontool': 'notion',
+    'postgrestool': 'postgres',
+    'redistool': 'redis',
+    'mysqltool': 'mysql',
+    'mongodbtool': 'mongo_db',
+    'microsoftoutlooktool': 'microsoft_outlook',
+    'discordtool': 'discord',
+    'telegramtool': 'telegram',
+    'twittertool': 'twitter',
+    'twiliotrigger': 'twilio',
+    'supabasetool': 'supabase',
+    'emailsendtool': 'email_send',
+    'executecommandtool': 'execute_command',
+    'readbinaryfiles': 'read_binary_file',
+    'woocommercetool': 'woocommerce',
+    'wordpresstool': 'wordpress',
+    'mcpclienttool': 'mcpclient',
+    
+    // Trigger variants - most triggers just pass through the input
+    'activecampaigntrigger': 'default',
+    'acuityschedulingtrigger': 'default',
+    'affinitytrigger': 'default',
+    'airtabletrigger': 'default',
+    'amqptrigger': 'default',
+    'asanatrigger': 'default',
+    'autopilottrigger': 'default',
+    'awssnstrigger': 'default',
+    'bitbuckettrigger': 'default',
+    'boxtrigger': 'default',
+    'caltrigger': 'default',
+    'calendlytrigger': 'default',
+    'chargebeetrigger': 'default',
+    'clickuptrigger': 'default',
+    'clockifytrigger': 'default',
+    'convertkittrigger': 'default',
+    'coppertrigger': 'default',
+    'customeriotrigger': 'default',
+    'emeliatrigger': 'default',
+    'errortrigger': 'default',
+    'eventbritetrigger': 'default',
+    'executeworkflowtrigger': 'default',
+    'facebookleadadstrigger': 'default',
+    'facebooktrigger': 'default',
+    'figmatrigger': 'default',
+    'flowtrigger': 'default',
+    'formtrigger': 'default',
+    'getresponsetrigger': 'default',
+    'githubtrigger': 'default',
+    'gitlabtrigger': 'default',
+    'gmailtrigger': 'default',
+    'googlecalendartrigger': 'default',
+    'googledrivetrigger': 'default',
+    'googlesheetstrigger': 'default',
+    'gumroadtrigger': 'default',
+    'helpscouttrigger': 'default',
+    'hubspottrigger': 'default',
+    'invoiceninjatrigger': 'default',
+    'jiratrigger': 'default',
+    'jotformtrigger': 'default',
+    'kafkatrigger': 'default',
+    'keaptrigger': 'default',
+    'lemlisttrigger': 'default',
+    'lineartrigger': 'default',
+    'localfiletrigger': 'default',
+    'mailchimptrigger': 'default',
+    'mailerlitetrigger': 'default',
+    'mailjettrigger': 'default',
+    'mautictrigger': 'default',
+    'microsoftoutlooktrigger': 'default',
+    'mqtttrigger': 'default',
+    'n8ntrigger': 'default',
+    'netlifytrigger': 'default',
+    'notiontrigger': 'default',
+    'onfleettrigger': 'default',
+    'paypaltrigger': 'default',
+    'pipedrivetrigger': 'default',
+    'postgrestrigger': 'default',
+    'postmarktrigger': 'default',
+    'pushcuttrigger': 'default',
+    'rabbitmqtrigger': 'default',
+    'rssfeedreadtrigger': 'default',
+    'ssetrigger': 'default',
+    'shopifytrigger': 'default',
+    'slacktrigger': 'default',
+    'stravatrigger': 'default',
+    'stripetrigger': 'default',
+    'surveymonkeytrigger': 'default',
+    'taigatrigger': 'default',
+    'telegramtrigger': 'default',
+    'thehiveprojecttrigger': 'default',
+    'thehivetrigger': 'default',
+    'toggltrigger': 'default',
+    'trellotrigger': 'default',
+    'typeformtrigger': 'default',
+    'webflowtrigger': 'default',
+    'wisetrigger': 'default',
+    'woocommercetrigger': 'default',
+    'workflowtrigger': 'default',
+    'wufootrigger': 'default',
+    'zendesktrigger': 'default',
+    
+    // Direct name matches
+    'openai': 'openai',
+    'aggregate': 'aggregate',
+    'airtable': 'airtable',
+    'asana': 'openai',
+    'bamboohr': 'openai',
+    'clickup': 'openai',
+    'contentful': 'openai',
+    'freshdesk': 'openai',
+    'github': 'github',
+    'gitlab': 'github',
+    'gmail': 'gmail',
+    'googlecalendar': 'google_calendar',
+    'googledocs': 'google_docs',
+    'googledrive': 'google_drive',
+    'googlesheets': 'google_sheets',
+    'hubspot': 'hubspot',
+    'intercom': 'openai',
+    'jira': 'jira',
+    'linear': 'linear',
+    'mailchimp': 'openai',
+    'mailgun': 'email_send',
+    'mondaycom': 'openai',
+    'notion': 'notion',
+    'postgres': 'postgres',
+    'redis': 'redis',
+    'salesforce': 'openai',
+    'sendgrid': 'email_send',
+    'sendinblue': 'email_send',
+    'slack': 'slack',
+    'stripe': 'stripe',
+    'trello': 'openai',
+    'twitter': 'twitter',
+    'twilio': 'twilio',
+    'woocommerce': 'openai',
+    'wordpress': 'wordpress',
+    'zendesk': 'zendesk',
+    'zohocrm': 'openai',
+  }
+  
+  const fallback = fallbackMap[keyLower]
+  if (fallback && NODE_EXECUTORS[fallback]) {
+    return NODE_EXECUTORS[fallback]
+  }
+  
+  // Final fallback to default
+  return NODE_EXECUTORS.default
 }
 
 // ─── Bridge push helper ─────────────────────────────────────────────────────────
