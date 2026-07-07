@@ -378,6 +378,7 @@ export async function scrapeN8nCategory(
         onProgress?.(i + 1, workflowFiles.length, `Processing: ${file.name}`)
 
         try {
+          console.log(`[${i + 1}/${workflowFiles.length}] Fetching: ${file.name}`)
           const n8nWorkflow = await fetchGitHubFile(file.path)
           const validation = validateN8nWorkflow(n8nWorkflow)
 
@@ -389,11 +390,14 @@ export async function scrapeN8nCategory(
           }
 
           // Generate Nexus definitions for any n8n node types we don't have yet
+          console.log(`[${i + 1}/${workflowFiles.length}] Checking nodes for: ${file.name}`)
           await ensureUnknownNodes(n8nWorkflow, (message) => {
+            console.log(`[${i + 1}/${workflowFiles.length}] ${message}`)
             onProgress?.(i + 1, workflowFiles.length, message)
           })
 
           // Use new compatibility engine pipeline for conversion
+          console.log(`[${i + 1}/${workflowFiles.length}] Converting: ${file.name}`)
           const importResult = await importN8nWorkflow(n8nWorkflow, {
             autoLayout: true,
             preservePositions: false,
@@ -429,14 +433,18 @@ export async function scrapeN8nCategory(
           }
 
           // Generate AI title
+          console.log(`[${i + 1}/${workflowFiles.length}] Generating title for: ${file.name}`)
           onProgress?.(i + 1, workflowFiles.length, `Generating title for: ${file.name}`)
           const titleResult = await generateWorkflowTitle(n8nWorkflowName, n8nWorkflow)
           const seoTitle = titleResult.success && titleResult.content ? titleResult.content : generateFallbackTitle(n8nWorkflowName)
+          console.log(`[${i + 1}/${workflowFiles.length}] Title generated: ${seoTitle}`)
 
           // Generate AI description
+          console.log(`[${i + 1}/${workflowFiles.length}] Generating description for: ${file.name}`)
           onProgress?.(i + 1, workflowFiles.length, `Generating description for: ${file.name}`)
           const descriptionResult = await generateWorkflowDescription(seoTitle, n8nWorkflow)
           const description = descriptionResult.success && descriptionResult.content ? descriptionResult.content : generateFallbackDescription(seoTitle)
+          console.log(`[${i + 1}/${workflowFiles.length}] Description generated`)
 
           // Derive metadata
           const metadata = deriveWorkflowMetadata(n8nWorkflow, categoryName, file.name)
